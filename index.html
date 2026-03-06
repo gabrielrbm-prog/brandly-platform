@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brandly | Brandbook</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700;1,800&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --blue: #1D45D8;
+      --cyan: #00DFFF;
+      --deep: #112B75;
+      --white: #FFFFFF;
+      --gray-light: #F5F5F8;
+      --gray-text: #4A4A6A;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Open Sans', -apple-system, sans-serif;
+      background: var(--white);
+      color: var(--deep);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-heading {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+    }
+
+    .font-heading-italic {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    /* ===== SLIDE SYSTEM ===== */
+    .slide {
+      min-height: 100vh;
+      display: grid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Split layout: blue left, white right */
+    .slide-split {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .slide-blue {
+      background: var(--blue);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide-white {
+      background: var(--white);
+      color: var(--deep);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 80px;
+      position: relative;
+    }
+
+    /* Full blue slide */
+    .slide-full-blue {
+      background: var(--blue);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Full white slide */
+    .slide-full-white {
+      background: var(--white);
+      color: var(--deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+    }
+
+    /* Section number */
+    .section-num {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: clamp(5rem, 10vw, 8rem);
+      line-height: 0.9;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-style: italic;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      line-height: 1.15;
+      color: var(--white);
+    }
+
+    /* Wireframe B pattern (decorative) */
+    .wire-pattern {
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 500px;
+      height: 500px;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .wire-pattern-lg {
+      right: -100px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 700px;
+      height: 700px;
+      opacity: 0.1;
+    }
+
+    /* Tags / Pills */
+    .pill {
+      display: inline-block;
+      padding: 8px 24px;
+      border: 1.5px solid var(--deep);
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--deep);
+      margin: 4px 4px;
+    }
+    .pill-highlight {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(0, 223, 255, 0.05);
+    }
+    .pill-white {
+      border-color: rgba(255,255,255,0.4);
+      color: var(--white);
+    }
+
+    /* Watermark logo */
+    .watermark {
+      position: absolute;
+      bottom: 24px;
+      right: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .watermark img {
+      height: 24px;
+      width: auto;
+    }
+    .watermark span {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--deep);
+    }
+    .watermark-white span { color: var(--white); }
+
+    /* Content styling */
+    .content-text {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: var(--gray-text);
+      max-width: 480px;
+    }
+
+    .content-heading {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-style: italic;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      line-height: 1.2;
+      color: var(--deep);
+      margin-bottom: 24px;
+    }
+
+    .content-list {
+      list-style: none;
+      padding: 0;
+    }
+    .content-list li {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--deep);
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(17,43,117,0.06);
+    }
+    .content-list li:last-child { border: none; }
+
+    .content-italic {
+      font-style: italic;
+      color: var(--gray-text);
+      font-size: 0.95rem;
+      margin-top: 20px;
+    }
+
+    /* Bold blue text */
+    .text-blue { color: var(--blue); }
+    .text-cyan { color: var(--cyan); }
+    .text-bold { font-weight: 700; }
+
+    /* Color blocks for palette section */
+    .color-block {
+      display: flex;
+      min-height: 100vh;
+    }
+    .color-col {
+      flex: 1 1 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 40px;
+      position: relative;
+      min-height: 33vh;
+    }
+    .color-hex {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: 0.02em;
+    }
+    .color-label {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    /* Typography specimen */
+    .type-big {
+      font-size: clamp(4rem, 8vw, 7rem);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .type-name {
+      font-style: italic;
+      font-size: 1.1rem;
+      opacity: 0.8;
+      margin-bottom: 16px;
+    }
+    .type-specimen {
+      font-size: 0.75rem;
+      line-height: 2;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+      border: 1px solid rgba(0,223,255,0.2);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 12px;
+    }
+
+    /* Logo grid */
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      padding: 40px;
+      width: 100%;
+    }
+    .logo-item {
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+    .logo-item:hover { transform: scale(1.02); }
+    .logo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 20px;
+    }
+
+    /* Composition slide */
+    .comp-visual {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .comp-element {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 3rem;
+      color: var(--deep);
+    }
+    .comp-plus {
+      font-size: 2rem;
+      color: var(--gray-text);
+    }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Scroll progress */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      z-index: 100;
+      width: 0%;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 900px) {
+      .slide { min-height: auto; }
+      .slide-split { grid-template-columns: 1fr; }
+      .slide-blue {
+        padding: 48px 32px;
+        min-height: 35vh;
+      }
+      .slide-white {
+        padding: 48px 32px;
+      }
+      .slide-full-blue, .slide-full-white {
+        padding: 48px 32px;
+        min-height: 60vh;
+      }
+      .section-num { font-size: 4rem; }
+      .section-title { font-size: 1.5rem; }
+      .color-col { min-height: 40vh; }
+      .wire-pattern, .wire-pattern-lg { width: 250px; height: 250px; }
+      .content-heading { font-size: 1.4rem !important; }
+      .logo-grid { grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
+      .comp-visual { gap: 16px; }
+      .comp-element { font-size: 2rem; }
+    }
+
+    @media (max-width: 600px) {
+      .slide-blue { padding: 32px 24px; }
+      .slide-white { padding: 32px 24px; }
+      .slide-full-blue, .slide-full-white { padding: 32px 24px; }
+      .logo-grid { grid-template-columns: 1fr; }
+      .content-text { font-size: 0.95rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      html { scroll-snap-type: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ========== COVER ========== -->
+  <section class="slide slide-full-blue" style="flex-direction:column;align-items:flex-start;padding:60px 80px;">
+    <!-- Wireframe pattern -->
+    <svg class="wire-pattern wire-pattern-lg" viewBox="0 0 200 260" fill="none" stroke="#00DFFF" stroke-width="1.5">
+      <rect x="20" y="10" width="130" height="110" rx="20"/>
+      <rect x="50" y="140" width="130" height="110" rx="20"/>
+      <path d="M150 110 C150 130, 50 130, 50 140"/>
+      <rect x="10" y="5" width="140" height="120" rx="24" stroke-dasharray="6 4"/>
+      <rect x="40" y="135" width="140" height="120" rx="24" stroke-dasharray="6 4"/>
+    </svg>
+
+    <div style="flex:1;display:flex;align-items:center;">
+      <div class="reveal">
+        <img src="assets/logos-hq/completa-fundo-azul.png" alt="Brandly - Seu branding viral" style="height:clamp(60px,10vw,120px);width:auto;object-fit:contain;" />
+      </div>
+    </div>
+    <div class="reveal" style="transition-delay:0.3s;">
+      <p class="font-heading" style="font-size:clamp(2rem,4vw,3.5rem);letter-spacing:-0.02em;">Brandbook</p>
+      <p style="font-size:1rem;opacity:0.6;margin-top:8px;">Seu branding viral</p>
+    </div>
+  </section>
+
+  <!-- ========== 01 — O QUE E A BRANDLY ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <svg class="wire-pattern" viewBox="0 0 200 260" fill="none" stroke="#00DFFF" stroke-width="1">
+        <rect x="20" y="10" width="130" height="110" rx="20"/>
+        <rect x="50" y="140" width="130" height="110" rx="20"/>
+        <path d="M150 110 C150 130, 50 130, 50 140"/>
+      </svg>
+      <div class="reveal">
+        <div class="section-num">1</div>
+        <div class="section-title">O que e<br>a Brandly?</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-text" style="margin-bottom:28px;">
+          A Brandly e uma plataforma de construcao de marcas pessoais e comerciais para creators, criada para transformar criadores de conteudo em marcas posicionadas, desejadas e monetizaveis dentro do ecossistema digital, com foco especial no TikTok Shop.
+        </p>
+        <p style="font-weight:600;color:var(--deep);margin-bottom:6px;">A Brandly nao e uma agencia de publi.</p>
+        <p style="font-weight:600;color:var(--deep);margin-bottom:24px;">A Brandly nao e uma plataforma de venda pontual.</p>
+        <p class="content-text" style="margin-bottom:20px;">
+          A Brandly existe para estruturar influencia como ativo de marca, criando:
+        </p>
+        <div style="margin-bottom:20px;">
+          <span class="pill">Posicionamento</span>
+          <span class="pill">Autoridade</span>
+          <span class="pill">Confianca</span>
+          <span class="pill">Relevancia</span>
+        </div>
+        <p class="content-text" style="margin-bottom:8px;">E como consequencia:</p>
+        <span class="pill pill-highlight">vendas consistentes</span>
+        <p class="content-text" style="margin-top:24px;font-style:italic;">
+          A Brandly nasce onde conteudo vira marca, e marca vira negocio.
+        </p>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 02 — O PROBLEMA CENTRAL ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">2</div>
+        <div class="section-title">O problema<br>central do<br>mercado</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-text" style="margin-bottom:24px;">
+          Hoje, a maioria dos creators vive um paradoxo:
+        </p>
+        <ul class="content-list" style="margin-bottom:24px;">
+          <li>Tem audiencia</li>
+          <li style="font-weight:700;color:var(--blue);">Nao tem marca</li>
+          <li style="font-weight:700;color:var(--blue);">Nao tem posicionamento</li>
+          <li style="font-weight:700;color:var(--blue);">Nao tem previsibilidade de receita</li>
+        </ul>
+        <p class="content-text" style="margin-bottom:16px;">Dependem de:</p>
+        <ul class="content-list" style="margin-bottom:32px;">
+          <li>Publi avulsa</li>
+          <li>Algoritmo</li>
+          <li>Tendencias passageiras</li>
+          <li>Preco (e nao valor)</li>
+        </ul>
+        <p style="font-family:'Nunito',sans-serif;font-weight:700;font-style:italic;font-size:1.15rem;color:var(--deep);">
+          Audiencia sem marca e instavel.<br>
+          Venda sem branding e fragil.
+        </p>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 03 — A VISAO ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">3</div>
+        <div class="section-title">A visao<br>da Brandly</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-heading" style="font-size:1.8rem;">
+          Toda audiencia pode se tornar uma marca.<br>
+          Toda marca bem construida vende.
+        </p>
+        <p class="content-text" style="margin-bottom:24px;">A Brandly acredita que:</p>
+        <ul class="content-list">
+          <li><strong class="text-blue">Creator</strong> e empresa</li>
+          <li><strong class="text-blue">Conteudo</strong> e canal</li>
+          <li><strong class="text-blue">Marca</strong> e ativo</li>
+          <li><strong class="text-blue">Venda</strong> e consequencia</li>
+        </ul>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 04 — PROPOSITO ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">4</div>
+        <div class="section-title">Proposito</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-heading">
+          Criar marcas a partir de pessoas.
+        </p>
+        <p class="content-text" style="margin-bottom:24px;">
+          Transformar creators em players reais do mercado, com:
+        </p>
+        <ul class="content-list">
+          <li>Voz propria</li>
+          <li>Proposta clara</li>
+          <li>Estetica reconhecivel</li>
+          <li>Posicionamento defendido</li>
+          <li>Capacidade de gerar valor continuo</li>
+        </ul>
+        <p class="content-italic">
+          Para si, para marcas e para o ecossistema.
+        </p>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 05 — POSICIONAMENTO ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">5</div>
+        <div class="section-title">Posicionamento</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-heading">
+          Brandly e onde a influencia vira marca.
+        </p>
+        <p class="content-text" style="margin-bottom:20px;">
+          Ela ocupa um territorio unico entre:
+        </p>
+        <div style="margin-bottom:24px;">
+          <span class="pill">Influencia</span>
+          <span class="pill">Branding</span>
+          <span class="pill">Performance</span>
+          <span class="pill">Comercio</span>
+        </div>
+        <p class="content-text" style="margin-bottom:8px;">
+          Enquanto plataformas como a BrandLovers conectam creators a campanhas, a Brandly <strong>constroi o creator para o mercado</strong>.
+        </p>
+        <div style="margin-top:32px;padding:24px;border-left:3px solid var(--cyan);background:var(--gray-light);border-radius:0 8px 8px 0;">
+          <p style="font-weight:600;color:var(--deep);">Nao vendemos alcance.</p>
+          <p style="font-weight:700;color:var(--blue);font-size:1.1rem;">Vendemos estrutura de marca.</p>
+        </div>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 06 — PROMESSA CENTRAL ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">6</div>
+        <div class="section-title">Promessa<br>central</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-text" style="margin-bottom:32px;">
+          A Brandly entrega estrutura, clareza e crescimento. Para o creator:
+        </p>
+        <ul class="content-list" style="margin-bottom:32px;">
+          <li style="font-size:1.2rem;">Clareza de quem ele e</li>
+          <li style="font-size:1.2rem;">Clareza de para quem fala</li>
+          <li style="font-size:1.2rem;">Clareza de como monetiza</li>
+        </ul>
+        <p class="content-text" style="margin-bottom:16px;">Para as marcas:</p>
+        <ul class="content-list">
+          <li>Creators com posicionamento</li>
+          <li>Conteudo com narrativa</li>
+          <li>Venda com coerencia</li>
+        </ul>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 07 — METODO BRANDLY ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">7</div>
+        <div class="section-title">Metodo<br>Brandly</div>
+      </div>
+    </div>
+    <div class="slide-white" style="padding-top:40px;padding-bottom:40px;">
+      <div class="reveal" style="width:100%;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px 48px;">
+          <!-- Criar -->
+          <div>
+            <h3 class="font-heading" style="color:var(--deep);font-size:1.4rem;margin-bottom:12px;">Criar</h3>
+            <p style="color:var(--gray-text);font-size:0.9rem;margin-bottom:12px;">Construcao de identidade de marca</p>
+            <ul class="content-list">
+              <li style="padding:8px 0;">Arquetipo</li>
+              <li style="padding:8px 0;">Linguagem</li>
+              <li style="padding:8px 0;">Estetica</li>
+              <li style="padding:8px 0;">Narrativa</li>
+            </ul>
+            <p class="content-italic" style="font-size:0.85rem;">Antes de vender, o creator precisa existir como marca.</p>
+          </div>
+          <!-- Conectar -->
+          <div>
+            <h3 class="font-heading" style="color:var(--deep);font-size:1.4rem;margin-bottom:12px;">Conectar</h3>
+            <p style="color:var(--gray-text);font-size:0.9rem;margin-bottom:12px;">Conexao real com audiencia e mercado</p>
+            <ul class="content-list">
+              <li style="padding:8px 0;">Publico certo</li>
+              <li style="padding:8px 0;">Marcas alinhadas</li>
+              <li style="padding:8px 0;">Produtos com sentido</li>
+            </ul>
+            <p class="content-italic" style="font-size:0.85rem;">Nao e sobre alcance.<br>E sobre afinidade e verdade.</p>
+          </div>
+          <!-- Evoluir -->
+          <div style="grid-column:1 / -1;">
+            <h3 class="font-heading" style="color:var(--deep);font-size:1.4rem;margin-bottom:12px;">Evoluir</h3>
+            <p style="color:var(--gray-text);font-size:0.9rem;margin-bottom:12px;">Crescimento sustentavel</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <span class="pill" style="font-size:0.85rem;">Autoridade</span>
+              <span class="pill" style="font-size:0.85rem;">Monetizacao inteligente</span>
+              <span class="pill" style="font-size:0.85rem;">Longo prazo</span>
+            </div>
+            <p class="content-italic" style="font-size:0.85rem;">Influencia passa. Marca evolui.</p>
+          </div>
+        </div>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 08 — DIFERENCIAL ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">8</div>
+        <div class="section-title">Diferencial<br>estrategico</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-text" style="margin-bottom:24px;">
+          A Brandly nao ensina a vender mais hoje. Ela estrutura o creator para:
+        </p>
+        <ul class="content-list" style="margin-bottom:32px;">
+          <li style="font-weight:600;">Existir melhor amanha</li>
+          <li style="font-weight:600;">Crescer com consistencia</li>
+          <li style="font-weight:600;">Vender sem perder valor</li>
+        </ul>
+        <p class="content-text" style="margin-bottom:16px;">Venda e consequencia de:</p>
+        <div>
+          <span class="pill pill-highlight">Storytelling</span>
+          <span class="pill pill-highlight">Confianca</span>
+          <span class="pill pill-highlight">Marca bem construida</span>
+        </div>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 09 — PERSONALIDADE ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">9</div>
+        <div class="section-title">Personalidade<br>da marca</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <ul class="content-list" style="margin-bottom:32px;">
+          <li style="font-size:1.3rem;font-weight:600;">Moderna</li>
+          <li style="font-size:1.3rem;font-weight:600;">Visionaria</li>
+          <li style="font-size:1.3rem;font-weight:600;">Tecnologica</li>
+          <li style="font-size:1.3rem;font-weight:600;">Estrategica</li>
+          <li style="font-size:1.3rem;font-weight:600;">Criativa</li>
+          <li style="font-size:1.3rem;font-weight:600;">Confiante</li>
+        </ul>
+        <p class="content-italic" style="font-size:1rem;">
+          A Brandly fala com creators como empresarios, nao como iniciantes.
+        </p>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 10 — TOM DE VOZ ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">10</div>
+        <div class="section-title">Tom de voz</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <ul class="content-list" style="margin-bottom:32px;">
+          <li style="font-size:1.2rem;">Claro</li>
+          <li style="font-size:1.2rem;">Direto</li>
+          <li style="font-size:1.2rem;">Inspirador</li>
+          <li style="font-size:1.2rem;">Inteligente</li>
+          <li style="font-size:1.2rem;">Sem exageros</li>
+        </ul>
+        <p class="content-text" style="margin-bottom:12px;">Sem:</p>
+        <div>
+          <span class="pill" style="border-color:var(--gray-text);color:var(--gray-text);font-size:0.85rem;text-decoration:line-through;">Promessas vazias</span>
+          <span class="pill" style="border-color:var(--gray-text);color:var(--gray-text);font-size:0.85rem;text-decoration:line-through;">Hype raso</span>
+          <span class="pill" style="border-color:var(--gray-text);color:var(--gray-text);font-size:0.85rem;text-decoration:line-through;">Linguagem infantilizada</span>
+          <span class="pill" style="border-color:var(--gray-text);color:var(--gray-text);font-size:0.85rem;text-decoration:line-through;">"Dinheiro facil"</span>
+        </div>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 11 — IDENTIDADE VISUAL (title) ========== -->
+  <section class="slide slide-full-blue" style="justify-content:center;">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-num" style="font-size:clamp(3rem,6vw,5rem);margin-bottom:16px;">11</div>
+      <div class="section-title" style="font-size:clamp(2.5rem,5vw,4rem);">Identidade<br>Visual</div>
+    </div>
+    <svg class="wire-pattern wire-pattern-lg" viewBox="0 0 200 260" fill="none" stroke="#00DFFF" stroke-width="1">
+      <rect x="20" y="10" width="130" height="110" rx="20"/>
+      <rect x="50" y="140" width="130" height="110" rx="20"/>
+      <path d="M150 110 C150 130, 50 130, 50 140"/>
+    </svg>
+  </section>
+
+  <!-- ========== 12 — CONCEITOS NORTEADORES ========== -->
+  <section class="slide slide-full-white" style="flex-direction:row;flex-wrap:wrap;gap:60px;padding:60px 80px;">
+    <div class="reveal" style="flex:1;min-width:300px;">
+      <p class="content-heading" style="font-size:2rem;">Conceitos norteadores</p>
+      <!-- Wireframe B outline -->
+      <svg viewBox="0 0 200 260" fill="none" stroke="#00DFFF" stroke-width="1.5" style="width:200px;height:auto;margin-top:24px;opacity:0.4;">
+        <rect x="20" y="10" width="130" height="110" rx="20"/>
+        <rect x="50" y="140" width="130" height="110" rx="20"/>
+        <path d="M150 110 C150 130, 50 130, 50 140"/>
+      </svg>
+    </div>
+    <div class="reveal" style="flex:1;min-width:300px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <ul class="content-list" style="width:100%;max-width:300px;">
+        <li style="font-size:1.3rem;font-weight:600;text-align:center;padding:20px 0;">Fluxo</li>
+        <li style="font-size:1.3rem;font-weight:600;text-align:center;padding:20px 0;">Tecnologia</li>
+        <li style="font-size:1.3rem;font-weight:600;text-align:center;padding:20px 0;">Conexao</li>
+      </ul>
+    </div>
+    <div class="reveal" style="flex:1;min-width:300px;display:flex;align-items:center;justify-content:center;">
+      <img src="assets/logos-hq/horizontal-fundo-branco.png" alt="Brandly" style="max-width:300px;width:100%;object-fit:contain;" />
+    </div>
+  </section>
+
+  <!-- ========== 13 — COMPOSICAO ========== -->
+  <section class="slide slide-split" style="min-height:100vh;">
+    <div class="slide-blue" style="justify-content:center;align-items:center;">
+      <div class="reveal">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="Simbolo Brandly" style="width:clamp(150px,20vw,280px);height:auto;object-fit:contain;" />
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-heading" style="font-size:2.2rem;">Composicao</p>
+        <div class="comp-visual">
+          <span class="comp-element">B</span>
+          <span class="comp-plus">+</span>
+          <span class="comp-element">&infin;</span>
+        </div>
+        <p class="content-text">
+          O simbolo nasce da fusao da inicial B com o icone de infinito, criando uma sintese visual que representa movimento continuo e fluidez. Essa forma transmite o fluxo constante de interacao dentro do ambiente digital, onde creators e marcas se conectam, colaboram e geram um ciclo infinito de troca de valor e informacao.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 14 — O QUE O SIMBOLO TRANSMITE ========== -->
+  <section class="slide slide-full-white" style="flex-direction:row;flex-wrap:wrap;gap:60px;padding:60px 80px;">
+    <div class="reveal" style="flex:1;min-width:300px;">
+      <p class="content-heading" style="font-size:2rem;">O que o simbolo transmite?</p>
+      <p class="content-text" style="margin-bottom:24px;">
+        As formas simples e arredondadas, combinadas a arestas mais firmes, criam um equilibrio entre tecnologia e fluidez. Esse contraste transmite simultaneamente movimento e estabilidade, resultando em um icone elegante, moderno e visualmente harmonioso.
+      </p>
+      <p class="content-text">
+        As cores reforcam essa narrativa. O <strong class="text-cyan">Verde Boreal</strong> destaca a energia do ambiente digital, dinamico, vivo e em constante transformacao, ampliando a sensacao de fluxo e conexao presente no simbolo.
+      </p>
+    </div>
+    <div class="reveal" style="flex:1;min-width:300px;display:flex;align-items:center;justify-content:center;">
+      <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="Simbolo" style="max-width:320px;width:100%;object-fit:contain;" />
+    </div>
+  </section>
+
+  <!-- ========== 15 — PALETA DE CORES ========== -->
+  <section class="slide" style="display:flex;flex-wrap:wrap;min-height:100vh;">
+    <div class="color-col" style="background:var(--blue);color:var(--white);">
+      <svg class="wire-pattern" viewBox="0 0 200 260" fill="none" stroke="#00DFFF" stroke-width="1" style="right:-30px;top:auto;bottom:-60px;width:300px;height:300px;">
+        <rect x="20" y="10" width="130" height="110" rx="20"/>
+        <rect x="50" y="140" width="130" height="110" rx="20"/>
+        <path d="M150 110 C150 130, 50 130, 50 140"/>
+      </svg>
+      <div class="reveal">
+        <p class="font-heading-italic" style="font-size:clamp(1.5rem,3vw,2.5rem);margin-bottom:40px;">Paleta e cores</p>
+        <p class="color-hex" style="color:var(--white);">#1D45D8</p>
+        <p class="color-label" style="color:rgba(255,255,255,0.7);">Tecnologia</p>
+      </div>
+    </div>
+    <div class="color-col" style="background:var(--cyan);color:#1a1a1a;">
+      <div class="reveal">
+        <p class="color-hex">#00DFFF</p>
+        <p class="color-label">Dinamismo</p>
+      </div>
+    </div>
+    <div class="color-col" style="background:var(--white);color:var(--deep);border-left:1px solid #eee;">
+      <svg class="wire-pattern" viewBox="0 0 200 260" fill="none" stroke="#00DFFF" stroke-width="1" style="right:-30px;top:auto;bottom:-40px;width:250px;height:250px;opacity:0.3;">
+        <rect x="20" y="10" width="130" height="110" rx="20"/>
+        <rect x="50" y="140" width="130" height="110" rx="20"/>
+        <path d="M150 110 C150 130, 50 130, 50 140"/>
+      </svg>
+      <div class="reveal">
+        <p class="color-hex">#FFFFFF</p>
+        <p class="color-label" style="color:var(--gray-text);">Neutralidade</p>
+        <div style="margin-top:40px;padding:16px;background:var(--deep);border-radius:8px;display:inline-block;">
+          <p class="color-hex" style="color:white;">#112B75</p>
+          <p class="color-label" style="color:rgba(255,255,255,0.6);">Profundidade</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 16 — TIPOGRAFIA ========== -->
+  <section class="slide slide-full-blue" style="flex-direction:row;flex-wrap:wrap;gap:40px;padding:60px;">
+    <div class="reveal" style="flex:0 0 auto;">
+      <p class="font-heading-italic" style="font-size:clamp(2rem,4vw,3rem);color:var(--white);">Tipografia</p>
+    </div>
+    <div style="display:flex;gap:40px;flex-wrap:wrap;width:100%;">
+      <!-- Ropan Medium / Titulos -->
+      <div class="reveal" style="flex:1;min-width:280px;background:rgba(255,255,255,0.05);border-radius:16px;padding:32px;border:1px solid rgba(0,223,255,0.15);">
+        <p class="font-heading-italic" style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:8px;">Titulos</p>
+        <p class="font-heading type-big" style="color:var(--white);">Aa</p>
+        <p class="type-name" style="color:var(--cyan);">Ropan Medium</p>
+        <div class="type-specimen" style="color:rgba(255,255,255,0.5);">
+          ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          abcdefghijklmnopqrstuvwxyz<br>
+          0123456789<br>
+          Simbolos comuns:<br>
+          ! ? @ # $ % & * ( ) - _ + = { } [ ] / \ | : ; " ' &lt; &gt; , .
+        </div>
+      </div>
+      <!-- Open Sans / Textos -->
+      <div class="reveal" style="flex:1;min-width:280px;background:rgba(255,255,255,0.05);border-radius:16px;padding:32px;border:1px solid rgba(0,223,255,0.15);">
+        <p class="font-heading-italic" style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:8px;">Textos</p>
+        <p class="type-big" style="color:var(--white);font-family:'Open Sans',sans-serif;">Aa</p>
+        <p class="type-name" style="color:var(--cyan);font-family:'Open Sans',sans-serif;">Open Sans Regular</p>
+        <div class="type-specimen" style="color:rgba(255,255,255,0.5);font-family:'Open Sans',sans-serif;">
+          ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+          abcdefghijklmnopqrstuvwxyz<br>
+          0123456789<br>
+          Simbolos comuns:<br>
+          ! ? @ # $ % & * ( ) - _ + = { } [ ] / \ | : ; " ' &lt; &gt; , .
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 17 — FRASE GUIA ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">12</div>
+        <div class="section-title">Frase guia<br>(interna)</div>
+      </div>
+    </div>
+    <div class="slide-white" style="justify-content:center;">
+      <div class="reveal">
+        <p style="font-family:'Nunito',sans-serif;font-weight:600;font-size:clamp(1.4rem,3vw,2rem);color:var(--deep);line-height:1.6;">
+          Influencia e atencao.
+        </p>
+        <p style="font-family:'Nunito',sans-serif;font-weight:600;font-size:clamp(1.4rem,3vw,2rem);color:var(--deep);line-height:1.6;text-align:right;margin-top:8px;">
+          Marca e valor.
+        </p>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 18 — ECOSSISTEMA ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">13</div>
+        <div class="section-title">O papel da<br>Brandly no<br>ecossistema</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-text" style="margin-bottom:24px;">A Brandly e:</p>
+        <ul class="content-list" style="margin-bottom:24px;">
+          <li style="font-weight:600;">Ponte entre creators e marcas</li>
+          <li style="font-weight:600;">Estrutura entre conteudo e venda</li>
+          <li style="font-weight:600;">Sistema entre audiencia e negocio</li>
+        </ul>
+        <p class="content-italic" style="font-size:1.05rem;">
+          Ela organiza o caos da influencia.
+        </p>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 19 — O QUE NAO E ========== -->
+  <section class="slide slide-split">
+    <div class="slide-blue">
+      <div class="reveal">
+        <div class="section-num">14</div>
+        <div class="section-title">O que<br>a Brandly<br>NAO e</div>
+      </div>
+    </div>
+    <div class="slide-white">
+      <div class="reveal">
+        <p class="content-heading" style="margin-bottom:32px;">
+          A Brandly e infraestrutura de marca.
+        </p>
+        <ul class="content-list">
+          <li style="text-decoration:line-through;color:var(--gray-text);">Plataforma de publi avulsa</li>
+          <li style="text-decoration:line-through;color:var(--gray-text);">Marketplace generico</li>
+          <li style="text-decoration:line-through;color:var(--gray-text);">Agencia tradicional</li>
+          <li style="text-decoration:line-through;color:var(--gray-text);">Clube de creators</li>
+        </ul>
+      </div>
+      <div class="watermark">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" />
+        <span>Brandly</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 20 — LOGOS ========== -->
+  <section class="slide slide-full-white" style="flex-direction:column;padding:40px;">
+    <div class="reveal" style="text-align:center;margin-bottom:32px;">
+      <p class="content-heading" style="font-size:2rem;margin-bottom:8px;">Variacoes de Logo</p>
+      <p style="color:var(--gray-text);font-size:0.95rem;">Todas as 19 versoes oficiais</p>
+    </div>
+    <div class="logo-grid reveal">
+      <div class="logo-item" style="background:#EAEAEA;"><img src="assets/logos-hq/completa-fundo-branco.png" alt="Completa - fundo branco" loading="lazy"/></div>
+      <div class="logo-item" style="background:#1a1a1a;"><img src="assets/logos-hq/completa-negativa.png" alt="Completa - negativa" loading="lazy"/></div>
+      <div class="logo-item" style="background:#1D45D8;"><img src="assets/logos-hq/completa-fundo-azul.png" alt="Completa - fundo azul" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;"><img src="assets/logos-hq/completa-positiva.png" alt="Completa - positiva" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;"><img src="assets/logos-hq/completa-monocromatica.png" alt="Completa - monocromatica" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;"><img src="assets/logos-hq/horizontal-fundo-branco.png" alt="Horizontal - fundo branco" loading="lazy"/></div>
+      <div class="logo-item" style="background:#1a1a1a;"><img src="assets/logos-hq/horizontal-negativa.png" alt="Horizontal - negativa" loading="lazy"/></div>
+      <div class="logo-item" style="background:#1D45D8;"><img src="assets/logos-hq/horizontal-fundo-azul.png" alt="Horizontal - fundo azul" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;"><img src="assets/logos-hq/horizontal-positiva.png" alt="Horizontal - positiva" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;"><img src="assets/logos-hq/horizontal-monocromatica.png" alt="Horizontal - monocromatica" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;aspect-ratio:1;"><img src="assets/logos-hq/simbolo-azul.png" alt="Simbolo azul" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;aspect-ratio:1;"><img src="assets/logos-hq/simbolo-verde-boreal.png" alt="Simbolo verde boreal" loading="lazy"/></div>
+      <div class="logo-item" style="background:#1a1a1a;aspect-ratio:1;"><img src="assets/logos-hq/simbolo-branco.png" alt="Simbolo branco" loading="lazy"/></div>
+      <div class="logo-item" style="background:#EAEAEA;aspect-ratio:1;"><img src="assets/logos-hq/simbolo-preto.png" alt="Simbolo preto" loading="lazy"/></div>
+    </div>
+  </section>
+
+  <!-- ========== CLOSING ========== -->
+  <section class="slide slide-full-blue" style="flex-direction:column;text-align:center;gap:24px;">
+    <svg class="wire-pattern wire-pattern-lg" viewBox="0 0 200 260" fill="none" stroke="#00DFFF" stroke-width="1">
+      <rect x="20" y="10" width="130" height="110" rx="20"/>
+      <rect x="50" y="140" width="130" height="110" rx="20"/>
+      <path d="M150 110 C150 130, 50 130, 50 140"/>
+    </svg>
+    <div class="reveal">
+      <img src="assets/logos-hq/completa-fundo-azul.png" alt="Brandly" style="height:80px;width:auto;object-fit:contain;margin-bottom:32px;" />
+      <p style="font-family:'Nunito',sans-serif;font-weight:600;font-size:clamp(1.2rem,2.5vw,1.8rem);color:var(--white);line-height:1.6;max-width:600px;">
+        Brandly transforma creators em marcas.<br>
+        Marcas constroem valor.<br>
+        E valor vende.
+      </p>
+      <p style="margin-top:32px;opacity:0.5;font-size:0.9rem;">Brandly, Seu branding viral.</p>
+    </div>
+  </section>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <script>
+  (function(){
+    function initPage() {
+      gsap.registerPlugin(ScrollTrigger);
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (!prefersReduced) {
+        const lenis = new Lenis({ lerp: 0.07, smoothWheel: true });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => lenis.raf(time * 1000));
+        gsap.ticker.lagSmoothing(0);
+      }
+
+      // Scroll progress
+      const progressBar = document.getElementById('scrollProgress');
+      ScrollTrigger.create({
+        trigger: document.body,
+        start: 'top top',
+        end: 'bottom bottom',
+        onUpdate: self => { progressBar.style.width = (self.progress * 100) + '%'; }
+      });
+
+      // Reveal on scroll
+      if (!prefersReduced) {
+        gsap.utils.toArray('.reveal').forEach(el => {
+          gsap.fromTo(el,
+            { opacity: 0, y: 30 },
+            {
+              opacity: 1, y: 0,
+              duration: 0.8,
+              ease: 'power2.out',
+              scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+            }
+          );
+        });
+      } else {
+        document.querySelectorAll('.reveal').forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPage);
+    } else {
+      initPage();
+    }
+  })();
+  </script>
+
+</body>
+</html>

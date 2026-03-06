@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brandly | Proposta para Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['Space Grotesk', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: { blue: '#1D45D8', cyan: '#00DFFF', deep: '#112B75' },
+            surface: { 0: '#030308', 1: '#08081A', 2: '#0C0C22', 3: '#12122E' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --blue: #1D45D8;
+      --cyan: #00DFFF;
+      --deep: #112B75;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #030308;
+      color: #F0F0FF;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Grain */
+    body::after {
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:0.4;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .scroll-progress { position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));z-index:100;width:0%; }
+
+    .gradient-text { background:linear-gradient(135deg,var(--blue),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+
+    .section-label {
+      font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:600;
+      letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);
+    }
+
+    /* Counter animation */
+    .counter { font-family:'Space Grotesk',sans-serif;font-weight:700; }
+
+    /* Glass card */
+    .glass {
+      background:rgba(12,12,34,0.5);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      border:1px solid rgba(29,69,216,0.12);border-radius:20px;
+      transition:border-color 0.4s,transform 0.4s,box-shadow 0.4s;
+    }
+    .glass:hover { border-color:rgba(0,223,255,0.25);transform:translateY(-6px);box-shadow:0 24px 64px rgba(0,223,255,0.06); }
+
+    /* Glow orb */
+    .orb { position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none; }
+
+    /* Comparison bar */
+    .bar-fill { height:100%;border-radius:8px;transition:width 1.5s cubic-bezier(0.25,0.46,0.45,0.94); }
+
+    /* Rotating border */
+    @property --ba { syntax:'<angle>';initial-value:0deg;inherits:false; }
+    .rot-border { position:relative;border-radius:20px;overflow:hidden; }
+    .rot-border::before {
+      content:'';position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
+      background:conic-gradient(from var(--ba),transparent 60%,var(--cyan) 80%,transparent 100%);
+      animation:bs 4s linear infinite;
+    }
+    .rot-border::after { content:'';position:absolute;inset:1px;border-radius:inherit;background:#0C0C22;z-index:-1; }
+    @keyframes bs { to { --ba:360deg; } }
+
+    /* Ticker */
+    .ticker-track { display:flex;gap:48px;animation:tickerScroll 30s linear infinite;width:max-content; }
+    @keyframes tickerScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+    /* Reveal */
+    .reveal { opacity:0;transform:translateY(40px); }
+
+    /* Divider */
+    .divider { height:1px;background:linear-gradient(90deg,transparent,rgba(29,69,216,0.3),rgba(0,223,255,0.2),transparent); }
+
+    /* Stat card pulse border */
+    @keyframes pulseBorder { 0%,100%{border-color:rgba(0,223,255,0.1)} 50%{border-color:rgba(0,223,255,0.3)} }
+
+    .stat-card { border:1px solid rgba(0,223,255,0.1);animation:pulseBorder 3s ease-in-out infinite; }
+
+    /* Responsive */
+    @media(max-width:768px) {
+      .hero-title { font-size:2.5rem !important; }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      *,*::before,*::after { animation-duration:0.01ms!important;transition-duration:0.01ms!important; }
+      .reveal { opacity:1;transform:none; }
+      .ticker-track { animation:none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- ====== HERO ====== -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden" id="hero">
+  <div class="orb" style="width:700px;height:700px;background:var(--blue);top:-300px;left:-200px;opacity:0.2;"></div>
+  <div class="orb" style="width:500px;height:500px;background:var(--cyan);bottom:-200px;right:-150px;opacity:0.12;"></div>
+  <div class="absolute inset-0" style="background:radial-gradient(ellipse 50% 40% at 50% 0%,rgba(29,69,216,0.12) 0%,transparent 70%);"></div>
+
+  <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
+    <div class="reveal">
+      <img src="assets/logos-hq/completa-negativa.png" alt="Brandly" class="mx-auto h-12 sm:h-16 object-contain mb-12 opacity-60" />
+    </div>
+    <div class="reveal">
+      <span class="section-label mb-6 inline-block">Proposta para marcas</span>
+    </div>
+    <h1 class="font-heading hero-title text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.95] tracking-tight mb-8 reveal" style="transition-delay:0.1s">
+      <span class="text-white">Sua marca precisa de</span><br>
+      <span class="gradient-text">300 videos por mes.</span><br>
+      <span class="text-white/60" style="font-size:0.65em;">Nos entregamos em 7 dias.</span>
+    </h1>
+    <p class="text-lg text-gray-400 max-w-2xl mx-auto mb-12 reveal" style="transition-delay:0.2s">
+      Conectamos sua marca a uma rede de creators profissionais que produzem conteudo UGC autentico em escala — com custo ate <strong class="text-white">33x menor</strong> que trafego pago.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4 reveal" style="transition-delay:0.3s">
+      <a href="#problema" class="inline-flex items-center gap-2 px-8 py-4 rounded-full font-heading font-semibold text-sm" style="background:linear-gradient(135deg,var(--blue),var(--cyan));color:white;">
+        Ver proposta completa
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#030308] to-transparent"></div>
+</section>
+
+<!-- ====== TICKER ====== -->
+<div class="py-6 border-y border-white/5 overflow-hidden">
+  <div class="ticker-track">
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">CREATOR ECONOMY — US$ 1 TRILHAO EM 2025</span>
+    <span class="text-sm text-brand-cyan whitespace-nowrap">&#9679;</span>
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">UGC CONVERTE 5X MAIS QUE ANUNCIOS</span>
+    <span class="text-sm text-brand-cyan whitespace-nowrap">&#9679;</span>
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">BRASIL — ULTIMA GRANDE FRONTEIRA</span>
+    <span class="text-sm text-brand-cyan whitespace-nowrap">&#9679;</span>
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">70% DAS MARCAS INVESTEM EM CREATORS</span>
+    <span class="text-sm text-brand-cyan whitespace-nowrap">&#9679;</span>
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">CREATOR ECONOMY — US$ 1 TRILHAO EM 2025</span>
+    <span class="text-sm text-brand-cyan whitespace-nowrap">&#9679;</span>
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">UGC CONVERTE 5X MAIS QUE ANUNCIOS</span>
+    <span class="text-sm text-brand-cyan whitespace-nowrap">&#9679;</span>
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">BRASIL — ULTIMA GRANDE FRONTEIRA</span>
+    <span class="text-sm text-brand-cyan whitespace-nowrap">&#9679;</span>
+    <span class="text-sm text-gray-500 whitespace-nowrap font-heading">70% DAS MARCAS INVESTEM EM CREATORS</span>
+  </div>
+</div>
+
+<!-- ====== O PROBLEMA ====== -->
+<section class="py-24 lg:py-32 px-6" id="problema">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">O problema</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal">
+        Trafego pago esta <span class="gradient-text">morrendo</span>.
+      </h2>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8 mb-16">
+      <div class="glass p-8 reveal">
+        <div class="text-4xl font-heading font-bold text-red-400 mb-3 counter" data-target="73">0%</div>
+        <p class="text-gray-400 text-sm">dos consumidores ignoram anuncios pagos nas redes sociais</p>
+      </div>
+      <div class="glass p-8 reveal">
+        <div class="text-4xl font-heading font-bold text-red-400 mb-3">R$50-100</div>
+        <p class="text-gray-400 text-sm">custo por mil visualizacoes em trafego pago — e subindo</p>
+      </div>
+      <div class="glass p-8 reveal">
+        <div class="text-4xl font-heading font-bold text-red-400 mb-3 counter" data-target="2" data-suffix="%">0%</div>
+        <p class="text-gray-400 text-sm">taxa de conversao media de anuncios tradicionais</p>
+      </div>
+    </div>
+
+    <div class="glass p-10 text-center reveal">
+      <p class="text-xl font-heading text-white mb-4">As pessoas sabem que e anuncio.<br>E elas <span class="text-red-400">ignoram</span>.</p>
+      <p class="text-gray-400">O consumidor moderno confia em recomendacoes reais, nao em ads. Conteudo UGC parece recomendacao de amigo — porque e.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== A SOLUCAO ====== -->
+<section class="py-24 lg:py-32 px-6" id="solucao">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">A solucao</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal">
+        <span class="text-white">UGC em escala.</span><br>
+        <span class="gradient-text">Custo de producao.</span><br>
+        <span class="text-white/50" style="font-size:0.7em;">Resultado de agencia.</span>
+      </h2>
+    </div>
+
+    <!-- Comparativo disruptivo -->
+    <div class="grid lg:grid-cols-2 gap-8 mb-20">
+      <!-- Trafego Pago -->
+      <div class="glass p-8 border-red-500/20 reveal">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-3 h-3 rounded-full bg-red-500"></div>
+          <h3 class="font-heading text-lg font-semibold text-red-400">Trafego Pago Tradicional</h3>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Custo por 100k views</span><span class="text-red-400 font-semibold">R$ 5.000 - 10.000</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill bg-red-500/60" style="width:90%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Taxa de conversao</span><span class="text-red-400 font-semibold">0.5 - 2%</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill bg-red-500/60" style="width:15%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Confianca do publico</span><span class="text-red-400 font-semibold">Baixa</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill bg-red-500/60" style="width:12%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Reaproveitamento</span><span class="text-red-400 font-semibold">Limitado</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill bg-red-500/60" style="width:20%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brandly UGC -->
+      <div class="rot-border p-8 reveal">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-3 h-3 rounded-full bg-brand-cyan"></div>
+          <h3 class="font-heading text-lg font-semibold text-brand-cyan">Brandly UGC Creators</h3>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Custo por 100k views</span><span class="text-brand-cyan font-semibold">R$ 300 - 1.000</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill" style="width:10%;background:linear-gradient(90deg,var(--blue),var(--cyan));"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Taxa de conversao</span><span class="text-brand-cyan font-semibold">5 - 12%</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill" style="width:85%;background:linear-gradient(90deg,var(--blue),var(--cyan));"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Confianca do publico</span><span class="text-brand-cyan font-semibold">Altissima</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,var(--blue),var(--cyan));"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Reaproveitamento</span><span class="text-brand-cyan font-semibold">Total (ads, LP, stories)</span></div>
+            <div class="h-2 rounded-full bg-white/5"><div class="bar-fill" style="width:95%;background:linear-gradient(90deg,var(--blue),var(--cyan));"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Numero impactante -->
+    <div class="text-center reveal">
+      <div class="inline-block glass px-12 py-10">
+        <p class="text-sm text-gray-400 mb-3">Sua marca investe R$ 3.000/mes por creator e recebe alcance equivalente a</p>
+        <p class="font-heading text-[clamp(3rem,7vw,5rem)] font-bold gradient-text leading-none">R$ 50-100k</p>
+        <p class="text-sm text-gray-400 mt-3">em trafego pago. Isso nao e promessa — e <strong class="text-white">realocacao inteligente de orcamento</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== COMO FUNCIONA ====== -->
+<section class="py-24 lg:py-32 px-6" id="como">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Como funciona</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal">
+        <span class="gradient-text">4 passos.</span> <span class="text-white">Zero fricao.</span>
+      </h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="glass p-8 reveal">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 font-heading font-bold text-xl" style="background:linear-gradient(135deg,rgba(29,69,216,0.2),rgba(0,223,255,0.1));border:1px solid rgba(0,223,255,0.2);color:var(--cyan);">1</div>
+        <h3 class="font-heading text-lg font-semibold text-white mb-3">Briefing</h3>
+        <p class="text-sm text-gray-400">Voce envia o briefing da campanha. Objetivos, tom, produto, referencias.</p>
+      </div>
+      <div class="glass p-8 reveal">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 font-heading font-bold text-xl" style="background:linear-gradient(135deg,rgba(29,69,216,0.2),rgba(0,223,255,0.1));border:1px solid rgba(0,223,255,0.2);color:var(--cyan);">2</div>
+        <h3 class="font-heading text-lg font-semibold text-white mb-3">Matching</h3>
+        <p class="text-sm text-gray-400">Nossa IA seleciona os creators ideais por nicho, estilo e audiencia.</p>
+      </div>
+      <div class="glass p-8 reveal">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 font-heading font-bold text-xl" style="background:linear-gradient(135deg,rgba(29,69,216,0.2),rgba(0,223,255,0.1));border:1px solid rgba(0,223,255,0.2);color:var(--cyan);">3</div>
+        <h3 class="font-heading text-lg font-semibold text-white mb-3">Producao</h3>
+        <p class="text-sm text-gray-400">Creators produzem em escala com roteiros IA validados. Voce aprova.</p>
+      </div>
+      <div class="glass p-8 reveal">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 font-heading font-bold text-xl" style="background:linear-gradient(135deg,rgba(29,69,216,0.2),rgba(0,223,255,0.1));border:1px solid rgba(0,223,255,0.2);color:var(--cyan);">4</div>
+        <h3 class="font-heading text-lg font-semibold text-white mb-3">Performance</h3>
+        <p class="text-sm text-gray-400">Videos ao vivo. Dashboard em tempo real. Otimizacao continua.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== NUMEROS ====== -->
+<section class="py-24 lg:py-32 px-6" id="numeros">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">A escala Brandly</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal">
+        Numeros que <span class="gradient-text">sua agencia nao entrega</span>
+      </h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+      <div class="stat-card glass p-8 text-center reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold text-white counter" data-target="300" data-suffix="+">0</p>
+        <p class="text-sm text-gray-400 mt-2">videos/mes por marca</p>
+      </div>
+      <div class="stat-card glass p-8 text-center reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold gradient-text counter" data-target="10" data-suffix="x">0</p>
+        <p class="text-sm text-gray-400 mt-2">mais alcance organico que ads</p>
+      </div>
+      <div class="stat-card glass p-8 text-center reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold text-white counter" data-target="5" data-suffix="x">0</p>
+        <p class="text-sm text-gray-400 mt-2">maior taxa de conversao</p>
+      </div>
+      <div class="stat-card glass p-8 text-center reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold gradient-text counter" data-target="7" data-suffix=" dias">0</p>
+        <p class="text-sm text-gray-400 mt-2">para primeiros videos entregues</p>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass p-8 text-center reveal">
+        <p class="text-brand-cyan font-heading font-bold text-lg mb-2">Beleza & Skincare</p>
+        <p class="text-sm text-gray-400">Reviews, tutoriais, unboxing, rotina</p>
+      </div>
+      <div class="glass p-8 text-center reveal">
+        <p class="text-brand-cyan font-heading font-bold text-lg mb-2">Suplementos & Fitness</p>
+        <p class="text-sm text-gray-400">Treino, resultados, day in the life</p>
+      </div>
+      <div class="glass p-8 text-center reveal">
+        <p class="text-brand-cyan font-heading font-bold text-lg mb-2">Tech & Gadgets</p>
+        <p class="text-sm text-gray-400">Unboxing, comparativos, hacks</p>
+      </div>
+      <div class="glass p-8 text-center reveal">
+        <p class="text-brand-cyan font-heading font-bold text-lg mb-2">Moda & Acessorios</p>
+        <p class="text-sm text-gray-400">GRWM, looks, hauls, reviews</p>
+      </div>
+      <div class="glass p-8 text-center reveal">
+        <p class="text-brand-cyan font-heading font-bold text-lg mb-2">Alimentos & Bebidas</p>
+        <p class="text-sm text-gray-400">Receitas, degustacao, rotina</p>
+      </div>
+      <div class="glass p-8 text-center reveal">
+        <p class="text-brand-cyan font-heading font-bold text-lg mb-2">Casa & Decoracao</p>
+        <p class="text-sm text-gray-400">Organizacao, DIY, antes e depois</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== POR QUE BRANDLY ====== -->
+<section class="py-24 lg:py-32 px-6" id="porque">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Diferencial</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal">
+        Por que fechar com a <span class="gradient-text">Brandly</span>?
+      </h2>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-8">
+      <div class="rot-border p-8 reveal">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,var(--blue),var(--cyan));">
+            <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-heading text-lg font-semibold text-white mb-2">Creators treinados, nao influencers aleatorios</h3>
+            <p class="text-sm text-gray-400">Nossos creators passam por formacao profissional de 3 semanas. Sabem estrutura de video, psicologia de conversao e padrao tecnico.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rot-border p-8 reveal">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,var(--blue),var(--cyan));">
+            <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-heading text-lg font-semibold text-white mb-2">IA que multiplica producao</h3>
+            <p class="text-sm text-gray-400">Roteiros gerados por IA com 27 combinacoes unicas. Edicao automatica em 30 segundos. 10 videos por creator por dia.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rot-border p-8 reveal">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,var(--blue),var(--cyan));">
+            <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div>
+            <h3 class="font-heading text-lg font-semibold text-white mb-2">Pague por producao, nao por promessa</h3>
+            <p class="text-sm text-gray-400">Modelo transparente: voce paga por video aprovado. Sem minimo de seguidores, sem achismo. Resultado mensuravel.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rot-border p-8 reveal">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,var(--blue),var(--cyan));">
+            <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div>
+            <h3 class="font-heading text-lg font-semibold text-white mb-2">Dashboard em tempo real</h3>
+            <p class="text-sm text-gray-400">Acompanhe views, engajamento, conversoes e vendas geradas por cada video. Insights automaticos de otimizacao.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== SIMULACAO DE ROI ====== -->
+<section class="py-24 lg:py-32 px-6" id="roi">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Simulacao de ROI</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal">
+        O que <span class="gradient-text">R$ 9.000/mes</span> compra?
+      </h2>
+      <p class="text-gray-400 mt-4 reveal">3 creators dedicados a sua marca</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8 mb-16">
+      <div class="glass p-8 text-center reveal">
+        <p class="font-heading text-5xl font-bold text-white mb-2">900</p>
+        <p class="text-sm text-gray-400">videos produzidos/mes</p>
+        <p class="text-xs text-gray-600 mt-1">10 videos/dia x 3 creators x 30 dias</p>
+      </div>
+      <div class="glass p-8 text-center reveal">
+        <p class="font-heading text-5xl font-bold gradient-text mb-2">5-10M</p>
+        <p class="text-sm text-gray-400">views organicas estimadas</p>
+        <p class="text-xs text-gray-600 mt-1">Alcance equivalente a R$ 250k-500k em ads</p>
+      </div>
+      <div class="glass p-8 text-center reveal">
+        <p class="font-heading text-5xl font-bold text-white mb-2">27-55x</p>
+        <p class="text-sm text-gray-400">retorno sobre investimento</p>
+        <p class="text-xs text-gray-600 mt-1">Comparado com trafego pago equivalente</p>
+      </div>
+    </div>
+
+    <div class="glass p-10 text-center reveal">
+      <p class="text-lg text-white font-heading font-semibold mb-3">Nao e "bom demais pra ser verdade".</p>
+      <p class="text-gray-400 max-w-2xl mx-auto">
+        E <strong class="text-white">realocacao inteligente</strong> de orcamento de marketing. O dinheiro que voce ja gasta em trafego pago gera <strong class="text-brand-cyan">5-10x mais resultado</strong> quando aplicado em conteudo UGC autentico. As marcas ganham mais alcance por menos. O creator ganha renda garantida. <strong class="text-white">Todos ganham.</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== MERCADO ====== -->
+<section class="py-24 lg:py-32 px-6" id="mercado">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Timing</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal">
+        Quem entra agora, <span class="gradient-text">domina o mercado</span>
+      </h2>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8 mb-16">
+      <div class="glass p-8 reveal">
+        <p class="text-brand-cyan font-heading font-bold text-sm mb-3">CHINA</p>
+        <p class="font-heading text-3xl font-bold text-white mb-1">200M+</p>
+        <p class="text-sm text-gray-400">creators ativos. US$ 500bi movimentados. Creator e profissao mainstream.</p>
+      </div>
+      <div class="glass p-8 reveal">
+        <p class="text-brand-cyan font-heading font-bold text-sm mb-3">EUA</p>
+        <p class="font-heading text-3xl font-bold text-white mb-1">50M+</p>
+        <p class="text-sm text-gray-400">creators. 70% do budget de marketing ja vai pra creators.</p>
+      </div>
+      <div class="glass p-8 reveal" style="border-color:rgba(0,223,255,0.3);">
+        <p class="text-brand-cyan font-heading font-bold text-sm mb-3">BRASIL</p>
+        <p class="font-heading text-3xl font-bold gradient-text mb-1">Inicio</p>
+        <p class="text-sm text-gray-400">Creator oficializado como profissao. Mercado inexplorado. <strong class="text-white">Ultima grande fronteira.</strong></p>
+      </div>
+    </div>
+
+    <div class="glass p-8 reveal">
+      <p class="font-heading text-lg text-white text-center">
+        As marcas que se posicionarem agora com creators UGC no Brasil terao <span class="gradient-text">vantagem competitiva irreversivel</span> quando o mercado atingir maturidade.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== CTA FINAL ====== -->
+<section class="py-32 lg:py-40 px-6 relative overflow-hidden" id="cta">
+  <div class="orb" style="width:600px;height:600px;background:var(--blue);top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.15;"></div>
+
+  <div class="max-w-4xl mx-auto text-center relative z-10">
+    <div class="reveal">
+      <img src="assets/logos-hq/completa-negativa.png" alt="Brandly" class="mx-auto h-14 object-contain mb-10" />
+    </div>
+    <h2 class="font-heading text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight mb-6 reveal">
+      <span class="text-white">Sua concorrencia ja esta</span><br>
+      <span class="gradient-text">investindo em creators.</span>
+    </h2>
+    <p class="text-lg text-gray-400 max-w-2xl mx-auto mb-12 reveal">
+      Vamos conversar sobre como a Brandly pode colocar 10, 30 ou 100 creators produzindo conteudo para a sua marca — com resultado mensuravel e custo previsivel.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4 reveal">
+      <a href="#" class="inline-flex items-center gap-3 px-10 py-5 rounded-full font-heading font-bold text-base text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan));">
+        Agendar reuniao estrategica
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    <p class="text-sm text-gray-600 mt-6 reveal">Sem compromisso. 30 minutos. ROI simulado para sua marca.</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-8 text-center border-t border-white/5">
+  <p class="text-xs text-gray-600">Brandly &copy; 2025 — Seu branding viral.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+<script>
+(function(){
+  function initPage() {
+    gsap.registerPlugin(ScrollTrigger);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!reduced) {
+      const lenis = new Lenis({ lerp: 0.07, smoothWheel: true });
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add(t => lenis.raf(t * 1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+
+    // Progress bar
+    ScrollTrigger.create({
+      trigger: document.body, start: 'top top', end: 'bottom bottom',
+      onUpdate: s => { document.getElementById('scrollProgress').style.width = (s.progress*100)+'%'; }
+    });
+
+    // Reveals
+    if (!reduced) {
+      gsap.utils.toArray('.reveal').forEach(el => {
+        gsap.fromTo(el, {opacity:0,y:40}, {
+          opacity:1, y:0, duration:0.8, ease:'power3.out',
+          scrollTrigger: {trigger:el, start:'top 88%', once:true}
+        });
+      });
+    } else {
+      document.querySelectorAll('.reveal').forEach(el => {el.style.opacity='1';el.style.transform='none';});
+    }
+
+    // Counter animations
+    document.querySelectorAll('.counter').forEach(el => {
+      const target = parseInt(el.dataset.target);
+      const suffix = el.dataset.suffix || '%';
+      if (!target) return;
+      ScrollTrigger.create({
+        trigger: el, start: 'top 85%', once: true,
+        onEnter: () => {
+          gsap.to({val:0}, {
+            val: target, duration: 2, ease: 'power2.out',
+            onUpdate: function() { el.textContent = Math.round(this.targets()[0].val) + suffix; }
+          });
+        }
+      });
+    });
+
+    // Animate bars on scroll
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      ScrollTrigger.create({
+        trigger: bar, start: 'top 90%', once: true,
+        onEnter: () => { bar.style.width = w; }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPage);
+  else initPage();
+})();
+</script>
+
+</body>
+</html>

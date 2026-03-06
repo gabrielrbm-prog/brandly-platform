@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brandly | Proposta para Marcas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { heading: ['Space Grotesk','sans-serif'], body: ['Inter','sans-serif'] },
+        colors: {
+          brand: { blue:'#1D45D8', cyan:'#00DFFF', deep:'#112B75' },
+          bg: { 0:'#FAFBFF', 1:'#F0F2FA', 2:'#E8EBF6', 3:'#D8DCF0' }
+        }
+      }}
+    }
+  </script>
+  <style>
+    :root {
+      --blue:#1D45D8;--cyan:#00DFFF;--deep:#112B75;
+      --bg:#FAFBFF;--bg-alt:#F0F2FA;
+      --text-1:#0A0D2E;--text-2:#3A3D5C;--text-3:#7A7D9C;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-1);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+    /* Scroll Progress */
+    .scroll-progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));z-index:200;width:0%}
+
+    /* Custom Cursor */
+    .cursor-dot,.cursor-ring{position:fixed;pointer-events:none;z-index:9998;border-radius:50%;mix-blend-mode:difference}
+    .cursor-dot{width:8px;height:8px;background:var(--blue);transform:translate(-50%,-50%)}
+    .cursor-ring{width:40px;height:40px;border:1.5px solid var(--blue);transform:translate(-50%,-50%);opacity:0.4;transition:width 0.3s,height 0.3s,opacity 0.3s}
+    .cursor-ring.hovered{width:64px;height:64px;opacity:0.6;border-color:var(--cyan)}
+    @media(pointer:coarse){.cursor-dot,.cursor-ring{display:none}}
+
+    /* Preloader */
+    #preloader{position:fixed;inset:0;z-index:10000;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+    #preloader .bar{width:120px;height:3px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden}
+    #preloader .bar-fill{height:100%;background:var(--cyan);width:0%;border-radius:2px;transition:width 0.3s}
+
+    .gradient-text{background:linear-gradient(135deg,var(--blue),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .section-label{font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--blue)}
+
+    /* Orb */
+    .orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
+
+    /* Glass Card (light) */
+    .glass{
+      background:rgba(255,255,255,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(29,69,216,0.08);border-radius:20px;
+      transition:all 0.5s cubic-bezier(0.23,1,0.32,1);
+      will-change:transform;transform-style:preserve-3d;
+    }
+    .glass .shine{position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+      background:radial-gradient(circle at var(--shine-x,50%) var(--shine-y,50%),rgba(29,69,216,0.06) 0%,transparent 50%);
+      opacity:0;transition:opacity 0.3s}
+    .glass:hover .shine{opacity:1}
+    .glass:hover{border-color:rgba(0,223,255,0.25);box-shadow:0 24px 64px rgba(29,69,216,0.08)}
+
+    /* Rotating Border (light) */
+    @property --ba{syntax:'<angle>';initial-value:0deg;inherits:false}
+    .rot-border{position:relative;border-radius:20px;overflow:hidden}
+    .rot-border::before{content:'';position:absolute;inset:-1px;border-radius:inherit;z-index:0;
+      background:conic-gradient(from var(--ba),transparent 55%,var(--cyan) 75%,var(--blue) 85%,transparent 100%);animation:bs 3s linear infinite}
+    .rot-border::after{content:'';position:absolute;inset:1.5px;border-radius:inherit;background:white;z-index:0}
+    .rot-border>*{position:relative;z-index:1}
+    @keyframes bs{to{--ba:360deg}}
+
+    /* Button Tracking Gradient */
+    .btn-track{position:relative;overflow:hidden;--gx:50%;--gy:50%}
+    .btn-track::before{content:'';position:absolute;inset:0;
+      background:radial-gradient(200px circle at var(--gx) var(--gy),rgba(255,255,255,0.25) 0%,transparent 60%);opacity:0;transition:opacity 0.3s}
+    .btn-track:hover::before{opacity:1}
+
+    /* Magnetic */
+    .magnetic{will-change:transform;transition:transform 0.15s ease-out}
+
+    /* Bar */
+    .bar-fill{height:100%;border-radius:8px;transition:width 1.5s cubic-bezier(0.25,0.46,0.45,0.94)}
+
+    /* Counter */
+    .counter{font-family:'Space Grotesk',sans-serif;font-weight:700}
+
+    /* Ticker */
+    .ticker-track{display:flex;gap:48px;animation:tick 25s linear infinite;width:max-content}
+    @keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+    /* Clip reveal */
+    .clip-section{clip-path:inset(8% 4% 8% 4% round 24px);will-change:clip-path}
+
+    /* Velocity skew target */
+    .skew-target{will-change:transform}
+
+    /* Stat card pulse */
+    @keyframes pBorder{0%,100%{border-color:rgba(29,69,216,0.08)}50%{border-color:rgba(0,223,255,0.25)}}
+    .stat-pulse{animation:pBorder 3s ease-in-out infinite}
+
+    /* Section divider */
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(29,69,216,0.15),rgba(0,223,255,0.15),rgba(29,69,216,0.15),transparent)}
+
+    /* Reveal */
+    .reveal{opacity:0;transform:translateY(40px)}
+
+    /* Split line for SplitText */
+    .split-line{overflow:hidden}
+
+    /* Grid pattern */
+    .grid-pattern{
+      background-image:linear-gradient(rgba(29,69,216,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(29,69,216,0.04) 1px,transparent 1px);
+      background-size:64px 64px;
+    }
+
+    /* Hero gradient mesh */
+    .hero-mesh{
+      position:absolute;inset:0;pointer-events:none;
+      background:
+        radial-gradient(ellipse 50% 50% at 20% 20%,rgba(29,69,216,0.08) 0%,transparent 60%),
+        radial-gradient(ellipse 40% 40% at 80% 30%,rgba(0,223,255,0.06) 0%,transparent 60%),
+        radial-gradient(ellipse 60% 30% at 50% 90%,rgba(29,69,216,0.04) 0%,transparent 50%);
+    }
+
+    /* Focus visible */
+    :focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:4px}
+
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+      .reveal{opacity:1;transform:none}
+      .ticker-track{animation:none}
+      #preloader{display:none}
+      .cursor-dot,.cursor-ring{display:none}
+    }
+
+    @media(max-width:768px){
+      .hero-title{font-size:2.2rem!important}
+      .glass{backdrop-filter:blur(12px)}
+    }
+  </style>
+</head>
+<body class="grid-pattern">
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <img src="assets/logos-hq/completa-fundo-azul.png" alt="Brandly" style="height:40px;object-fit:contain;opacity:0.9"/>
+  <div class="bar"><div class="bar-fill" id="preloaderBar"></div></div>
+</div>
+
+<!-- CURSOR -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- SCROLL PROGRESS -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- CANVAS 3D HERO BG -->
+<canvas id="hero-canvas" class="fixed inset-0 z-0 pointer-events-none" style="opacity:0.4"></canvas>
+
+<!-- ====== HERO ====== -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden" id="hero">
+  <div class="hero-mesh"></div>
+  <div class="orb" style="width:600px;height:600px;background:var(--blue);top:-200px;right:-100px;opacity:0.06"></div>
+  <div class="orb" style="width:400px;height:400px;background:var(--cyan);bottom:-100px;left:-100px;opacity:0.05"></div>
+
+  <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
+    <div class="reveal">
+      <img src="assets/logos-hq/completa-fundo-branco.png" alt="Brandly" class="mx-auto h-10 sm:h-14 object-contain mb-12 opacity-80"/>
+    </div>
+    <div class="reveal">
+      <span class="section-label mb-6 inline-block" style="background:rgba(29,69,216,0.06);padding:6px 16px;border-radius:100px;border:1px solid rgba(29,69,216,0.1)">Proposta exclusiva para marcas</span>
+    </div>
+    <h1 id="heroTitle" class="font-heading hero-title text-[clamp(2.2rem,6vw,4.5rem)] leading-[0.92] tracking-tight mb-8 reveal">
+      <span class="text-brand-deep">Sua marca precisa de</span><br>
+      <span class="gradient-text">300 videos por mes.</span><br>
+      <span class="text-brand-deep/40" style="font-size:0.6em">Nos entregamos em 7 dias.</span>
+    </h1>
+    <p class="text-lg text-text-2 max-w-2xl mx-auto mb-12 reveal">
+      Conectamos sua marca a creators profissionais que produzem conteudo UGC autentico em escala — com custo ate <strong class="text-brand-deep">33x menor</strong> que trafego pago.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4 reveal">
+      <a href="#problema" class="magnetic btn-track inline-flex items-center gap-3 px-10 py-5 rounded-full font-heading font-bold text-sm text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))">
+        <span class="btn-text">Ver proposta completa</span>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#FAFBFF] to-transparent z-10"></div>
+</section>
+
+<!-- TICKER -->
+<div class="py-5 border-y overflow-hidden" style="border-color:rgba(29,69,216,0.06)">
+  <div class="ticker-track">
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">CREATOR ECONOMY — US$ 1 TRILHAO EM 2025</span>
+    <span class="text-brand-cyan text-xs">&#9679;</span>
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">UGC CONVERTE 5X MAIS QUE ANUNCIOS</span>
+    <span class="text-brand-blue text-xs">&#9679;</span>
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">BRASIL — ULTIMA GRANDE FRONTEIRA</span>
+    <span class="text-brand-cyan text-xs">&#9679;</span>
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">70% DAS MARCAS JA INVESTEM EM CREATORS</span>
+    <span class="text-brand-blue text-xs">&#9679;</span>
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">CREATOR ECONOMY — US$ 1 TRILHAO EM 2025</span>
+    <span class="text-brand-cyan text-xs">&#9679;</span>
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">UGC CONVERTE 5X MAIS QUE ANUNCIOS</span>
+    <span class="text-brand-blue text-xs">&#9679;</span>
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">BRASIL — ULTIMA GRANDE FRONTEIRA</span>
+    <span class="text-brand-cyan text-xs">&#9679;</span>
+    <span class="text-xs font-heading text-text-3 whitespace-nowrap tracking-wider">70% DAS MARCAS JA INVESTEM EM CREATORS</span>
+  </div>
+</div>
+
+<!-- ====== O PROBLEMA ====== -->
+<section class="py-24 lg:py-36 px-6 clip-section" id="problema" style="background:var(--blue)">
+  <div class="max-w-6xl mx-auto text-center">
+    <span class="section-label mb-4 block text-cyan-300 reveal">O problema</span>
+    <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight text-white mb-16 reveal split-reveal">
+      Trafego pago esta morrendo.<br><span class="text-cyan-300">E sua marca esta pagando a conta.</span>
+    </h2>
+    <div class="grid sm:grid-cols-3 gap-8 mb-16">
+      <div class="p-8 rounded-2xl reveal" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)">
+        <p class="font-heading text-5xl font-bold text-red-400 mb-3 counter" data-target="73">0%</p>
+        <p class="text-sm text-blue-200/60">dos consumidores ignoram anuncios pagos</p>
+      </div>
+      <div class="p-8 rounded-2xl reveal" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)">
+        <p class="font-heading text-5xl font-bold text-red-400 mb-3">R$50-100</p>
+        <p class="text-sm text-blue-200/60">custo por 1.000 views em trafego pago</p>
+      </div>
+      <div class="p-8 rounded-2xl reveal" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)">
+        <p class="font-heading text-5xl font-bold text-red-400 mb-3 counter" data-target="2" data-suffix="%">0%</p>
+        <p class="text-sm text-blue-200/60">taxa de conversao media de ads tradicionais</p>
+      </div>
+    </div>
+    <div class="p-8 rounded-2xl max-w-2xl mx-auto reveal" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)">
+      <p class="text-xl font-heading text-white">As pessoas <span class="text-red-400">sabem</span> que e anuncio. E elas <span class="text-red-400">ignoram</span>.</p>
+      <p class="text-blue-200/50 text-sm mt-3">Conteudo UGC parece recomendacao de amigo — porque e.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== COMPARATIVO ====== -->
+<section class="py-24 lg:py-36 px-6 skew-target" id="comparativo">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Comparativo</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal split-reveal">
+        <span class="text-brand-deep">Trafego pago</span> <span class="text-text-3">vs</span> <span class="gradient-text">Brandly UGC</span>
+      </h2>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-8 mb-20">
+      <!-- Trafego Pago -->
+      <div class="glass p-8 tilt-card reveal" style="border-color:rgba(239,68,68,0.15)">
+        <div class="shine"></div>
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-3 h-3 rounded-full bg-red-500"></div>
+          <h3 class="font-heading text-lg font-semibold text-red-600">Trafego Pago Tradicional</h3>
+        </div>
+        <div class="space-y-5">
+          <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Custo por 100k views</span><span class="font-semibold text-red-500">R$ 5.000 - 10.000</span></div>
+            <div class="h-2.5 rounded-full bg-red-50"><div class="bar-fill bg-red-400" style="width:90%"></div></div></div>
+          <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Taxa de conversao</span><span class="font-semibold text-red-500">0.5 - 2%</span></div>
+            <div class="h-2.5 rounded-full bg-red-50"><div class="bar-fill bg-red-400" style="width:15%"></div></div></div>
+          <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Confianca do publico</span><span class="font-semibold text-red-500">Baixa</span></div>
+            <div class="h-2.5 rounded-full bg-red-50"><div class="bar-fill bg-red-400" style="width:12%"></div></div></div>
+          <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Reaproveitamento</span><span class="font-semibold text-red-500">Limitado</span></div>
+            <div class="h-2.5 rounded-full bg-red-50"><div class="bar-fill bg-red-400" style="width:20%"></div></div></div>
+        </div>
+      </div>
+      <!-- Brandly -->
+      <div class="rot-border p-8 reveal">
+        <div class="tilt-card">
+          <div class="shine"></div>
+          <div class="flex items-center gap-3 mb-8">
+            <div class="w-3 h-3 rounded-full" style="background:var(--cyan)"></div>
+            <h3 class="font-heading text-lg font-semibold text-brand-blue">Brandly UGC Creators</h3>
+          </div>
+          <div class="space-y-5">
+            <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Custo por 100k views</span><span class="font-semibold text-brand-blue">R$ 300 - 1.000</span></div>
+              <div class="h-2.5 rounded-full bg-blue-50"><div class="bar-fill" style="width:10%;background:linear-gradient(90deg,var(--blue),var(--cyan))"></div></div></div>
+            <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Taxa de conversao</span><span class="font-semibold text-brand-blue">5 - 12%</span></div>
+              <div class="h-2.5 rounded-full bg-blue-50"><div class="bar-fill" style="width:85%;background:linear-gradient(90deg,var(--blue),var(--cyan))"></div></div></div>
+            <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Confianca do publico</span><span class="font-semibold text-brand-blue">Altissima</span></div>
+              <div class="h-2.5 rounded-full bg-blue-50"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,var(--blue),var(--cyan))"></div></div></div>
+            <div><div class="flex justify-between text-sm mb-2"><span class="text-text-3">Reaproveitamento</span><span class="font-semibold text-brand-blue">Total</span></div>
+              <div class="h-2.5 rounded-full bg-blue-50"><div class="bar-fill" style="width:95%;background:linear-gradient(90deg,var(--blue),var(--cyan))"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Impacto -->
+    <div class="text-center reveal">
+      <div class="rot-border inline-block px-16 py-12">
+        <div>
+          <p class="text-sm text-text-3 mb-3">R$ 3.000/mes por creator = alcance equivalente a</p>
+          <p class="font-heading text-[clamp(3rem,8vw,5.5rem)] font-bold gradient-text leading-none">R$ 50-100k</p>
+          <p class="text-sm text-text-3 mt-3">em trafego pago. <strong class="text-brand-deep">Realocacao inteligente de orcamento.</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== COMO FUNCIONA ====== -->
+<section class="py-24 lg:py-36 px-6 skew-target" id="como">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Processo</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal split-reveal">
+        <span class="gradient-text">4 passos.</span> <span class="text-brand-deep">Zero fricao.</span>
+      </h2>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger-container">
+      <div class="glass p-8 tilt-card stagger-item reveal">
+        <div class="shine"></div>
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 font-heading font-bold text-xl text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))">1</div>
+        <h3 class="font-heading text-lg font-semibold text-brand-deep mb-3">Briefing</h3>
+        <p class="text-sm text-text-3">Envie objetivos, tom, produto e referencias. Nos cuidamos do resto.</p>
+      </div>
+      <div class="glass p-8 tilt-card stagger-item reveal">
+        <div class="shine"></div>
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 font-heading font-bold text-xl text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))">2</div>
+        <h3 class="font-heading text-lg font-semibold text-brand-deep mb-3">Matching IA</h3>
+        <p class="text-sm text-text-3">Selecionamos creators ideais por nicho, estilo e perfil de audiencia.</p>
+      </div>
+      <div class="glass p-8 tilt-card stagger-item reveal">
+        <div class="shine"></div>
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 font-heading font-bold text-xl text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))">3</div>
+        <h3 class="font-heading text-lg font-semibold text-brand-deep mb-3">Producao</h3>
+        <p class="text-sm text-text-3">Creators produzem em escala com roteiros IA. Voce aprova cada video.</p>
+      </div>
+      <div class="glass p-8 tilt-card stagger-item reveal">
+        <div class="shine"></div>
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 font-heading font-bold text-xl text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))">4</div>
+        <h3 class="font-heading text-lg font-semibold text-brand-deep mb-3">Performance</h3>
+        <p class="text-sm text-text-3">Dashboard em tempo real. Views, conversoes, vendas. Otimizacao continua.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== NUMEROS ====== -->
+<section class="py-24 lg:py-36 px-6 skew-target" id="numeros">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Escala</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal split-reveal">
+        Numeros que <span class="gradient-text">nenhuma agencia entrega</span>
+      </h2>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 stagger-container">
+      <div class="glass stat-pulse p-8 text-center stagger-item reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold text-brand-deep counter" data-target="300" data-suffix="+">0</p>
+        <p class="text-sm text-text-3 mt-2">videos/mes por marca</p>
+      </div>
+      <div class="glass stat-pulse p-8 text-center stagger-item reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold gradient-text counter" data-target="10" data-suffix="x">0</p>
+        <p class="text-sm text-text-3 mt-2">mais alcance organico</p>
+      </div>
+      <div class="glass stat-pulse p-8 text-center stagger-item reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold text-brand-deep counter" data-target="5" data-suffix="x">0</p>
+        <p class="text-sm text-text-3 mt-2">maior conversao</p>
+      </div>
+      <div class="glass stat-pulse p-8 text-center stagger-item reveal">
+        <p class="font-heading text-[clamp(2.5rem,5vw,3.5rem)] font-bold gradient-text counter" data-target="7" data-suffix=" dias">0</p>
+        <p class="text-sm text-text-3 mt-2">primeiros videos entregues</p>
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-container">
+      <div class="glass p-6 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading font-bold text-brand-blue">Beleza & Skincare</p><p class="text-xs text-text-3 mt-1">Reviews, tutoriais, unboxing</p></div>
+      <div class="glass p-6 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading font-bold text-brand-blue">Suplementos & Fitness</p><p class="text-xs text-text-3 mt-1">Treino, resultados, rotina</p></div>
+      <div class="glass p-6 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading font-bold text-brand-blue">Tech & Gadgets</p><p class="text-xs text-text-3 mt-1">Unboxing, comparativos</p></div>
+      <div class="glass p-6 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading font-bold text-brand-blue">Moda & Acessorios</p><p class="text-xs text-text-3 mt-1">GRWM, hauls, looks</p></div>
+      <div class="glass p-6 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading font-bold text-brand-blue">Alimentos & Bebidas</p><p class="text-xs text-text-3 mt-1">Receitas, degustacao</p></div>
+      <div class="glass p-6 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading font-bold text-brand-blue">Casa & Decoracao</p><p class="text-xs text-text-3 mt-1">DIY, antes e depois</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== DIFERENCIAIS ====== -->
+<section class="py-24 lg:py-36 px-6 skew-target" id="porque">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Diferenciais</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal split-reveal">
+        Por que fechar com a <span class="gradient-text">Brandly</span>
+      </h2>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-8">
+      <div class="rot-border p-8 reveal"><div class="flex items-start gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div><div><h3 class="font-heading text-lg font-semibold text-brand-deep mb-2">Creators treinados profissionalmente</h3><p class="text-sm text-text-3">3 semanas de formacao. Estrutura de video, psicologia de conversao, padrao tecnico. Nao sao influencers aleatorios.</p></div></div></div>
+      <div class="rot-border p-8 reveal"><div class="flex items-start gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg></div><div><h3 class="font-heading text-lg font-semibold text-brand-deep mb-2">IA que multiplica producao</h3><p class="text-sm text-text-3">27 combinacoes de roteiro por video. Edicao automatica em 30 segundos. 10 videos por creator por dia.</p></div></div></div>
+      <div class="rot-border p-8 reveal"><div class="flex items-start gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><h3 class="font-heading text-lg font-semibold text-brand-deep mb-2">Pague por producao, nao por promessa</h3><p class="text-sm text-text-3">Modelo transparente por video aprovado. Sem minimo de seguidores. Resultado mensuravel e previsivel.</p></div></div></div>
+      <div class="rot-border p-8 reveal"><div class="flex items-start gap-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style="background:linear-gradient(135deg,var(--blue),var(--cyan))"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><h3 class="font-heading text-lg font-semibold text-brand-deep mb-2">Dashboard em tempo real</h3><p class="text-sm text-text-3">Views, engajamento, conversoes, vendas geradas por video. Insights automaticos e otimizacao continua.</p></div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-6"></div>
+
+<!-- ====== ROI ====== -->
+<section class="py-24 lg:py-36 px-6 clip-section" id="roi" style="background:var(--bg-alt)">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-20">
+      <span class="section-label mb-4 block reveal">Simulacao de ROI</span>
+      <h2 class="font-heading text-[clamp(2rem,4.5vw,3.2rem)] leading-tight tracking-tight reveal split-reveal">
+        O que <span class="gradient-text">R$ 9.000/mes</span> compra?
+      </h2>
+      <p class="text-text-3 mt-4 reveal">3 creators dedicados a sua marca</p>
+    </div>
+    <div class="grid lg:grid-cols-3 gap-8 mb-16 stagger-container">
+      <div class="glass p-10 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading text-6xl font-bold text-brand-deep mb-2">900</p><p class="text-sm text-text-3">videos/mes</p><p class="text-xs text-text-3/60 mt-1">10/dia x 3 creators x 30 dias</p></div>
+      <div class="glass p-10 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading text-6xl font-bold gradient-text mb-2">5-10M</p><p class="text-sm text-text-3">views organicas</p><p class="text-xs text-text-3/60 mt-1">= R$250k-500k em ads</p></div>
+      <div class="glass p-10 text-center tilt-card stagger-item reveal"><div class="shine"></div><p class="font-heading text-6xl font-bold text-brand-deep mb-2">27-55x</p><p class="text-sm text-text-3">ROI estimado</p><p class="text-xs text-text-3/60 mt-1">vs trafego pago equivalente</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CTA ====== -->
+<section class="py-32 lg:py-44 px-6 relative overflow-hidden" id="cta">
+  <div class="orb" style="width:500px;height:500px;background:var(--blue);top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.04"></div>
+  <canvas id="cta-canvas" class="absolute inset-0 z-0 pointer-events-none" style="opacity:0.3"></canvas>
+
+  <div class="max-w-4xl mx-auto text-center relative z-10">
+    <div class="reveal"><img src="assets/logos-hq/completa-fundo-branco.png" alt="Brandly" class="mx-auto h-12 object-contain mb-10"/></div>
+    <h2 class="font-heading text-[clamp(2rem,5vw,3.5rem)] leading-tight tracking-tight mb-6 reveal split-reveal">
+      <span class="text-brand-deep">Sua concorrencia ja esta</span><br><span class="gradient-text">investindo em creators.</span>
+    </h2>
+    <p class="text-lg text-text-2 max-w-2xl mx-auto mb-12 reveal">
+      Vamos conversar sobre como a Brandly pode colocar 10, 30 ou 100 creators produzindo conteudo autentico para sua marca.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4 reveal">
+      <a href="#" class="magnetic btn-track inline-flex items-center gap-3 px-12 py-5 rounded-full font-heading font-bold text-base text-white shadow-xl shadow-blue-500/20" style="background:linear-gradient(135deg,var(--blue),var(--cyan))">
+        <span class="btn-text">Agendar reuniao estrategica</span>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    <p class="text-xs text-text-3 mt-6 reveal">Sem compromisso. 30 minutos. ROI simulado para sua marca.</p>
+  </div>
+</section>
+
+<footer class="py-8 text-center border-t" style="border-color:rgba(29,69,216,0.06)">
+  <p class="text-xs text-text-3">Brandly &copy; 2025 — Seu branding viral.</p>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/SplitText.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+(function(){
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // === PRELOADER ===
+  const preloader = document.getElementById('preloader');
+  const preloaderBar = document.getElementById('preloaderBar');
+  let progress = 0;
+  const preloadInterval = setInterval(() => {
+    progress += Math.random() * 25;
+    if (progress >= 100) { progress = 100; clearInterval(preloadInterval); }
+    preloaderBar.style.width = progress + '%';
+    if (progress >= 100) {
+      setTimeout(() => {
+        gsap.to(preloader, { yPercent: -100, duration: 0.8, ease: 'power3.inOut', onComplete: () => preloader.style.display = 'none' });
+      }, 300);
+    }
+  }, 200);
+
+  // === CUSTOM CURSOR ===
+  if (!reduced && window.matchMedia('(pointer:fine)').matches) {
+    const dot = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, dx = 0, dy = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    gsap.ticker.add(() => {
+      dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+      dx += (mx - dx) * 0.15; dy += (my - dy) * 0.15;
+      ring.style.left = dx + 'px'; ring.style.top = dy + 'px';
+    });
+    document.querySelectorAll('a,button,.magnetic,.tilt-card,.glass').forEach(el => {
+      el.addEventListener('mouseenter', () => ring.classList.add('hovered'));
+      el.addEventListener('mouseleave', () => ring.classList.remove('hovered'));
+    });
+  } else {
+    document.getElementById('cursorDot').style.display = 'none';
+    document.getElementById('cursorRing').style.display = 'none';
+  }
+
+  function initPage() {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // === LENIS ===
+    if (!reduced) {
+      const lenis = new Lenis({ lerp: 0.06, smoothWheel: true });
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add(t => lenis.raf(t * 1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+
+    // === SCROLL PROGRESS ===
+    ScrollTrigger.create({
+      trigger: document.body, start: 'top top', end: 'bottom bottom',
+      onUpdate: s => { document.getElementById('scrollProgress').style.width = (s.progress*100)+'%'; }
+    });
+
+    // === REVEALS ===
+    if (!reduced) {
+      gsap.utils.toArray('.reveal').forEach(el => {
+        gsap.fromTo(el, {opacity:0,y:40}, {opacity:1,y:0,duration:0.8,ease:'power3.out',
+          scrollTrigger:{trigger:el,start:'top 88%',once:true}});
+      });
+    } else {
+      document.querySelectorAll('.reveal').forEach(el => {el.style.opacity='1';el.style.transform='none';});
+    }
+
+    // === SPLIT TEXT REVEALS ===
+    if (!reduced && typeof SplitText !== 'undefined') {
+      document.querySelectorAll('.split-reveal').forEach(el => {
+        const split = new SplitText(el, { type: 'lines,words', linesClass: 'split-line' });
+        split.lines.forEach(line => {
+          const w = document.createElement('div');
+          w.style.overflow = 'hidden';
+          line.parentNode.insertBefore(w, line);
+          w.appendChild(line);
+        });
+        gsap.from(split.lines, {
+          scrollTrigger: { trigger: el, start: 'top 82%' },
+          y: '110%', stagger: 0.1, duration: 1, ease: 'power4.out',
+        });
+      });
+    }
+
+    // === STAGGER FROM CENTER ===
+    if (!reduced) {
+      document.querySelectorAll('.stagger-container').forEach(cont => {
+        gsap.from(cont.querySelectorAll('.stagger-item'), {
+          scrollTrigger: {trigger: cont, start: 'top 82%'},
+          y: 50, opacity: 0, scale: 0.96, duration: 0.7, ease: 'power3.out',
+          stagger: { each: 0.08, from: 'center' }
+        });
+      });
+    }
+
+    // === CLIP PATH REVEALS ===
+    if (!reduced) {
+      gsap.utils.toArray('.clip-section').forEach(s => {
+        gsap.fromTo(s, {clipPath:'inset(8% 4% 8% 4% round 24px)'}, {clipPath:'inset(0% 0% 0% 0% round 0px)',
+          scrollTrigger:{trigger:s,start:'top 85%',end:'top 30%',scrub:0.8},ease:'none'});
+      });
+    } else {
+      document.querySelectorAll('.clip-section').forEach(s => s.style.clipPath = 'none');
+    }
+
+    // === VELOCITY SKEW ===
+    if (!reduced) {
+      let cs = 0, ts = 0;
+      ScrollTrigger.create({onUpdate: s => { ts = Math.min(Math.max(s.getVelocity()*-0.001,-3),3); }});
+      gsap.ticker.add(() => { cs += (ts - cs)*0.1; ts *= 0.92; gsap.set('.skew-target',{skewY:cs}); });
+    }
+
+    // === TILT CARDS ===
+    if (!reduced) {
+      document.querySelectorAll('.tilt-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const r = card.getBoundingClientRect();
+          const x = (e.clientX - r.left)/r.width - 0.5;
+          const y = (e.clientY - r.top)/r.height - 0.5;
+          gsap.to(card, {rotateY:x*10, rotateX:-y*10, duration:0.4, ease:'power2.out', transformPerspective:800});
+          card.style.setProperty('--shine-x', `${(x+0.5)*100}%`);
+          card.style.setProperty('--shine-y', `${(y+0.5)*100}%`);
+        });
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, {rotateY:0, rotateX:0, duration:0.6, ease:'power3.out'});
+        });
+      });
+    }
+
+    // === MAGNETIC BUTTONS ===
+    if (!reduced) {
+      document.querySelectorAll('.magnetic').forEach(btn => {
+        btn.addEventListener('mousemove', e => {
+          const r = btn.getBoundingClientRect();
+          const dx = e.clientX - r.left - r.width/2;
+          const dy = e.clientY - r.top - r.height/2;
+          gsap.to(btn, {x:dx*0.3, y:dy*0.3, duration:0.3, ease:'power2.out'});
+          const inner = btn.querySelector('.btn-text');
+          if (inner) gsap.to(inner, {x:dx*0.15, y:dy*0.15, duration:0.3});
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, {x:0, y:0, duration:0.7, ease:'elastic.out(1,0.3)'});
+          const inner = btn.querySelector('.btn-text');
+          if (inner) gsap.to(inner, {x:0, y:0, duration:0.7, ease:'elastic.out(1,0.3)'});
+        });
+      });
+    }
+
+    // === BUTTON TRACKING GRADIENT ===
+    document.querySelectorAll('.btn-track').forEach(btn => {
+      btn.addEventListener('mousemove', e => {
+        const r = btn.getBoundingClientRect();
+        btn.style.setProperty('--gx', `${e.clientX - r.left}px`);
+        btn.style.setProperty('--gy', `${e.clientY - r.top}px`);
+      });
+    });
+
+    // === COUNTERS ===
+    document.querySelectorAll('.counter').forEach(el => {
+      const target = parseInt(el.dataset.target);
+      const suffix = el.dataset.suffix || '%';
+      if (!target) return;
+      ScrollTrigger.create({
+        trigger: el, start:'top 85%', once:true,
+        onEnter: () => {
+          gsap.to({v:0}, {v:target, duration:2, ease:'power2.out',
+            onUpdate: function(){ el.textContent = Math.round(this.targets()[0].v) + suffix; }
+          });
+        }
+      });
+    });
+
+    // === BAR FILLS ===
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      const w = bar.style.width; bar.style.width = '0%';
+      ScrollTrigger.create({trigger:bar,start:'top 90%',once:true, onEnter:()=>{bar.style.width=w;}});
+    });
+
+    // === THREE.JS HERO BG ===
+    if (!reduced && typeof THREE !== 'undefined') {
+      initThreeHero('hero-canvas', 0x1D45D8);
+      initParticleCloud('cta-canvas', { count: 150, color: 0x1D45D8, spread: 12 });
+    }
+  }
+
+  // Three.js floating geometry
+  function initThreeHero(canvasId, accentHex) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth/canvas.clientHeight, 0.1, 100);
+    camera.position.z = 8;
+    const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+    const color = new THREE.Color(accentHex);
+    const mat = new THREE.MeshStandardMaterial({color:color.clone().multiplyScalar(0.5), emissive:color, emissiveIntensity:0.1, wireframe:true, transparent:true, opacity:0.08});
+    const geos = [new THREE.IcosahedronGeometry(1.5,1), new THREE.TorusGeometry(1.2,0.3,8,32), new THREE.OctahedronGeometry(1,0)];
+    const meshes = [];
+    for (let i=0;i<5;i++){
+      const m = new THREE.Mesh(geos[i%geos.length], mat.clone());
+      m.position.set((Math.random()-0.5)*14,(Math.random()-0.5)*8,(Math.random()-0.5)*6-3);
+      m.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,0);
+      m.userData = {rx:(Math.random()-0.5)*0.004,ry:(Math.random()-0.5)*0.004,fs:0.3+Math.random()*0.5,fa:0.3+Math.random()*0.4,iy:m.position.y};
+      scene.add(m); meshes.push(m);
+    }
+    scene.add(new THREE.AmbientLight(0xffffff,0.4));
+    const dl = new THREE.DirectionalLight(accentHex,0.3); dl.position.set(5,5,5); scene.add(dl);
+    let mx=0,my=0;
+    document.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-0.5)*2;my=(e.clientY/innerHeight-0.5)*2;});
+    (function anim(){
+      requestAnimationFrame(anim);
+      const t=Date.now()*0.001;
+      meshes.forEach(m=>{m.rotation.x+=m.userData.rx;m.rotation.y+=m.userData.ry;m.position.y=m.userData.iy+Math.sin(t*m.userData.fs)*m.userData.fa;});
+      camera.position.x+=(mx*0.5-camera.position.x)*0.02;
+      camera.position.y+=(-my*0.3-camera.position.y)*0.02;
+      camera.lookAt(scene.position);
+      renderer.render(scene,camera);
+    })();
+    addEventListener('resize',()=>{camera.aspect=canvas.clientWidth/canvas.clientHeight;camera.updateProjectionMatrix();renderer.setSize(canvas.clientWidth,canvas.clientHeight);});
+  }
+
+  // Particle cloud
+  function initParticleCloud(canvasId, opts){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(60,canvas.clientWidth/canvas.clientHeight,0.1,50);
+    camera.position.z=5;
+    const renderer=new THREE.WebGLRenderer({canvas,alpha:true});
+    renderer.setSize(canvas.clientWidth,canvas.clientHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    const geo=new THREE.BufferGeometry();
+    const pos=new Float32Array(opts.count*3);
+    for(let i=0;i<opts.count*3;i+=3){pos[i]=(Math.random()-0.5)*opts.spread;pos[i+1]=(Math.random()-0.5)*opts.spread*0.6;pos[i+2]=(Math.random()-0.5)*opts.spread*0.4-2;}
+    geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    const points=new THREE.Points(geo,new THREE.PointsMaterial({color:opts.color,size:0.04,transparent:true,opacity:0.25}));
+    scene.add(points);
+    (function anim(){requestAnimationFrame(anim);points.rotation.y+=0.0003;points.rotation.x+=0.0001;renderer.render(scene,camera);})();
+    addEventListener('resize',()=>{camera.aspect=canvas.clientWidth/canvas.clientHeight;camera.updateProjectionMatrix();renderer.setSize(canvas.clientWidth,canvas.clientHeight);});
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initPage);
+  else initPage();
+})();
+</script>
+</body>
+</html>

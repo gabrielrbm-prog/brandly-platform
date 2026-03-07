@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import * as SecureStore from 'expo-secure-store';
 import { api, authApi } from '@/lib/api';
+import { getItem, setItem, deleteItem } from '@/lib/storage';
 
 interface User {
   id: string;
@@ -35,14 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function loadStoredAuth() {
     try {
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
+      const token = await getItem(TOKEN_KEY);
       if (token) {
         api.setToken(token);
         const userData = await authApi.me();
         setUser(userData as User);
       }
     } catch {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await deleteItem(TOKEN_KEY);
       api.clearToken();
     } finally {
       setIsLoading(false);
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const response = await authApi.login({ email, password }) as { token: string; user: User };
     api.setToken(response.token);
-    await SecureStore.setItemAsync(TOKEN_KEY, response.token);
+    await setItem(TOKEN_KEY, response.token);
     setUser(response.user);
   }, []);
 
@@ -65,14 +65,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         referralCode: referralCode || undefined,
       }) as { token: string; user: User };
       api.setToken(response.token);
-      await SecureStore.setItemAsync(TOKEN_KEY, response.token);
+      await setItem(TOKEN_KEY, response.token);
       setUser(response.user);
     },
     [],
   );
 
   const logout = useCallback(async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await deleteItem(TOKEN_KEY);
     api.clearToken();
     setUser(null);
   }, []);

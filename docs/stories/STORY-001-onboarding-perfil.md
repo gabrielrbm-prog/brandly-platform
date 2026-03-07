@@ -1,6 +1,6 @@
 # STORY-001: Onboarding e Analise de Perfil
 
-## Status: TODO
+## Status: IN_PROGRESS
 ## Prioridade: CRITICA (primeiro contato do creator)
 ## Squad: @dev + @ux-design-expert + @analyst
 
@@ -31,11 +31,12 @@ com a plataforma e coleta dados para matching com marcas.
 - `packages/shared/src/types/onboarding.ts`
 
 ## Checklist
-- [ ] Schema de creator_profiles definido
-- [ ] Endpoint de cadastro (POST /auth/register)
-- [ ] Endpoint de login (POST /auth/login)
-- [ ] Endpoint de questionario (POST /onboarding/profile)
-- [ ] Endpoint de conexao de redes sociais (POST /onboarding/social)
-- [ ] Validacao de dados de entrada
+- [x] Schema de creator_profiles definido
+- [x] Endpoint de cadastro (POST /auth/register)
+- [x] Endpoint de login (POST /auth/login)
+- [x] Endpoint de questionario (POST /onboarding/profile)
+- [x] Endpoint de conexao de redes sociais (POST /onboarding/social)
+- [x] Validacao de dados de entrada
 - [ ] Testes unitarios
 - [ ] Testes de integracao
+- [ ] Conectar ao banco real

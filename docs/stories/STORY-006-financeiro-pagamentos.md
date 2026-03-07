@@ -1,6 +1,6 @@
 # STORY-006: Painel Financeiro e Pagamentos
 
-## Status: TODO
+## Status: IN_PROGRESS
 ## Prioridade: CRITICA (creator precisa ver quanto ganha)
 ## Squad: @dev + @architect + @analyst
 

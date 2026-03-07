@@ -1,6 +1,6 @@
 # STORY-004: Upload de Videos e Validacao de Qualidade
 
-## Status: TODO
+## Status: IN_PROGRESS
 ## Prioridade: CRITICA (fluxo de pagamento depende disso)
 ## Squad: @dev + @qa + @analyst
 
@@ -38,12 +38,13 @@ Este e o fluxo mais critico do MVP — e dele que sai o pagamento de R$100/dia.
 - `packages/shared/src/types/video.ts`
 
 ## Checklist
-- [ ] Schema de videos com todos os campos necessarios
-- [ ] POST /videos (upload com marca + briefing)
-- [ ] GET /videos (lista do creator com filtros: status, data, marca)
-- [ ] PATCH /videos/:id/review (admin aprova/rejeita com motivo)
-- [ ] POST /videos/:id/resubmit (creator reenvia)
-- [ ] Servico de validacao de qualidade
-- [ ] Servico de calculo de pagamento (R$10/video, max 10/dia)
-- [ ] Testes unitarios (validacao, pagamento, limites)
+- [x] Schema de videos com todos os campos necessarios
+- [x] POST /videos (upload com marca + briefing)
+- [x] GET /videos (lista do creator com filtros: status, data, marca)
+- [x] PATCH /videos/:id/review (admin aprova/rejeita com motivo)
+- [x] POST /videos/:id/resubmit (creator reenvia)
+- [x] Servico de validacao de qualidade (video-validator.ts)
+- [x] Servico de calculo de pagamento (video-payment.ts, R$10/video, max 10/dia)
+- [x] Testes unitarios (9 validator + 6 payment = 15 testes passando)
 - [ ] Testes de integracao
+- [ ] Conectar ao banco real

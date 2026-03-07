@@ -1,0 +1,36 @@
+{
+  "name": "@brandly/platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Brandly - Plataforma SaaS de Creator Economy",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "validate:structure": "node bin/validate-structure.js",
+    "validate:agents": "node bin/validate-agents.js",
+    "sync:ide": "node bin/sync-ide.js",
+    "sync:ide:check": "node bin/sync-ide.js --check",
+    "sync:skills:codex": "node bin/sync-skills.js",
+    "sync:skills:codex:global": "node bin/sync-skills.js --global"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.1.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "prettier": "^3.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.0.0"
+}

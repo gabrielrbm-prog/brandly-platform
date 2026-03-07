@@ -1,0 +1,26 @@
+{
+  "name": "@brandly/api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@brandly/shared": "*",
+    "@brandly/core": "*",
+    "@brandly/bonus-engine": "*",
+    "fastify": "^5.0.0",
+    "@fastify/cors": "^10.0.0",
+    "@fastify/jwt": "^9.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}

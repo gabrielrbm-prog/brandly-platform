@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
 
 declare module '@fastify/jwt' {
@@ -8,13 +9,12 @@ declare module '@fastify/jwt' {
   }
 }
 
-export async function authPlugin(app: FastifyInstance) {
+async function auth(app: FastifyInstance) {
   await app.register(jwt, {
     secret: process.env.JWT_SECRET ?? 'brandly-dev-secret-change-in-prod',
     sign: { expiresIn: '7d' },
   });
 
-  // Decorator para proteger rotas
   app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       await request.jwtVerify();
@@ -23,7 +23,6 @@ export async function authPlugin(app: FastifyInstance) {
     }
   });
 
-  // Decorator para rotas de admin
   app.decorate('requireAdmin', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       await request.jwtVerify();
@@ -35,6 +34,8 @@ export async function authPlugin(app: FastifyInstance) {
     }
   });
 }
+
+export const authPlugin = fp(auth, { name: 'auth' });
 
 declare module 'fastify' {
   interface FastifyInstance {

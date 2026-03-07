@@ -31,8 +31,8 @@ export async function communityRoutes(app: FastifyInstance) {
         .where(
           and(
             eq(videos.status, 'approved'),
-            gte(videos.createdAt, sql`${dateFrom}`),
-            lt(videos.createdAt, sql`${now}`),
+            gte(videos.createdAt, sql`${dateFrom.toISOString()}::timestamp`),
+            lt(videos.createdAt, sql`${now.toISOString()}::timestamp`),
           ),
         )
         .groupBy(videos.creatorId, users.name)
@@ -57,8 +57,8 @@ export async function communityRoutes(app: FastifyInstance) {
       .innerJoin(users, eq(payments.userId, users.id))
       .where(
         and(
-          gte(payments.createdAt, sql`${dateFrom}`),
-          lt(payments.createdAt, sql`${now}`),
+          gte(payments.createdAt, sql`${dateFrom.toISOString()}::timestamp`),
+          lt(payments.createdAt, sql`${now.toISOString()}::timestamp`),
         ),
       )
       .groupBy(payments.userId, users.name)
@@ -79,12 +79,12 @@ export async function communityRoutes(app: FastifyInstance) {
 
     const upcoming = await db.select()
       .from(liveEvents)
-      .where(gte(liveEvents.scheduledAt, sql`${now}`))
+      .where(gte(liveEvents.scheduledAt, sql`${now.toISOString()}::timestamp`))
       .orderBy(liveEvents.scheduledAt);
 
     const past = await db.select()
       .from(liveEvents)
-      .where(lt(liveEvents.scheduledAt, sql`${now}`))
+      .where(lt(liveEvents.scheduledAt, sql`${now.toISOString()}::timestamp`))
       .orderBy(desc(liveEvents.scheduledAt))
       .limit(10);
 

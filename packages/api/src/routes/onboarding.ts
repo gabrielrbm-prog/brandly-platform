@@ -1,11 +1,14 @@
 import type { FastifyInstance } from 'fastify';
+import { db } from '@brandly/core';
+import { users, creatorProfiles } from '@brandly/core';
+import { eq } from 'drizzle-orm';
 
 interface ProfileBody {
-  preferredCategories: string[];  // beauty, supplements, home, tech, fashion, food
-  contentStyle: string;           // lifestyle, review, tutorial, unboxing
-  experienceLevel: string;        // none, beginner, intermediate, advanced
+  preferredCategories: string[];
+  contentStyle: string;
+  experienceLevel: string;
   availableHoursPerDay: number;
-  motivations: string[];          // renda, identidade, carreira, liberdade
+  motivations: string[];
 }
 
 interface SocialBody {
@@ -18,11 +21,13 @@ const VALID_STYLES = ['lifestyle', 'review', 'tutorial', 'unboxing', 'pov', 'sto
 const VALID_LEVELS = ['none', 'beginner', 'intermediate', 'advanced'];
 
 export async function onboardingRoutes(app: FastifyInstance) {
-  // POST /api/onboarding/profile — salvar perfil comportamental
-  app.post<{ Body: ProfileBody }>('/profile', async (request, reply) => {
+  // POST /api/onboarding/profile
+  app.post<{ Body: ProfileBody }>('/profile', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
     const { preferredCategories, contentStyle, experienceLevel, availableHoursPerDay, motivations } = request.body;
 
-    // Validacoes
     if (!preferredCategories?.length) {
       return reply.status(400).send({ error: 'Selecione ao menos 1 categoria de marca' });
     }
@@ -40,23 +45,35 @@ export async function onboardingRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: `Nivel invalido. Use: ${VALID_LEVELS.join(', ')}` });
     }
 
-    // TODO: extrair userId do JWT
-    // TODO: salvar/atualizar creator_profiles no banco
+    // Upsert creator profile
+    const existing = await db.select({ id: creatorProfiles.id })
+      .from(creatorProfiles)
+      .where(eq(creatorProfiles.userId, userId))
+      .limit(1);
 
-    return {
-      message: 'Perfil salvo com sucesso',
-      profile: {
+    if (existing.length > 0) {
+      await db.update(creatorProfiles)
+        .set({ preferredCategories, contentStyle, experienceLevel, availableHoursPerDay, motivations })
+        .where(eq(creatorProfiles.userId, userId));
+    } else {
+      await db.insert(creatorProfiles).values({
+        userId,
         preferredCategories,
         contentStyle,
         experienceLevel,
         availableHoursPerDay,
         motivations,
-      },
-    };
+      });
+    }
+
+    return { message: 'Perfil salvo com sucesso' };
   });
 
-  // POST /api/onboarding/social — conectar rede social
-  app.post<{ Body: SocialBody }>('/social', async (request, reply) => {
+  // POST /api/onboarding/social
+  app.post<{ Body: SocialBody }>('/social', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
     const { platform, handle } = request.body;
 
     if (!platform || !handle) {
@@ -67,22 +84,24 @@ export async function onboardingRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'platform deve ser instagram ou tiktok' });
     }
 
-    // TODO: extrair userId do JWT
-    // TODO: atualizar instagram_handle ou tiktok_handle no banco
-    // TODO: futuramente, validar handle via API da rede social
+    const field = platform === 'instagram'
+      ? { instagramHandle: handle }
+      : { tiktokHandle: handle };
 
-    return {
-      message: `${platform} conectado com sucesso`,
-      platform,
-      handle,
-    };
+    await db.update(users).set(field).where(eq(users.id, userId));
+
+    return { message: `${platform} conectado com sucesso`, platform, handle };
   });
 
-  // POST /api/onboarding/complete — marcar onboarding como completo
-  app.post('/complete', async (request, reply) => {
-    // TODO: extrair userId do JWT
-    // TODO: verificar se profile e social foram preenchidos
-    // TODO: marcar onboarding_completed = true
+  // POST /api/onboarding/complete
+  app.post('/complete', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+
+    await db.update(users)
+      .set({ onboardingCompleted: true })
+      .where(eq(users.id, userId));
 
     return {
       message: 'Onboarding concluido! Voce ja pode comecar a produzir videos.',

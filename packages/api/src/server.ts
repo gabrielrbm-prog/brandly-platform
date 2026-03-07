@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { authPlugin } from './plugins/auth.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { onboardingRoutes } from './routes/onboarding.js';
@@ -25,6 +26,7 @@ const app = Fastify({
 
 async function start() {
   await app.register(cors, { origin: true });
+  await app.register(authPlugin);
 
   // Sprint 1 — Fundacao
   await app.register(healthRoutes, { prefix: '/api' });

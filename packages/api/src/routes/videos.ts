@@ -1,4 +1,10 @@
 import type { FastifyInstance } from 'fastify';
+import { db } from '@brandly/core';
+import { videos, payments } from '@brandly/core';
+import { eq, and, sql, gte, lte, desc, count } from 'drizzle-orm';
+
+const PAYMENT_PER_VIDEO = 10;
+const MAX_PAID_PER_DAY = 10;
 
 interface SubmitVideoBody {
   brandId: string;
@@ -12,168 +18,243 @@ interface ReviewVideoBody {
   rejectionReason?: string;
 }
 
-interface VideoQuery {
-  status?: string;
-  date?: string;     // YYYY-MM-DD
-  brandId?: string;
-  page?: number;
-  limit?: number;
+function todayRange() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
 }
 
 export async function videoRoutes(app: FastifyInstance) {
-  // POST /api/videos — submeter video para aprovacao
-  app.post<{ Body: SubmitVideoBody }>('/', async (request, reply) => {
+  // POST /api/videos — submeter video
+  app.post<{ Body: SubmitVideoBody }>('/', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
     const { brandId, briefingId, externalUrl, platform } = request.body;
 
     if (!brandId || !briefingId || !externalUrl) {
-      return reply.status(400).send({
-        error: 'brandId, briefingId e externalUrl sao obrigatorios',
-      });
+      return reply.status(400).send({ error: 'brandId, briefingId e externalUrl sao obrigatorios' });
     }
 
-    // Validacao basica de URL
     if (!/^https?:\/\/.+/.test(externalUrl)) {
       return reply.status(400).send({ error: 'externalUrl deve ser uma URL valida' });
     }
 
-    // TODO: extrair creatorId do JWT
-    // TODO: verificar se creator esta conectado a marca
-    // TODO: verificar se briefing pertence a marca
-    // TODO: salvar video no banco com status 'pending'
+    const [video] = await db.insert(videos).values({
+      creatorId: userId,
+      brandId,
+      briefingId,
+      externalUrl,
+      platform: platform ?? null,
+      status: 'pending',
+      paymentAmount: String(PAYMENT_PER_VIDEO),
+    }).returning();
 
     return reply.status(201).send({
-      video: {
-        id: 'generated-uuid',
-        brandId,
-        briefingId,
-        externalUrl,
-        platform: platform ?? null,
-        status: 'pending',
-        paymentAmount: '10.00',
-        createdAt: new Date().toISOString(),
-      },
+      video,
       message: 'Video enviado para aprovacao. Prazo: 24-48h.',
     });
   });
 
   // GET /api/videos — listar videos do creator
-  app.get<{ Querystring: VideoQuery }>('/', async (request, reply) => {
-    const { status, date, brandId, page = 1, limit = 20 } = request.query;
+  app.get('/', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
 
-    // TODO: extrair creatorId do JWT
-    // TODO: buscar videos no banco com filtros
-    // TODO: contar videos por status para o resumo
+    const result = await db.select()
+      .from(videos)
+      .where(eq(videos.creatorId, userId))
+      .orderBy(desc(videos.createdAt))
+      .limit(50);
+
+    const { start, end } = todayRange();
+
+    const [todayStats] = await db.select({
+      approved: count(sql`CASE WHEN ${videos.status} = 'approved' THEN 1 END`),
+      pending: count(sql`CASE WHEN ${videos.status} = 'pending' THEN 1 END`),
+      rejected: count(sql`CASE WHEN ${videos.status} = 'rejected' THEN 1 END`),
+      paid: count(sql`CASE WHEN ${videos.isPaid} = true THEN 1 END`),
+    })
+      .from(videos)
+      .where(and(
+        eq(videos.creatorId, userId),
+        gte(videos.createdAt, start),
+        lte(videos.createdAt, end),
+      ));
 
     return {
-      videos: [],
-      total: 0,
-      page,
-      limit,
-      summary: {
-        pending: 0,
-        approved: 0,
-        rejected: 0,
-        todayApproved: 0,
-        todayPaid: 0,
-        todayRemaining: 10, // max 10 por dia
+      videos: result,
+      total: result.length,
+      today: {
+        ...todayStats,
+        remaining: Math.max(0, MAX_PAID_PER_DAY - Number(todayStats?.paid ?? 0)),
       },
     };
   });
 
-  // GET /api/videos/daily — resumo do dia (videos aprovados/pendentes/pagos)
-  app.get('/daily', async (request, reply) => {
-    // TODO: extrair creatorId do JWT
-    // TODO: buscar videos do dia atual
+  // GET /api/videos/daily
+  app.get('/daily', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const { start, end } = todayRange();
+
+    const todayVideos = await db.select()
+      .from(videos)
+      .where(and(
+        eq(videos.creatorId, userId),
+        gte(videos.createdAt, start),
+        lte(videos.createdAt, end),
+      ))
+      .orderBy(desc(videos.createdAt));
+
+    const paid = todayVideos.filter(v => v.isPaid).length;
+    const approved = todayVideos.filter(v => v.status === 'approved').length;
 
     return {
-      date: new Date().toISOString().split('T')[0],
-      approved: 0,
-      pending: 0,
-      rejected: 0,
-      paid: 0,
-      earnings: '0.00',
-      maxVideos: 10,
-      remaining: 10,
+      date: start.toISOString().split('T')[0],
+      videos: todayVideos,
+      approved,
+      pending: todayVideos.filter(v => v.status === 'pending').length,
+      rejected: todayVideos.filter(v => v.status === 'rejected').length,
+      paid,
+      earnings: (paid * PAYMENT_PER_VIDEO).toFixed(2),
+      remaining: Math.max(0, MAX_PAID_PER_DAY - paid),
     };
   });
 
-  // PATCH /api/videos/:id/review — aprovar/rejeitar video (admin/marca)
+  // PATCH /api/videos/:id/review — aprovar/rejeitar (admin)
   app.patch<{ Params: { id: string }; Body: ReviewVideoBody }>(
     '/:id/review',
+    { preHandler: [app.requireAdmin] },
     async (request, reply) => {
       const { id } = request.params;
       const { status, rejectionReason } = request.body;
+      const { userId: reviewerId } = request.user;
 
       if (!['approved', 'rejected'].includes(status)) {
         return reply.status(400).send({ error: 'status deve ser approved ou rejected' });
       }
 
       if (status === 'rejected' && !rejectionReason) {
-        return reply.status(400).send({
-          error: 'rejectionReason e obrigatorio quando status = rejected',
-        });
+        return reply.status(400).send({ error: 'rejectionReason obrigatorio para rejeicao' });
       }
 
-      // TODO: verificar se user e admin ou marca dona do video
-      // TODO: buscar video no banco
-      // TODO: atualizar status e reviewedAt
-      // TODO: se approved, calcular pagamento (R$10, max 10/dia)
-      // TODO: criar registro em payments
-      // TODO: notificar creator
+      // Buscar video
+      const [video] = await db.select()
+        .from(videos)
+        .where(eq(videos.id, id))
+        .limit(1);
 
-      const isApproved = status === 'approved';
+      if (!video) {
+        return reply.status(404).send({ error: 'Video nao encontrado' });
+      }
+
+      const now = new Date();
+      const updateData: Record<string, unknown> = {
+        status,
+        reviewedAt: now,
+        reviewedBy: reviewerId,
+      };
+
+      if (status === 'rejected') {
+        updateData.rejectionReason = rejectionReason;
+      }
+
+      // Se aprovado, verificar limite diario e pagar
+      if (status === 'approved') {
+        const { start, end } = todayRange();
+        const [dailyPaid] = await db.select({
+          total: count(),
+        })
+          .from(videos)
+          .where(and(
+            eq(videos.creatorId, video.creatorId),
+            eq(videos.isPaid, true),
+            gte(videos.createdAt, start),
+            lte(videos.createdAt, end),
+          ));
+
+        const paidToday = Number(dailyPaid?.total ?? 0);
+        if (paidToday < MAX_PAID_PER_DAY) {
+          updateData.isPaid = true;
+
+          // Criar registro de pagamento
+          const period = now.toISOString().slice(0, 7);
+          await db.insert(payments).values({
+            userId: video.creatorId,
+            type: 'video',
+            referenceId: id,
+            amount: String(PAYMENT_PER_VIDEO),
+            description: `Video aprovado #${paidToday + 1} do dia`,
+            status: 'approved',
+            period,
+          });
+        }
+      }
+
+      const [updated] = await db.update(videos)
+        .set(updateData)
+        .where(eq(videos.id, id))
+        .returning();
 
       return {
-        video: {
-          id,
-          status,
-          rejectionReason: isApproved ? null : rejectionReason,
-          reviewedAt: new Date().toISOString(),
-          payment: isApproved
-            ? { amount: '10.00', status: 'pending' }
-            : null,
-        },
-        message: isApproved
-          ? 'Video aprovado! R$10,00 creditado.'
+        video: updated,
+        message: status === 'approved'
+          ? `Video aprovado! R$${PAYMENT_PER_VIDEO} creditado.`
           : `Video rejeitado: ${rejectionReason}`,
       };
     },
   );
 
-  // POST /api/videos/:id/resubmit — reenviar video rejeitado
+  // POST /api/videos/:id/resubmit
   app.post<{ Params: { id: string }; Body: { externalUrl: string } }>(
     '/:id/resubmit',
+    { preHandler: [app.authenticate] },
     async (request, reply) => {
       const { id } = request.params;
       const { externalUrl } = request.body;
+      const { userId } = request.user;
 
       if (!externalUrl) {
         return reply.status(400).send({ error: 'externalUrl e obrigatorio' });
       }
 
-      // TODO: verificar se video pertence ao creator
-      // TODO: verificar se status atual e 'rejected'
-      // TODO: atualizar url e voltar status para 'pending'
+      const [video] = await db.select()
+        .from(videos)
+        .where(and(eq(videos.id, id), eq(videos.creatorId, userId)))
+        .limit(1);
 
-      return {
-        video: {
-          id,
-          externalUrl,
-          status: 'pending',
-        },
-        message: 'Video reenviado para aprovacao.',
-      };
+      if (!video) {
+        return reply.status(404).send({ error: 'Video nao encontrado' });
+      }
+
+      if (video.status !== 'rejected') {
+        return reply.status(400).send({ error: 'So e possivel reenviar videos rejeitados' });
+      }
+
+      const [updated] = await db.update(videos)
+        .set({ externalUrl, status: 'pending', rejectionReason: null, reviewedAt: null })
+        .where(eq(videos.id, id))
+        .returning();
+
+      return { video: updated, message: 'Video reenviado para aprovacao.' };
     },
   );
 
-  // GET /api/videos/review-queue — fila de revisao (admin)
-  app.get('/review-queue', async (request, reply) => {
-    // TODO: verificar se user e admin
-    // TODO: buscar videos com status 'pending' ordenados por createdAt
+  // GET /api/videos/review-queue (admin)
+  app.get('/review-queue', {
+    preHandler: [app.requireAdmin],
+  }, async (request, reply) => {
+    const pending = await db.select()
+      .from(videos)
+      .where(eq(videos.status, 'pending'))
+      .orderBy(videos.createdAt)
+      .limit(50);
 
-    return {
-      videos: [],
-      total: 0,
-    };
+    return { videos: pending, total: pending.length };
   });
 }

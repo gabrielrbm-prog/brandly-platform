@@ -1,93 +1,110 @@
 import type { FastifyInstance } from 'fastify';
+import { db } from '@brandly/core';
+import { payments, withdrawals, trackingLinks, products } from '@brandly/core';
+import { eq, and, sql, desc, sum } from 'drizzle-orm';
 
 interface WithdrawBody {
   amount: number;
   pixKey: string;
 }
 
-interface HistoryQuery {
-  type?: string;    // video, commission, bonus
-  period?: string;  // YYYY-MM
-  page?: number;
-  limit?: number;
-}
-
 export async function financialRoutes(app: FastifyInstance) {
-  // GET /api/financial/balance — saldo atual do creator
-  app.get('/balance', async (request, reply) => {
-    // TODO: extrair creatorId do JWT
-    // TODO: somar todos os payments approved - withdrawals completed
+  // GET /api/financial/balance
+  app.get('/balance', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+
+    const [earned] = await db.select({
+      total: sum(payments.amount),
+    })
+      .from(payments)
+      .where(and(eq(payments.userId, userId), eq(payments.status, 'approved')));
+
+    const [pending] = await db.select({
+      total: sum(payments.amount),
+    })
+      .from(payments)
+      .where(and(eq(payments.userId, userId), eq(payments.status, 'pending')));
+
+    const [withdrawn] = await db.select({
+      total: sum(withdrawals.amount),
+    })
+      .from(withdrawals)
+      .where(and(eq(withdrawals.userId, userId), eq(withdrawals.status, 'completed')));
+
+    const totalEarned = Number(earned?.total ?? 0);
+    const totalPending = Number(pending?.total ?? 0);
+    const totalWithdrawn = Number(withdrawn?.total ?? 0);
+    const available = totalEarned - totalWithdrawn;
 
     return {
-      available: '0.00',       // disponivel para saque
-      pending: '0.00',         // aguardando aprovacao
-      withdrawn: '0.00',       // total ja sacado
-      totalEarned: '0.00',     // total ganho historico
+      available: available.toFixed(2),
+      pending: totalPending.toFixed(2),
+      withdrawn: totalWithdrawn.toFixed(2),
+      totalEarned: totalEarned.toFixed(2),
     };
   });
 
-  // GET /api/financial/earnings — detalhamento por tipo
-  app.get('/earnings', async (request, reply) => {
-    // TODO: extrair creatorId do JWT
-    // TODO: agregar por tipo (video, commission, bonus)
+  // GET /api/financial/earnings
+  app.get('/earnings', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    const rows = await db.select({
+      type: payments.type,
+      total: sum(payments.amount),
+      count: sql<number>`count(*)::int`,
+    })
+      .from(payments)
+      .where(and(eq(payments.userId, userId), eq(payments.period, currentMonth)))
+      .groupBy(payments.type);
+
+    const byType: Record<string, { total: string; count: number }> = {};
+    let grandTotal = 0;
+    for (const row of rows) {
+      byType[row.type] = { total: Number(row.total ?? 0).toFixed(2), count: row.count };
+      grandTotal += Number(row.total ?? 0);
+    }
 
     return {
-      period: new Date().toISOString().slice(0, 7), // YYYY-MM atual
+      period: currentMonth,
       breakdown: {
-        videos: {
-          total: '0.00',
-          count: 0,
-          label: 'Pagamento por videos aprovados (R$10/video)',
-        },
-        commissions: {
-          total: '0.00',
-          count: 0,
-          label: 'Comissoes por vendas via link/cupom',
-        },
-        bonuses: {
-          total: '0.00',
-          count: 0,
-          label: 'Bonus de rede (indicacoes)',
-        },
+        videos: byType['video'] ?? { total: '0.00', count: 0 },
+        commissions: byType['commission'] ?? { total: '0.00', count: 0 },
+        bonuses: byType['bonus'] ?? { total: '0.00', count: 0 },
       },
-      grandTotal: '0.00',
+      grandTotal: grandTotal.toFixed(2),
     };
   });
 
-  // GET /api/financial/history — historico de pagamentos
-  app.get<{ Querystring: HistoryQuery }>('/history', async (request, reply) => {
-    const { type, period, page = 1, limit = 50 } = request.query;
+  // GET /api/financial/history
+  app.get('/history', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const { type, period } = request.query as { type?: string; period?: string };
 
-    // TODO: extrair creatorId do JWT
-    // TODO: buscar payments com filtros
+    const conditions = [eq(payments.userId, userId)];
+    if (type) conditions.push(eq(payments.type, type));
+    if (period) conditions.push(eq(payments.period, period));
 
-    return {
-      payments: [],
-      total: 0,
-      page,
-      limit,
-      filters: { type, period },
-    };
+    const result = await db.select()
+      .from(payments)
+      .where(and(...conditions))
+      .orderBy(desc(payments.createdAt))
+      .limit(100);
+
+    return { payments: result, total: result.length };
   });
 
-  // GET /api/financial/daily-extract — extrato diario (cada video aprovado)
-  app.get('/daily-extract', async (request, reply) => {
-    const today = new Date().toISOString().split('T')[0];
-
-    // TODO: extrair creatorId do JWT
-    // TODO: buscar payments do tipo 'video' do dia
-
-    return {
-      date: today,
-      entries: [],
-      total: '0.00',
-      videosApproved: 0,
-      maxDaily: '100.00',
-    };
-  });
-
-  // POST /api/financial/withdraw — solicitar saque
-  app.post<{ Body: WithdrawBody }>('/withdraw', async (request, reply) => {
+  // POST /api/financial/withdraw
+  app.post<{ Body: WithdrawBody }>('/withdraw', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
     const { amount, pixKey } = request.body;
 
     if (!amount || amount <= 0) {
@@ -98,42 +115,68 @@ export async function financialRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'pixKey e obrigatorio' });
     }
 
-    // TODO: extrair creatorId do JWT
-    // TODO: verificar saldo disponivel >= amount
-    // TODO: criar withdrawal com status 'requested'
-    // TODO: marcar payments correspondentes como 'withdrawn'
+    // Verificar saldo
+    const [earned] = await db.select({ total: sum(payments.amount) })
+      .from(payments)
+      .where(and(eq(payments.userId, userId), eq(payments.status, 'approved')));
+
+    const [alreadyWithdrawn] = await db.select({ total: sum(withdrawals.amount) })
+      .from(withdrawals)
+      .where(and(eq(withdrawals.userId, userId), eq(withdrawals.status, 'completed')));
+
+    const available = Number(earned?.total ?? 0) - Number(alreadyWithdrawn?.total ?? 0);
+
+    if (amount > available) {
+      return reply.status(400).send({
+        error: `Saldo insuficiente. Disponivel: R$${available.toFixed(2)}`,
+      });
+    }
+
+    const [withdrawal] = await db.insert(withdrawals).values({
+      userId,
+      amount: String(amount),
+      pixKey,
+      status: 'requested',
+    }).returning();
 
     return reply.status(201).send({
-      withdrawal: {
-        id: 'generated-uuid',
-        amount: amount.toFixed(2),
-        pixKey,
-        status: 'requested',
-        createdAt: new Date().toISOString(),
-      },
+      withdrawal,
       message: 'Saque solicitado. Processamento em ate 24h uteis.',
     });
   });
 
-  // GET /api/financial/withdrawals — historico de saques
-  app.get('/withdrawals', async (request, reply) => {
-    // TODO: extrair creatorId do JWT
-    // TODO: buscar withdrawals do creator
+  // GET /api/financial/withdrawals
+  app.get('/withdrawals', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
 
-    return {
-      withdrawals: [],
-      total: 0,
-    };
+    const result = await db.select()
+      .from(withdrawals)
+      .where(eq(withdrawals.userId, userId))
+      .orderBy(desc(withdrawals.createdAt));
+
+    return { withdrawals: result, total: result.length };
   });
 
-  // GET /api/financial/tracking-links — links/cupons do creator
-  app.get('/tracking-links', async (request, reply) => {
-    // TODO: extrair creatorId do JWT
-    // TODO: buscar tracking_links com dados de produto
+  // GET /api/financial/tracking-links
+  app.get('/tracking-links', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
 
-    return {
-      links: [],
-      total: 0,
-    };
+    const result = await db.select({
+      id: trackingLinks.id,
+      code: trackingLinks.code,
+      clicks: trackingLinks.clicks,
+      conversions: trackingLinks.conversions,
+      productName: products.name,
+      productPrice: products.price,
+    })
+      .from(trackingLinks)
+      .innerJoin(products, eq(trackingLinks.productId, products.id))
+      .where(eq(trackingLinks.creatorId, userId));
+
+    return { links: result, total: result.length };
   });
 }

@@ -1,16 +1,33 @@
 import type { FastifyInstance } from 'fastify';
-import { db } from '@brandly/core';
-import { scripts, briefings } from '@brandly/core';
+import { db, generateScripts } from '@brandly/core';
+import { scripts, briefings, brands } from '@brandly/core';
 import { eq, and, desc } from 'drizzle-orm';
 
 interface GenerateBody {
   briefingId: string;
-  count?: number;  // quantas combinacoes gerar (default: 18 = 3x3x2)
+  count?: number;
+  provider?: 'claude' | 'openai';
 }
 
 interface ListQuery {
   briefingId?: string;
 }
+
+// Fallback mock quando nenhuma API key esta configurada
+const MOCK_HOOKS = [
+  'Voce precisa conhecer esse produto...',
+  'Eu nao acreditava ate testar...',
+  'O que ninguem te conta sobre...',
+];
+const MOCK_BODIES = [
+  'Testei por 7 dias e o resultado foi incrivel. A textura e leve, absorve rapido...',
+  'Comecei a usar sem expectativa, mas ja no terceiro dia percebi a diferenca...',
+  'Minha rotina mudou completamente depois que inclui isso no meu dia a dia...',
+];
+const MOCK_CTAS = [
+  'Link na bio pra voce garantir o seu!',
+  'Usa meu cupom pra desconto exclusivo — ta nos comentarios!',
+];
 
 export async function scriptRoutes(app: FastifyInstance) {
   // POST /api/scripts/generate — gerar roteiros a partir de briefing
@@ -18,40 +35,78 @@ export async function scriptRoutes(app: FastifyInstance) {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
     const { userId } = request.user;
-    const { briefingId, count = 18 } = request.body;
+    const { briefingId, count = 18, provider } = request.body;
 
     if (!briefingId) {
       return reply.status(400).send({ error: 'briefingId e obrigatorio' });
     }
 
-    // Verificar se o briefing existe
-    const [briefing] = await db.select()
+    // Buscar briefing + marca
+    const [briefing] = await db.select({
+      id: briefings.id,
+      title: briefings.title,
+      description: briefings.description,
+      tone: briefings.tone,
+      doList: briefings.doList,
+      dontList: briefings.dontList,
+      technicalRequirements: briefings.technicalRequirements,
+      brandName: brands.name,
+      brandDescription: brands.description,
+    })
       .from(briefings)
+      .innerJoin(brands, eq(briefings.brandId, brands.id))
       .where(eq(briefings.id, briefingId));
 
     if (!briefing) {
       return reply.status(404).send({ error: 'Briefing nao encontrado' });
     }
 
-    // Mock hooks/bodies/ctas — futuramente gerados via LLM
-    const hooks = [
-      'Voce precisa conhecer esse produto...',
-      'Eu nao acreditava ate testar...',
-      'O que ninguem te conta sobre...',
-    ];
+    // Tentar gerar via IA, fallback para mock
+    let hooks: string[];
+    let bodies: string[];
+    let ctas: string[];
+    let generatedBy: 'claude' | 'openai' | 'mock';
 
-    const bodies = [
-      'Testei por 7 dias e o resultado foi incrivel. A textura e leve, absorve rapido...',
-      'Comecei a usar sem expectativa, mas ja no terceiro dia percebi a diferenca...',
-      'Minha rotina mudou completamente depois que inclui isso no meu dia a dia...',
-    ];
+    const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY;
+    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+    const requestedProvider = provider ?? (process.env.LLM_PROVIDER as 'claude' | 'openai' | undefined);
 
-    const ctas = [
-      'Link na bio pra voce garantir o seu!',
-      'Usa meu cupom pra desconto exclusivo — ta nos comentarios!',
-    ];
+    if ((requestedProvider === 'claude' && hasAnthropicKey) ||
+        (requestedProvider === 'openai' && hasOpenAIKey) ||
+        (!requestedProvider && (hasAnthropicKey || hasOpenAIKey))) {
 
-    // Gerar combinacoes 3x3x2 = 18
+      const useProvider = requestedProvider ?? (hasAnthropicKey ? 'claude' : 'openai');
+
+      try {
+        const result = await generateScripts({
+          brandName: briefing.brandName,
+          productDescription: `${briefing.title} — ${briefing.description}`,
+          tone: briefing.tone ?? 'casual',
+          doList: briefing.doList ?? [],
+          dontList: briefing.dontList ?? [],
+          technicalRequirements: briefing.technicalRequirements ?? '',
+        }, { provider: useProvider, hooks: 3, bodies: 3, ctas: 2 });
+
+        hooks = result.hooks;
+        bodies = result.bodies;
+        ctas = result.ctas;
+        generatedBy = useProvider;
+      } catch (err: any) {
+        // Log erro e cai no mock
+        request.log.warn({ err: err.message }, 'Falha na geracao IA, usando mock');
+        hooks = MOCK_HOOKS;
+        bodies = MOCK_BODIES;
+        ctas = MOCK_CTAS;
+        generatedBy = 'mock';
+      }
+    } else {
+      hooks = MOCK_HOOKS;
+      bodies = MOCK_BODIES;
+      ctas = MOCK_CTAS;
+      generatedBy = 'mock';
+    }
+
+    // Gerar combinacoes hooks x bodies x ctas
     const combinations: {
       creatorId: string;
       briefingId: string;
@@ -86,7 +141,8 @@ export async function scriptRoutes(app: FastifyInstance) {
     return reply.status(201).send({
       briefingId,
       total: created.length,
-      technique: '3x3x2 (3 hooks x 3 bodies x 2 CTAs)',
+      technique: `${hooks.length}x${bodies.length}x${ctas.length}`,
+      generatedBy,
       scripts: created,
     });
   });

@@ -12,6 +12,10 @@ node_modules/
 # Build
 dist/
 *.tsbuildinfo
+*.d.ts
+*.d.ts.map
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
 
 # Environment
 .env

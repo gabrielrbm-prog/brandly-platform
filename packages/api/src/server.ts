@@ -7,6 +7,12 @@ import { userRoutes } from './routes/users.js';
 import { videoRoutes } from './routes/videos.js';
 import { financialRoutes } from './routes/financial.js';
 import { saleRoutes } from './routes/sales.js';
+import { brandRoutes } from './routes/brands.js';
+import { scriptRoutes } from './routes/scripts.js';
+import { dashboardRoutes } from './routes/dashboard.js';
+import { networkRoutes } from './routes/network.js';
+import { courseRoutes } from './routes/courses.js';
+import { communityRoutes } from './routes/community.js';
 
 const app = Fastify({
   logger: {
@@ -20,13 +26,25 @@ const app = Fastify({
 async function start() {
   await app.register(cors, { origin: true });
 
-  // Routes
+  // Sprint 1 — Fundacao
   await app.register(healthRoutes, { prefix: '/api' });
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(onboardingRoutes, { prefix: '/api/onboarding' });
-  await app.register(userRoutes, { prefix: '/api/users' });
   await app.register(videoRoutes, { prefix: '/api/videos' });
   await app.register(financialRoutes, { prefix: '/api/financial' });
+
+  // Sprint 2 — Core
+  await app.register(brandRoutes, { prefix: '/api/brands' });
+  await app.register(scriptRoutes, { prefix: '/api/scripts' });
+  await app.register(dashboardRoutes, { prefix: '/api/dashboard' });
+
+  // Sprint 3 — Crescimento
+  await app.register(networkRoutes, { prefix: '/api/network' });
+  await app.register(courseRoutes, { prefix: '/api/courses' });
+  await app.register(communityRoutes, { prefix: '/api/community' });
+
+  // Auxiliares
+  await app.register(userRoutes, { prefix: '/api/users' });
   await app.register(saleRoutes, { prefix: '/api/sales' });
 
   const port = Number(process.env.PORT ?? 3000);

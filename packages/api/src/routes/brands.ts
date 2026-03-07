@@ -1,4 +1,8 @@
 import type { FastifyInstance } from 'fastify';
+import crypto from 'crypto';
+import { db } from '@brandly/core';
+import { brands, briefings, creatorBrands, products, trackingLinks } from '@brandly/core';
+import { eq, and, sql, desc, count } from 'drizzle-orm';
 
 interface BrandQuery {
   category?: string;
@@ -10,13 +14,43 @@ export async function brandRoutes(app: FastifyInstance) {
   // GET /api/brands — catalogo de marcas
   app.get<{ Querystring: BrandQuery }>('/', async (request, reply) => {
     const { category, page = 1, limit = 20 } = request.query;
+    const offset = (page - 1) * limit;
 
-    // TODO: buscar brands no banco com filtro de categoria
-    // TODO: contar creators conectados vs maxCreators para vagas
+    const conditions = [eq(brands.isActive, true)];
+    if (category) {
+      conditions.push(eq(brands.category, category as typeof brands.category.enumValues[number]));
+    }
+
+    const result = await db.select({
+      id: brands.id,
+      name: brands.name,
+      logoUrl: brands.logoUrl,
+      category: brands.category,
+      description: brands.description,
+      websiteUrl: brands.websiteUrl,
+      minVideosPerMonth: brands.minVideosPerMonth,
+      maxCreators: brands.maxCreators,
+      createdAt: brands.createdAt,
+      creatorsConnected: sql<number>`count(${creatorBrands.id})::int`,
+    })
+      .from(brands)
+      .leftJoin(creatorBrands, and(
+        eq(creatorBrands.brandId, brands.id),
+        eq(creatorBrands.isActive, true),
+      ))
+      .where(and(...conditions))
+      .groupBy(brands.id)
+      .orderBy(desc(brands.createdAt))
+      .offset(offset)
+      .limit(limit);
+
+    const [totalRow] = await db.select({ total: count() })
+      .from(brands)
+      .where(and(...conditions));
 
     return {
-      brands: [],
-      total: 0,
+      brands: result,
+      total: totalRow?.total ?? 0,
       page,
       limit,
       categories: [
@@ -34,25 +68,95 @@ export async function brandRoutes(app: FastifyInstance) {
   app.get<{ Params: { id: string } }>('/:id', async (request, reply) => {
     const { id } = request.params;
 
-    // TODO: buscar marca + briefings ativos + contagem de creators
+    const [brand] = await db.select()
+      .from(brands)
+      .where(eq(brands.id, id));
+
+    if (!brand) {
+      return reply.status(404).send({ error: 'Marca nao encontrada' });
+    }
+
+    const activeBriefings = await db.select()
+      .from(briefings)
+      .where(and(eq(briefings.brandId, id), eq(briefings.isActive, true)));
+
+    const [creatorsRow] = await db.select({ total: count() })
+      .from(creatorBrands)
+      .where(and(eq(creatorBrands.brandId, id), eq(creatorBrands.isActive, true)));
+
+    const creatorsConnected = creatorsRow?.total ?? 0;
+    const slotsAvailable = Math.max(0, (brand.maxCreators ?? 0) - creatorsConnected);
 
     return {
-      brand: null,
-      briefings: [],
-      creatorsConnected: 0,
-      slotsAvailable: 0,
+      brand,
+      briefings: activeBriefings,
+      creatorsConnected,
+      slotsAvailable,
     };
   });
 
   // POST /api/brands/:id/connect — creator se vincula a marca
-  app.post<{ Params: { id: string } }>('/:id/connect', async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/:id/connect', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
     const { id } = request.params;
+    const { userId } = request.user;
 
-    // TODO: extrair creatorId do JWT
-    // TODO: verificar se marca tem vagas (creators < maxCreators)
-    // TODO: verificar se creator ja esta conectado
-    // TODO: criar registro em creator_brands
-    // TODO: gerar tracking_links para produtos da marca
+    // Verificar se marca existe
+    const [brand] = await db.select()
+      .from(brands)
+      .where(and(eq(brands.id, id), eq(brands.isActive, true)));
+
+    if (!brand) {
+      return reply.status(404).send({ error: 'Marca nao encontrada' });
+    }
+
+    // Verificar vagas disponiveis
+    const [creatorsRow] = await db.select({ total: count() })
+      .from(creatorBrands)
+      .where(and(eq(creatorBrands.brandId, id), eq(creatorBrands.isActive, true)));
+
+    const creatorsConnected = creatorsRow?.total ?? 0;
+    if (brand.maxCreators && creatorsConnected >= brand.maxCreators) {
+      return reply.status(400).send({ error: 'Marca sem vagas disponiveis no momento' });
+    }
+
+    // Verificar se ja esta conectado
+    const [existing] = await db.select()
+      .from(creatorBrands)
+      .where(and(
+        eq(creatorBrands.creatorId, userId),
+        eq(creatorBrands.brandId, id),
+        eq(creatorBrands.isActive, true),
+      ));
+
+    if (existing) {
+      return reply.status(409).send({ error: 'Voce ja esta conectado a esta marca' });
+    }
+
+    // Criar vinculo creator-brand
+    await db.insert(creatorBrands).values({
+      creatorId: userId,
+      brandId: id,
+      isActive: true,
+    });
+
+    // Gerar tracking links para cada produto ativo da marca
+    const activeProducts = await db.select()
+      .from(products)
+      .where(and(eq(products.brandId, id), eq(products.status, 'active')));
+
+    if (activeProducts.length > 0) {
+      const linkValues = activeProducts.map((product) => ({
+        creatorId: userId,
+        productId: product.id,
+        code: crypto.randomBytes(6).toString('hex'),
+        clicks: 0,
+        conversions: 0,
+      }));
+
+      await db.insert(trackingLinks).values(linkValues);
+    }
 
     return reply.status(201).send({
       message: 'Conectado a marca com sucesso! Voce ja pode comecar a produzir.',
@@ -62,20 +166,47 @@ export async function brandRoutes(app: FastifyInstance) {
   });
 
   // DELETE /api/brands/:id/disconnect — creator se desvincula
-  app.delete<{ Params: { id: string } }>('/:id/disconnect', async (request, reply) => {
+  app.delete<{ Params: { id: string } }>('/:id/disconnect', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
     const { id } = request.params;
+    const { userId } = request.user;
 
-    // TODO: extrair creatorId do JWT
-    // TODO: desativar creator_brands
+    await db.update(creatorBrands)
+      .set({ isActive: false })
+      .where(and(
+        eq(creatorBrands.creatorId, userId),
+        eq(creatorBrands.brandId, id),
+        eq(creatorBrands.isActive, true),
+      ));
 
     return { message: 'Desconectado da marca', brandId: id };
   });
 
   // GET /api/brands/my — marcas do creator
-  app.get('/my', async (request, reply) => {
-    // TODO: extrair creatorId do JWT
-    // TODO: buscar creator_brands ativas com dados da marca
+  app.get('/my', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
 
-    return { brands: [], total: 0 };
+    const result = await db.select({
+      connectionId: creatorBrands.id,
+      connectedAt: creatorBrands.connectedAt,
+      brand: {
+        id: brands.id,
+        name: brands.name,
+        logoUrl: brands.logoUrl,
+        category: brands.category,
+        description: brands.description,
+        websiteUrl: brands.websiteUrl,
+        minVideosPerMonth: brands.minVideosPerMonth,
+        maxCreators: brands.maxCreators,
+      },
+    })
+      .from(creatorBrands)
+      .innerJoin(brands, eq(creatorBrands.brandId, brands.id))
+      .where(and(eq(creatorBrands.creatorId, userId), eq(creatorBrands.isActive, true)));
+
+    return { brands: result, total: result.length };
   });
 }

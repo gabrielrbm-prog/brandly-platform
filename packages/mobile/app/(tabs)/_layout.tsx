@@ -43,6 +43,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="social"
+        options={{
+          title: 'Social',
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="bar-chart-2" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="financial"
         options={{
           title: 'Financeiro',

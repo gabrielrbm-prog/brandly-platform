@@ -146,3 +146,36 @@ export const onboardingApi = {
   social: (data: unknown) => api.post('/api/onboarding/social', data),
   complete: () => api.post('/api/onboarding/complete'),
 };
+
+// Social — Integracao Phyllo (Instagram/TikTok)
+export interface SocialAccount {
+  id: string;
+  platform: 'instagram' | 'tiktok';
+  username: string | null;
+  url: string | null;
+  followers: number;
+  following: number;
+  avgLikes: number;
+  avgViews: number;
+  avgComments: number;
+  engagementRate: number;
+  isVerified: boolean;
+  status: 'connected' | 'disconnected' | 'expired';
+  lastSyncAt: string | null;
+}
+
+export interface ConnectResponse {
+  sdkToken: string;
+  userId: string;
+  environment: string;
+}
+
+export const socialApi = {
+  connect: () => api.post<ConnectResponse>('/api/social/connect'),
+  accountConnected: (data: { accountId: string; workPlatformId: string; phylloUserId: string }) =>
+    api.post('/api/social/account-connected', data),
+  accounts: () => api.get<{ accounts: SocialAccount[] }>('/api/social/accounts'),
+  sync: (platform: 'instagram' | 'tiktok') =>
+    api.post('/api/social/sync', { platform }),
+  disconnect: (platform: string) => api.delete(`/api/social/disconnect/${platform}`),
+};

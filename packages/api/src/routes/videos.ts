@@ -1,10 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
-import { videos, payments } from '@brandly/core';
+import { videos, payments, calculateVideoPayment, getVideoPaymentConstants } from '@brandly/core';
 import { eq, and, sql, gte, lte, desc, count } from 'drizzle-orm';
 
-const PAYMENT_PER_VIDEO = 10;
-const MAX_PAID_PER_DAY = 10;
+const { perVideo: PAYMENT_PER_VIDEO, maxPerDay: MAX_PAID_PER_DAY } = getVideoPaymentConstants();
 
 interface SubmitVideoBody {
   brandId: string;
@@ -164,11 +163,24 @@ export async function videoRoutes(app: FastifyInstance) {
         updateData.rejectionReason = rejectionReason;
       }
 
-      // Se aprovado, verificar limite diario e pagar
+      // Se aprovado, calcular pagamento usando o service
+      let paymentResult = null;
       if (status === 'approved') {
         const { start, end } = todayRange();
+
+        const [dailyApproved] = await db.select({
+          total: sql<number>`count(*)::int`,
+        })
+          .from(videos)
+          .where(and(
+            eq(videos.creatorId, video.creatorId),
+            eq(videos.status, 'approved'),
+            gte(videos.createdAt, start),
+            lte(videos.createdAt, end),
+          ));
+
         const [dailyPaid] = await db.select({
-          total: count(),
+          total: sql<number>`count(*)::int`,
         })
           .from(videos)
           .where(and(
@@ -178,18 +190,21 @@ export async function videoRoutes(app: FastifyInstance) {
             lte(videos.createdAt, end),
           ));
 
-        const paidToday = Number(dailyPaid?.total ?? 0);
-        if (paidToday < MAX_PAID_PER_DAY) {
+        paymentResult = calculateVideoPayment({
+          approvedToday: (dailyApproved?.total ?? 0) + 1, // +1 inclui o atual
+          paidToday: dailyPaid?.total ?? 0,
+        });
+
+        if (paymentResult.shouldPay) {
           updateData.isPaid = true;
 
-          // Criar registro de pagamento
           const period = now.toISOString().slice(0, 7);
           await db.insert(payments).values({
             userId: video.creatorId,
             type: 'video',
             referenceId: id,
-            amount: String(PAYMENT_PER_VIDEO),
-            description: `Video aprovado #${paidToday + 1} do dia`,
+            amount: String(paymentResult.amount),
+            description: paymentResult.reason,
             status: 'approved',
             period,
           });
@@ -203,8 +218,17 @@ export async function videoRoutes(app: FastifyInstance) {
 
       return {
         video: updated,
+        payment: paymentResult ? {
+          paid: paymentResult.shouldPay,
+          amount: paymentResult.amount,
+          dailyTotal: paymentResult.dailyTotal,
+          dailyRemaining: paymentResult.dailyRemaining,
+          reason: paymentResult.reason,
+        } : null,
         message: status === 'approved'
-          ? `Video aprovado! R$${PAYMENT_PER_VIDEO} creditado.`
+          ? paymentResult?.shouldPay
+            ? `Video aprovado! R$${paymentResult.amount} creditado. ${paymentResult.dailyRemaining} slots restantes.`
+            : `Video aprovado! Limite diario atingido, sem pagamento.`
           : `Video rejeitado: ${rejectionReason}`,
       };
     },

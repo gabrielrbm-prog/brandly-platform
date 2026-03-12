@@ -287,6 +287,38 @@ export const globalPools = pgTable('global_pools', {
 });
 
 // ============================================
+// CONTAS SOCIAIS (Phyllo)
+// ============================================
+export const socialPlatformEnum = pgEnum('social_platform', ['instagram', 'tiktok']);
+export const socialAccountStatusEnum = pgEnum('social_account_status', ['connected', 'disconnected', 'expired']);
+
+export const socialAccounts = pgTable('social_accounts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  platform: socialPlatformEnum('platform').notNull(),
+  phylloUserId: varchar('phyllo_user_id', { length: 100 }),
+  phylloAccountId: varchar('phyllo_account_id', { length: 100 }),
+  phylloProfileId: varchar('phyllo_profile_id', { length: 100 }),
+  platformUsername: varchar('platform_username', { length: 255 }),
+  platformUrl: text('platform_url'),
+  followers: integer('followers').default(0),
+  following: integer('following').default(0),
+  avgLikes: integer('avg_likes').default(0),
+  avgViews: integer('avg_views').default(0),
+  avgComments: integer('avg_comments').default(0),
+  engagementRate: decimal('engagement_rate', { precision: 5, scale: 2 }).default('0'),
+  isVerified: boolean('is_verified').default(false),
+  status: socialAccountStatusEnum('status').notNull().default('connected'),
+  lastSyncAt: timestamp('last_sync_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('social_accounts_user_idx').on(table.userId),
+  index('social_accounts_phyllo_account_idx').on(table.phylloAccountId),
+  index('social_accounts_platform_idx').on(table.userId, table.platform),
+]);
+
+// ============================================
 // ROTEIROS IA
 // ============================================
 export const scripts = pgTable('scripts', {

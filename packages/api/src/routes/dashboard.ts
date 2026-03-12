@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
-import { videos, payments, creatorBrands, users, levels } from '@brandly/core';
+import { videos, payments, creatorBrands, users, levels, socialAccounts } from '@brandly/core';
 import { eq, and, sql, desc, sum, count } from 'drizzle-orm';
 
 interface MetricsQuery {
@@ -206,20 +206,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
         commissionEarnings: (byType['commission'] ?? 0).toFixed(2),
         bonusEarnings: (byType['bonus'] ?? 0).toFixed(2),
       },
-      social: {
-        instagram: {
-          connected: false,
-          followers: 0,
-          avgLikes: 0,
-          avgViews: 0,
-        },
-        tiktok: {
-          connected: false,
-          followers: 0,
-          avgLikes: 0,
-          avgViews: 0,
-        },
-      },
+      social: await getSocialMetrics(userId),
     };
   });
 
@@ -274,4 +261,42 @@ export async function dashboardRoutes(app: FastifyInstance) {
       topPerformers,
     };
   });
+}
+
+// ============================================
+// HELPER: metricas sociais do creator
+// ============================================
+
+async function getSocialMetrics(userId: string) {
+  const accounts = await db.select()
+    .from(socialAccounts)
+    .where(eq(socialAccounts.userId, userId));
+
+  const ig = accounts.find(a => a.platform === 'instagram');
+  const tk = accounts.find(a => a.platform === 'tiktok');
+
+  return {
+    instagram: {
+      connected: ig?.status === 'connected',
+      username: ig?.platformUsername ?? null,
+      followers: ig?.followers ?? 0,
+      avgLikes: ig?.avgLikes ?? 0,
+      avgViews: ig?.avgViews ?? 0,
+      avgComments: ig?.avgComments ?? 0,
+      engagementRate: Number(ig?.engagementRate ?? 0),
+      isVerified: ig?.isVerified ?? false,
+      lastSyncAt: ig?.lastSyncAt ?? null,
+    },
+    tiktok: {
+      connected: tk?.status === 'connected',
+      username: tk?.platformUsername ?? null,
+      followers: tk?.followers ?? 0,
+      avgLikes: tk?.avgLikes ?? 0,
+      avgViews: tk?.avgViews ?? 0,
+      avgComments: tk?.avgComments ?? 0,
+      engagementRate: Number(tk?.engagementRate ?? 0),
+      isVerified: tk?.isVerified ?? false,
+      lastSyncAt: tk?.lastSyncAt ?? null,
+    },
+  };
 }

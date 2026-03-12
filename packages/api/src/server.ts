@@ -14,6 +14,7 @@ import { dashboardRoutes } from './routes/dashboard.js';
 import { networkRoutes } from './routes/network.js';
 import { courseRoutes } from './routes/courses.js';
 import { communityRoutes } from './routes/community.js';
+import { socialRoutes } from './routes/social.js';
 
 const app = Fastify({
   logger: {
@@ -44,6 +45,9 @@ async function start() {
   await app.register(networkRoutes, { prefix: '/api/network' });
   await app.register(courseRoutes, { prefix: '/api/courses' });
   await app.register(communityRoutes, { prefix: '/api/community' });
+
+  // Social — Integracao Phyllo (Instagram/TikTok)
+  await app.register(socialRoutes, { prefix: '/api/social' });
 
   // Auxiliares
   await app.register(userRoutes, { prefix: '/api/users' });

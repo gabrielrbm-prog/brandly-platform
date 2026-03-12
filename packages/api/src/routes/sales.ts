@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { db } from '@brandly/core';
+import { db, confirmSale } from '@brandly/core';
 import { sales, products, trackingLinks } from '@brandly/core';
 import { eq, and, desc, count } from 'drizzle-orm';
 
@@ -46,9 +46,34 @@ export async function saleRoutes(app: FastifyInstance) {
       status: 'pending',
     }).returning();
 
-    // TODO: disparar calculo de bonus via bonus-engine
-
     return reply.status(201).send({ sale, message: 'Venda registrada com sucesso' });
+  });
+
+  // POST /api/sales/:id/confirm — confirma venda e dispara bonus
+  app.post<{ Params: { id: string } }>('/:id/confirm', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { role } = request.user;
+    if (role !== 'admin') {
+      return reply.status(403).send({ error: 'Apenas admins podem confirmar vendas' });
+    }
+
+    try {
+      const result = await confirmSale(request.params.id);
+      return {
+        message: 'Venda confirmada e bonus processados',
+        sale: result.sale,
+        bonusesGenerated: result.bonuses.length,
+        bonuses: result.bonuses.map(b => ({
+          userId: b.userId,
+          type: b.type,
+          amount: b.amount.toFixed(2),
+          details: b.details,
+        })),
+      };
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message ?? 'Erro ao confirmar venda' });
+    }
   });
 
   // GET /api/sales — listar vendas

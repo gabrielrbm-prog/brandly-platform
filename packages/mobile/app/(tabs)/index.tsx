@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,6 +9,8 @@ import {
 import { dashboardApi } from '@/lib/api';
 import { borderRadius, colors, fontSize, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
+import { SkeletonCard } from '@/components/Skeleton';
 
 interface DailyStats {
   approved: number;
@@ -71,8 +72,12 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, { padding: spacing.md }]}>
+        <SkeletonCard />
+        <View style={{ height: spacing.md }} />
+        <SkeletonCard />
+        <View style={{ height: spacing.md }} />
+        <SkeletonCard />
       </View>
     );
   }
@@ -102,12 +107,15 @@ export default function HomeScreen() {
       }
     >
       {/* Header */}
-      <Text style={styles.greeting}>
-        Ola, {user?.name ?? 'Creator'}
-      </Text>
-      <Text style={styles.subtitle}>Seu resumo de hoje</Text>
+      <FadeInView>
+        <Text style={styles.greeting}>
+          Ola, {user?.name ?? 'Creator'}
+        </Text>
+        <Text style={styles.subtitle}>Seu resumo de hoje</Text>
+      </FadeInView>
 
       {/* Card: Hoje */}
+      <AnimatedListItem index={0}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Hoje</Text>
         <View style={styles.statsRow}>
@@ -144,8 +152,10 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
+      </AnimatedListItem>
 
       {/* Card: Este Mes */}
+      <AnimatedListItem index={1}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Este Mes</Text>
         <View style={styles.statsRow}>
@@ -190,8 +200,10 @@ export default function HomeScreen() {
           </>
         )}
       </View>
+      </AnimatedListItem>
 
       {/* Card: Nivel */}
+      <AnimatedListItem index={2}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Nivel</Text>
         <Text style={styles.levelName}>{level?.name ?? 'Seed'}</Text>
@@ -207,13 +219,16 @@ export default function HomeScreen() {
           {((level?.progress ?? 0) * 100).toFixed(0)}% para o proximo nivel
         </Text>
       </View>
+      </AnimatedListItem>
 
       {/* Card: Marcas Ativas */}
+      <AnimatedListItem index={3}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Marcas Ativas</Text>
         <Text style={styles.bigNumber}>{data?.activeBrands ?? 0}</Text>
         <Text style={styles.statLabel}>marcas conectadas</Text>
       </View>
+      </AnimatedListItem>
     </ScrollView>
   );
 }

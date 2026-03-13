@@ -18,8 +18,47 @@ import { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import { GlowMenu, type GlowMenuItem } from '@/components/ui/GlowMenu';
 
-const MENU_ITEMS = [
+const GLOW_ITEMS: GlowMenuItem[] = [
+  {
+    icon: Wand2,
+    label: 'Studio',
+    href: '/studio',
+    gradient: 'radial-gradient(circle, rgba(124,58,237,0.15) 0%, rgba(91,33,182,0.06) 50%, rgba(91,33,182,0) 100%)',
+    iconColor: 'text-purple-500',
+  },
+  {
+    icon: ShoppingBag,
+    label: 'Marcas',
+    href: '/brands',
+    gradient: 'radial-gradient(circle, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.06) 50%, rgba(180,83,9,0) 100%)',
+    iconColor: 'text-amber-500',
+  },
+  {
+    icon: Share2,
+    label: 'Social',
+    href: '/social',
+    gradient: 'radial-gradient(circle, rgba(236,72,153,0.15) 0%, rgba(219,39,119,0.06) 50%, rgba(190,24,93,0) 100%)',
+    iconColor: 'text-pink-500',
+  },
+  {
+    icon: BookOpen,
+    label: 'Formacao',
+    href: '/courses',
+    gradient: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(37,99,235,0.06) 50%, rgba(29,78,216,0) 100%)',
+    iconColor: 'text-blue-500',
+  },
+  {
+    icon: Trophy,
+    label: 'Comunidade',
+    href: '/community',
+    gradient: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.06) 50%, rgba(4,120,87,0) 100%)',
+    iconColor: 'text-emerald-500',
+  },
+];
+
+const LIST_ITEMS = [
   { to: '/studio', icon: Wand2, label: 'Studio IA', color: '#7C3AED' },
   { to: '/brands', icon: ShoppingBag, label: 'Marcas', color: '#F59E0B' },
   { to: '/social', icon: Share2, label: 'Redes Sociais', color: '#EC4899' },
@@ -39,6 +78,11 @@ export default function Profile() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  }
+
+  function handleGlowClick(label: string) {
+    const item = GLOW_ITEMS.find((i) => i.label === label);
+    if (item) navigate(item.href);
   }
 
   return (
@@ -66,21 +110,36 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Menu links */}
-        <div className="space-y-2">
-          {MENU_ITEMS.map((item) => (
-            <button
-              key={item.to}
-              onClick={() => navigate(item.to)}
-              className="w-full flex items-center gap-3 bg-surface rounded-xl border border-gray-800 p-3 hover:bg-surface-light transition-colors"
-            >
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
-                <item.icon className="w-4 h-4" style={{ color: item.color }} />
-              </div>
-              <span className="flex-1 text-sm font-medium text-white text-left">{item.label}</span>
-              <ChevronRight className="w-4 h-4 text-gray-500" />
-            </button>
-          ))}
+        {/* Glow Menu — navegacao rapida */}
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Acesso Rapido</p>
+          <div className="overflow-x-auto -mx-4 px-4 pb-2 no-scrollbar">
+            <GlowMenu
+              items={GLOW_ITEMS}
+              onItemClick={handleGlowClick}
+              className="inline-flex"
+            />
+          </div>
+        </div>
+
+        {/* Menu links — lista completa */}
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Menu</p>
+          <div className="space-y-2">
+            {LIST_ITEMS.map((item) => (
+              <button
+                key={item.to}
+                onClick={() => navigate(item.to)}
+                className="w-full flex items-center gap-3 bg-surface rounded-xl border border-gray-800 p-3 hover:bg-surface-light transition-colors"
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
+                  <item.icon className="w-4 h-4" style={{ color: item.color }} />
+                </div>
+                <span className="flex-1 text-sm font-medium text-white text-left">{item.label}</span>
+                <ChevronRight className="w-4 h-4 text-gray-500" />
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Logout */}

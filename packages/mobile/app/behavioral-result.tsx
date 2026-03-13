@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  ActivityIndicator,
   Animated,
-  Dimensions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,8 +11,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { onboardingApi } from '@/lib/api';
 import type { CreatorDiagnostic } from '@/lib/api';
 import { borderRadius, colors, fontSize, layout, spacing } from '@/lib/theme';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import ScoreRing from '@/components/ScoreRing';
+import AnimatedListItem from '@/components/AnimatedList';
+import { SkeletonCard } from '@/components/Skeleton';
 
 const ARCHETYPE_COLORS: Record<string, string> = {
   Educador: colors.info,
@@ -71,8 +70,9 @@ export default function BehavioralResultScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.center, { gap: spacing.md }]}>
+        <SkeletonCard />
+        <SkeletonCard />
       </View>
     );
   }
@@ -105,12 +105,7 @@ export default function BehavioralResultScreen() {
         <Text style={styles.heroDescription}>{diagnostic.shortDescription}</Text>
 
         {/* Readiness Score Ring */}
-        <View style={styles.scoreContainer}>
-          <View style={[styles.scoreRing, { borderColor: accentColor }]}>
-            <Text style={[styles.scoreValue, { color: accentColor }]}>{diagnostic.readinessScore}</Text>
-            <Text style={styles.scoreLabel}>Prontidao</Text>
-          </View>
-        </View>
+        <ScoreRing score={diagnostic.readinessScore} color={accentColor} label="Prontidao" />
 
         <View style={[styles.levelBadge, { backgroundColor: accentColor + '33', borderColor: accentColor }]}>
           <Text style={[styles.levelText, { color: accentColor }]}>
@@ -120,13 +115,16 @@ export default function BehavioralResultScreen() {
       </Animated.View>
 
       {/* Superpower */}
+      <AnimatedListItem index={0}>
       <Animated.View style={[styles.card, { opacity: fadeIn }]}>
         <Text style={styles.cardEmoji}>{'⚡'}</Text>
         <Text style={styles.cardTitle}>Seu Superpoder</Text>
         <Text style={styles.superpowerText}>{diagnostic.superpower}</Text>
       </Animated.View>
+      </AnimatedListItem>
 
       {/* Strengths */}
+      <AnimatedListItem index={1}>
       <Animated.View style={[styles.card, { opacity: fadeIn }]}>
         <Text style={styles.cardTitle}>{'💪'} Seus Pontos Fortes</Text>
         {diagnostic.strengths.map((s, i) => (
@@ -136,8 +134,10 @@ export default function BehavioralResultScreen() {
           </View>
         ))}
       </Animated.View>
+      </AnimatedListItem>
 
       {/* Content Style */}
+      <AnimatedListItem index={2}>
       <Animated.View style={[styles.card, { opacity: fadeIn }]}>
         <Text style={styles.cardTitle}>{'🎬'} Estilo de Conteudo</Text>
         <Text style={styles.cardDescription}>{diagnostic.contentStyle}</Text>
@@ -149,8 +149,10 @@ export default function BehavioralResultScreen() {
           ))}
         </View>
       </Animated.View>
+      </AnimatedListItem>
 
       {/* Product Match */}
+      <AnimatedListItem index={3}>
       <Animated.View style={[styles.card, { opacity: fadeIn }]}>
         <Text style={styles.cardTitle}>{'🏷️'} Segmentos que Combinam</Text>
         <View style={styles.tagsRow}>
@@ -161,6 +163,7 @@ export default function BehavioralResultScreen() {
           ))}
         </View>
       </Animated.View>
+      </AnimatedListItem>
 
       {/* Motivation */}
       <Animated.View style={[styles.motivationCard, { borderColor: accentColor, opacity: fadeIn }]}>
@@ -229,28 +232,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: spacing.lg,
-  },
-
-  // Score
-  scoreContainer: {
-    marginVertical: spacing.md,
-  },
-  scoreRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scoreValue: {
-    fontSize: fontSize.xxl,
-    fontWeight: '800',
-  },
-  scoreLabel: {
-    color: colors.textSecondary,
-    fontSize: fontSize.xs,
-    fontWeight: '600',
   },
 
   // Level

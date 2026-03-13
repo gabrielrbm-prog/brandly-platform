@@ -13,6 +13,8 @@ import {
 import { financialApi } from '@/lib/api';
 import { borderRadius, colors, fontSize, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import AnimatedListItem from '@/components/AnimatedList';
+import { SkeletonCard } from '@/components/Skeleton';
 
 interface BalanceData {
   available: number;
@@ -133,8 +135,10 @@ export default function FinancialScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, { padding: spacing.md, gap: spacing.md }]}>
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </View>
     );
   }
@@ -152,6 +156,7 @@ export default function FinancialScreen() {
       }
     >
       {/* Balance Card */}
+      <AnimatedListItem index={0}>
       <View style={styles.card}>
         <Text style={styles.balanceLabel}>Saldo Disponivel</Text>
         <Text
@@ -232,8 +237,10 @@ export default function FinancialScreen() {
           </View>
         )}
       </View>
+      </AnimatedListItem>
 
       {/* Earnings Breakdown Card */}
+      <AnimatedListItem index={1}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Ganhos deste mes</Text>
         <View style={styles.earningsRow}>
@@ -264,8 +271,10 @@ export default function FinancialScreen() {
           </Text>
         </View>
       </View>
+      </AnimatedListItem>
 
       {/* Recent Transactions */}
+      <AnimatedListItem index={2}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Transacoes recentes</Text>
         {transactions.length === 0 ? (
@@ -315,6 +324,7 @@ export default function FinancialScreen() {
           ))
         )}
       </View>
+      </AnimatedListItem>
     </ScrollView>
   );
 }

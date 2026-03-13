@@ -13,6 +13,8 @@ import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { networkApi } from '@/lib/api';
 import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
+import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
+import { SkeletonCard } from '@/components/Skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ReferralData {
@@ -102,8 +104,10 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, { padding: spacing.md, gap: spacing.md }]}>
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </View>
     );
   }
@@ -129,6 +133,7 @@ export default function ProfileScreen() {
       }
     >
       {/* Avatar & User Info */}
+      <FadeInView>
       <View style={styles.profileHeader}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{getInitials(userName)}</Text>
@@ -142,9 +147,11 @@ export default function ProfileScreen() {
           <Text style={styles.levelBadgeText}>{userLevel}</Text>
         </View>
       </View>
+      </FadeInView>
 
       {/* Referral Code */}
       {referral?.code && (
+        <AnimatedListItem index={0}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Codigo de Indicacao</Text>
           <View style={styles.referralRow}>
@@ -156,9 +163,11 @@ export default function ProfileScreen() {
             </Pressable>
           </View>
         </View>
+        </AnimatedListItem>
       )}
 
       {/* Stats Row */}
+      <AnimatedListItem index={1}>
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{totalVideos}</Text>
@@ -175,8 +184,10 @@ export default function ProfileScreen() {
           <Text style={styles.statLabel}>Rede</Text>
         </View>
       </View>
+      </AnimatedListItem>
 
       {/* Menu Items */}
+      <AnimatedListItem index={2}>
       <View style={styles.card}>
         {MENU_ITEMS.map((item, index) => (
           <Pressable
@@ -195,6 +206,7 @@ export default function ProfileScreen() {
           </Pressable>
         ))}
       </View>
+      </AnimatedListItem>
 
       {/* Logout Button */}
       <Pressable

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -10,6 +9,8 @@ import {
 } from 'react-native';
 import { communityApi } from '@/lib/api';
 import { borderRadius, colorAlpha, colors, fontSize, fontWeight as fw, layout, medalColors, spacing } from '@/lib/theme';
+import AnimatedListItem from '@/components/AnimatedList';
+import { SkeletonCard } from '@/components/Skeleton';
 
 interface RankingEntry {
   creatorId: string;
@@ -115,7 +116,9 @@ export default function CommunityScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <SkeletonCard />
+          <View style={{ height: spacing.md }} />
+          <SkeletonCard />
         </View>
       ) : (
         <>
@@ -157,6 +160,7 @@ export default function CommunityScreen() {
                   <Text style={styles.emptyText}>Nenhum creator no ranking ainda</Text>
                 </View>
               ) : (
+                <AnimatedListItem index={0}>
                 <View style={styles.card}>
                   {ranking.map((entry, i) => (
                     <View key={entry.creatorId} style={[styles.rankRow, i < ranking.length - 1 && styles.rankRowBorder]}>
@@ -181,6 +185,7 @@ export default function CommunityScreen() {
                     </View>
                   ))}
                 </View>
+                </AnimatedListItem>
               )}
             </>
           )}
@@ -189,6 +194,7 @@ export default function CommunityScreen() {
           {tab === 'lives' && (
             <>
               {lives.upcoming.length > 0 && (
+                <AnimatedListItem index={0}>
                 <View style={styles.card}>
                   <Text style={styles.cardTitle}>{'📅'} Proximas Lives</Text>
                   {lives.upcoming.map(live => (
@@ -202,9 +208,11 @@ export default function CommunityScreen() {
                     </View>
                   ))}
                 </View>
+                </AnimatedListItem>
               )}
 
               {lives.past.length > 0 && (
+                <AnimatedListItem index={1}>
                 <View style={styles.card}>
                   <Text style={styles.cardTitle}>Lives Anteriores</Text>
                   {lives.past.map(live => (
@@ -217,6 +225,7 @@ export default function CommunityScreen() {
                     </View>
                   ))}
                 </View>
+                </AnimatedListItem>
               )}
 
               {lives.upcoming.length === 0 && lives.past.length === 0 && (
@@ -239,8 +248,9 @@ export default function CommunityScreen() {
                   <Text style={styles.emptySubtext}>Seja o primeiro a contar sua historia!</Text>
                 </View>
               ) : (
-                cases.map(c => (
-                  <View key={c.id} style={styles.caseCard}>
+                cases.map((c, i) => (
+                  <AnimatedListItem key={c.id} index={i}>
+                  <View style={styles.caseCard}>
                     <View style={styles.caseHeader}>
                       <View style={styles.caseAvatar}>
                         <Text style={styles.caseInitial}>{c.creatorName.charAt(0).toUpperCase()}</Text>
@@ -255,6 +265,7 @@ export default function CommunityScreen() {
                     <Text style={styles.caseTitle}>{c.title}</Text>
                     <Text style={styles.caseStory} numberOfLines={4}>{c.story}</Text>
                   </View>
+                  </AnimatedListItem>
                 ))
               )}
             </>

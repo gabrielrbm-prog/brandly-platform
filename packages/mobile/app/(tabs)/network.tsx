@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -11,6 +10,8 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { networkApi } from '@/lib/api';
 import { borderRadius, colors, fontSize, fontWeight as fw, layout, levelColors, spacing } from '@/lib/theme';
+import AnimatedListItem from '@/components/AnimatedList';
+import { SkeletonCard } from '@/components/Skeleton';
 
 interface NetworkStats {
   period: string;
@@ -112,8 +113,10 @@ export default function NetworkScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, { padding: spacing.md, gap: spacing.md }]}>
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </View>
     );
   }
@@ -128,6 +131,7 @@ export default function NetworkScreen() {
     >
       {/* Level Card */}
       {stats && (
+        <AnimatedListItem index={0}>
         <View style={[styles.card, { borderColor: levelColor, borderWidth: 2 }]}>
           <View style={styles.levelHeader}>
             <View style={[styles.levelBadge, { backgroundColor: levelColor + '33', borderColor: levelColor }]}>
@@ -160,10 +164,12 @@ export default function NetworkScreen() {
             </View>
           )}
         </View>
+        </AnimatedListItem>
       )}
 
       {/* Network Stats */}
       {stats && (
+        <AnimatedListItem index={1}>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{stats.network.totalMembers}</Text>
@@ -185,10 +191,12 @@ export default function NetworkScreen() {
             <Text style={styles.statLabel}>Volume</Text>
           </View>
         </View>
+        </AnimatedListItem>
       )}
 
       {/* Bonuses */}
       {stats && (
+        <AnimatedListItem index={2}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Bonus do Mes</Text>
           <View style={styles.bonusGrid}>
@@ -210,10 +218,12 @@ export default function NetworkScreen() {
             <Text style={styles.bonusTotalValue}>{formatCurrency(stats.bonuses.total)}</Text>
           </View>
         </View>
+        </AnimatedListItem>
       )}
 
       {/* Referral Link */}
       {referral && (
+        <AnimatedListItem index={3}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Link de Indicacao</Text>
           <Text style={styles.referralUrl} numberOfLines={1}>{referral.referralUrl}</Text>
@@ -224,9 +234,11 @@ export default function NetworkScreen() {
             <Text style={styles.referralStatText}>{referral.totalReferrals} indicados | {referral.activeReferrals} ativos</Text>
           </View>
         </View>
+        </AnimatedListItem>
       )}
 
       {/* Direct Members */}
+      <AnimatedListItem index={4}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Meus Diretos ({directs.length})</Text>
         {directs.length === 0 ? (
@@ -254,6 +266,7 @@ export default function NetworkScreen() {
           })
         )}
       </View>
+      </AnimatedListItem>
     </ScrollView>
   );
 }

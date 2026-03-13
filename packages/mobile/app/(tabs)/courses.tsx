@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { coursesApi } from '@/lib/api';
 import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
+import AnimatedListItem from '@/components/AnimatedList';
+import { SkeletonCard } from '@/components/Skeleton';
 
 interface Course {
   id: string;
@@ -105,8 +107,10 @@ export default function CoursesScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, { padding: spacing.md, gap: spacing.md }]}>
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </View>
     );
   }
@@ -120,6 +124,7 @@ export default function CoursesScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
       {/* Overall Progress */}
+      <AnimatedListItem index={0}>
       <View style={styles.progressCard}>
         <View style={styles.progressHeader}>
           <Text style={styles.progressTitle}>Formacao Creator</Text>
@@ -134,6 +139,7 @@ export default function CoursesScreen() {
           </View>
         )}
       </View>
+      </AnimatedListItem>
 
       {/* Courses List */}
       {courses.length === 0 ? (
@@ -147,7 +153,8 @@ export default function CoursesScreen() {
           const isOpen = selectedCourse === course.id;
           const coursePct = parseInt(course.progress);
           return (
-            <View key={course.id}>
+            <AnimatedListItem key={course.id} index={index + 1}>
+            <View>
               <Pressable style={styles.courseCard} onPress={() => loadLessons(course.id)}>
                 <View style={styles.courseHeader}>
                   <View style={styles.courseOrderBadge}>
@@ -217,6 +224,7 @@ export default function CoursesScreen() {
                 </View>
               )}
             </View>
+            </AnimatedListItem>
           );
         })
       )}

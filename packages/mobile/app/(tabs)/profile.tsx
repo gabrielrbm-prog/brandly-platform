@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { useRouter } from 'expo-router';
 import { networkApi } from '@/lib/api';
 import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,14 +34,15 @@ function formatCurrency(value: number): string {
 }
 
 const MENU_ITEMS = [
-  { label: 'Minha Rede', icon: '🌐' },
-  { label: 'Formacao', icon: '🎓' },
-  { label: 'Comunidade', icon: '👥' },
-  { label: 'Roteiros IA', icon: '🤖' },
-  { label: 'Configuracoes', icon: '⚙️' },
-];
+  { label: 'Marcas', icon: '💼', route: '/(tabs)/brands' },
+  { label: 'Social', icon: '📊', route: '/(tabs)/social' },
+  { label: 'Formacao', icon: '🎓', route: '/(tabs)/courses' },
+  { label: 'Comunidade', icon: '👥', route: '/(tabs)/community' },
+  { label: 'Meu Perfil Creator', icon: '🧠', route: '/behavioral-result' },
+] as const;
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { user, logout } = useAuth();
 
   const [referral, setReferral] = useState<ReferralData | null>(null);
@@ -183,7 +185,7 @@ export default function ProfileScreen() {
               index < MENU_ITEMS.length - 1 && styles.menuItemBorder,
             ]}
             onPress={() => {
-              // Future navigation
+              router.push(item.route as any);
             }}
           >
             <Text style={styles.menuIcon}>{item.icon}</Text>

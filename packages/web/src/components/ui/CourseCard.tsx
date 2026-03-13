@@ -6,7 +6,7 @@ import ProgressBar from './ProgressBar';
 type CourseColor = 'purple' | 'amber' | 'emerald' | 'blue' | 'pink';
 
 const COLOR_MAP: Record<CourseColor, { accent: string; bg: string; text: string; gradient: string }> = {
-  purple: { accent: '#7C3AED', bg: 'bg-brand-primary/10', text: 'text-brand-primary dark:text-brand-primary-light', gradient: 'from-brand-primary/20 to-brand-primary/5' },
+  purple: { accent: '#1D45D8', bg: 'bg-brand-primary/10', text: 'text-brand-primary dark:text-brand-primary-light', gradient: 'from-brand-primary/20 to-brand-primary/5' },
   amber: { accent: '#F59E0B', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', gradient: 'from-amber-500/20 to-amber-500/5' },
   emerald: { accent: '#10B981', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', gradient: 'from-emerald-500/20 to-emerald-500/5' },
   blue: { accent: '#3B82F6', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', gradient: 'from-blue-500/20 to-blue-500/5' },

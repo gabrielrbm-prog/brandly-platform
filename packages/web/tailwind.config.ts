@@ -7,11 +7,12 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          primary: '#7C3AED',
-          'primary-light': '#A78BFA',
-          'primary-dark': '#5B21B6',
-          accent: '#F59E0B',
-          'accent-light': '#FBBF24',
+          // Paleta oficial Brandbook
+          primary: '#1D45D8',       // Azul Brandly — Tecnologia
+          'primary-light': '#4B6FE8', // Azul claro (hover/light variant)
+          'primary-dark': '#1538A8',  // Azul escuro
+          accent: '#00DFFF',        // Cyan/Verde Boreal — Dinamismo
+          'accent-light': '#33E8FF', // Cyan claro
         },
         surface: {
           DEFAULT: 'var(--color-surface)',
@@ -28,7 +29,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Open Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

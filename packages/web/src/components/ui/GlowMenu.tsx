@@ -73,7 +73,7 @@ export const GlowMenu = React.forwardRef<HTMLDivElement, GlowMenuProps>(
         <motion.div
           className="absolute -inset-2 rounded-3xl z-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(circle, transparent 0%, rgba(124,58,237,0.15) 30%, rgba(167,139,250,0.15) 60%, rgba(245,158,11,0.10) 90%, transparent 100%)',
+            background: 'radial-gradient(circle, transparent 0%, rgba(29,69,216,0.15) 30%, rgba(0,223,255,0.15) 60%, rgba(75,111,232,0.10) 90%, transparent 100%)',
           }}
           variants={navGlowVariants}
         />

@@ -59,7 +59,7 @@
 
 @layer components {
   .glow-primary {
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 0 20px rgba(29, 69, 216, 0.3);
   }
   .glow-success {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);

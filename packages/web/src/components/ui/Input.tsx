@@ -18,7 +18,7 @@ export default function Input({ label, icon, error, className = '', ...props }: 
         className={`
           flex items-center gap-2 rounded-xl border px-4 h-[52px]
           themed-surface transition-all duration-200
-          ${focused ? 'border-brand-primary bg-brand-primary/5 shadow-[0_0_12px_rgba(124,58,237,0.15)]' : 'themed-border'}
+          ${focused ? 'border-brand-primary bg-brand-primary/5 shadow-[0_0_12px_rgba(29,69,216,0.15)]' : 'themed-border'}
           ${error ? 'border-red-500' : ''}
         `}
       >

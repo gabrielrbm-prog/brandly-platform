@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
+import fs from 'fs';
 import { authPlugin } from './plugins/auth.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
@@ -68,21 +69,28 @@ async function start() {
   await app.register(notificationRoutes, { prefix: '/api/notifications' });
 
   // Web App — SPA estático servido em /app/
-  // Em produção (Docker), cwd = /app; em dev, cwd = raiz do monorepo
   const webDistPath = path.resolve(process.cwd(), 'packages/web/dist');
+  const webIndexPath = path.join(webDistPath, 'index.html');
+  const hasWebDist = fs.existsSync(webIndexPath);
 
-  await app.register(fastifyStatic, {
-    root: webDistPath,
-    prefix: '/app/',
-  });
+  if (hasWebDist) {
+    app.log.info(`Web app encontrado em ${webDistPath}`);
 
-  // SPA fallback — qualquer rota /app/* que não seja arquivo estático retorna index.html
-  app.setNotFoundHandler((request, reply) => {
-    if (request.url.startsWith('/app')) {
-      return (reply as any).sendFile('index.html', webDistPath);
-    }
-    reply.code(404).send({ error: 'Not Found' });
-  });
+    await app.register(fastifyStatic, {
+      root: webDistPath,
+      prefix: '/app/',
+    });
+
+    // SPA fallback — qualquer rota /app/* que não seja arquivo estático retorna index.html
+    app.setNotFoundHandler((request, reply) => {
+      if (request.url.startsWith('/app')) {
+        return (reply as any).sendFile('index.html', webDistPath);
+      }
+      reply.code(404).send({ error: 'Not Found' });
+    });
+  } else {
+    app.log.warn(`Web app NAO encontrado em ${webDistPath} — /app/ desabilitado`);
+  }
 
   const port = Number(process.env.PORT ?? 3000);
   const host = process.env.HOST ?? '0.0.0.0';

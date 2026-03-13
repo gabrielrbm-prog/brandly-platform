@@ -1,0 +1,40 @@
+*.docx
+*.pdf
+*.DS_Store
+assets/brandbook/
+assets/logos/
+assets/brandbook-hq/
+
+# Dependencies
+node_modules/
+.npm
+
+# Build
+dist/
+*.tsbuildinfo
+*.d.ts
+*.d.ts.map
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Turbo
+.turbo/
+
+# Coverage
+coverage/
+
+# Drizzle
+packages/core/drizzle/

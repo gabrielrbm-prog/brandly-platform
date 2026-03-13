@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ViewStyle } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,7 +8,9 @@ import Animated, {
   interpolate,
   Easing,
 } from 'react-native-reanimated';
-import { colors, borderRadius as br } from '../lib/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { borderRadius as br, spacing } from '../lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SkeletonProps {
   width: number | `${number}%`;
@@ -23,18 +25,25 @@ export default function Skeleton({
   borderRadius = br.sm,
   style,
 }: SkeletonProps) {
-  const progress = useSharedValue(0);
+  const { colors, isDark } = useTheme();
+  const shimmer = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withRepeat(
-      withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+    shimmer.value = withRepeat(
+      withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
       -1,
-      true,
+      false,
     );
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0.3, 0.7]),
+  const shimmerStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: interpolate(shimmer.value, [0, 1], [-200, 200]) },
+    ],
+  }));
+
+  const baseOpacity = useAnimatedStyle(() => ({
+    opacity: interpolate(shimmer.value, [0, 0.5, 1], [0.4, 0.6, 0.4]),
   }));
 
   return (
@@ -44,12 +53,33 @@ export default function Skeleton({
           width,
           height,
           borderRadius,
-          backgroundColor: colors.surfaceLight,
+          backgroundColor: isDark ? colors.surfaceLight : '#E5E7EB',
+          overflow: 'hidden',
         },
-        animatedStyle,
+        baseOpacity,
         style,
       ]}
-    />
+    >
+      {/* Shimmer sweep */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          shimmerStyle,
+          { width: 200 },
+        ]}
+      >
+        <LinearGradient
+          colors={[
+            'transparent',
+            isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.4)',
+            'transparent',
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+    </Animated.View>
   );
 }
 
@@ -75,8 +105,10 @@ export function SkeletonCircle({ size = 40 }: { size?: number }) {
 }
 
 export function SkeletonCard() {
+  const { colors } = useTheme();
+
   return (
-    <Animated.View
+    <View
       style={{
         backgroundColor: colors.surface,
         borderRadius: br.lg,
@@ -89,6 +121,6 @@ export function SkeletonCard() {
       <Skeleton width="40%" height={16} borderRadius={br.xs} />
       <Skeleton width="100%" height={14} borderRadius={br.xs} />
       <Skeleton width="70%" height={14} borderRadius={br.xs} />
-    </Animated.View>
+    </View>
   );
 }

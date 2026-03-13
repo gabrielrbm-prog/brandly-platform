@@ -14,20 +14,19 @@ import { Link, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import {
-  colors,
-  colorAlpha,
   fontSize,
   fontWeight,
   spacing,
   borderRadius,
-  shadows,
   layout,
 } from '@/lib/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const { colors, colorAlpha, shadows } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,7 +56,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -65,7 +64,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Glow orb decorativo */}
-        <View style={styles.glowOrb} pointerEvents="none" />
+        <View style={[styles.glowOrb, { backgroundColor: colorAlpha.primary15 }]} pointerEvents="none" />
 
         {/* Header com logo */}
         <View style={styles.header}>
@@ -74,28 +73,32 @@ export default function LoginScreen() {
               colors={[colors.primary, colors.primaryLight]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.logoGradient}
+              style={[styles.logoGradient, shadows.glowPrimarySubtle]}
             >
               <Feather name="zap" size={28} color={colors.text} />
             </LinearGradient>
-            <Text style={styles.logo}>Brandly</Text>
+            <Text style={[styles.logo, { color: colors.text }]}>Brandly</Text>
           </View>
-          <Text style={styles.tagline}>Profissao Creator</Text>
-          <Text style={styles.subtitle}>Entre na sua conta</Text>
+          <Text style={[styles.tagline, { color: colors.primaryLight }]}>Profissao Creator</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Entre na sua conta</Text>
         </View>
 
         {/* Erro */}
         {error ? (
-          <View style={styles.errorContainer}>
+          <View style={[styles.errorContainer, { backgroundColor: colorAlpha.danger10 }]}>
             <Feather name="alert-circle" size={14} color={colors.danger} />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
           </View>
         ) : null}
 
         {/* Formulario */}
         <View style={styles.form}>
           {/* Campo Email */}
-          <View style={[styles.inputWrapper, emailFocused && styles.inputWrapperFocused]}>
+          <View style={[
+            styles.inputWrapper,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            emailFocused && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10, ...shadows.glowPrimarySubtle },
+          ]}>
             <Feather
               name="mail"
               size={18}
@@ -103,7 +106,7 @@ export default function LoginScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Email"
               placeholderTextColor={colors.textMuted}
               keyboardType="email-address"
@@ -117,7 +120,11 @@ export default function LoginScreen() {
           </View>
 
           {/* Campo Senha */}
-          <View style={[styles.inputWrapper, passwordFocused && styles.inputWrapperFocused]}>
+          <View style={[
+            styles.inputWrapper,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            passwordFocused && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10, ...shadows.glowPrimarySubtle },
+          ]}>
             <Feather
               name="lock"
               size={18}
@@ -125,7 +132,7 @@ export default function LoginScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Senha"
               placeholderTextColor={colors.textMuted}
               secureTextEntry
@@ -141,7 +148,7 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={isLoading}
             activeOpacity={0.85}
-            style={[styles.buttonShadow, isLoading && styles.buttonDisabled]}
+            style={[styles.buttonShadow, shadows.glowPrimary, isLoading && styles.buttonDisabled]}
           >
             <LinearGradient
               colors={
@@ -157,7 +164,7 @@ export default function LoginScreen() {
                 <ActivityIndicator color={colors.text} />
               ) : (
                 <>
-                  <Text style={styles.buttonText}>Entrar</Text>
+                  <Text style={[styles.buttonText, { color: colors.text }]}>Entrar</Text>
                   <Feather name="arrow-right" size={18} color={colors.text} />
                 </>
               )}
@@ -168,9 +175,9 @@ export default function LoginScreen() {
         {/* Link Cadastro */}
         <Link href="/(auth)/register" asChild>
           <TouchableOpacity style={styles.linkContainer}>
-            <Text style={styles.linkText}>
+            <Text style={[styles.linkText, { color: colors.textSecondary }]}>
               Nao tem conta?{' '}
-              <Text style={styles.linkHighlight}>Cadastre-se gratuitamente</Text>
+              <Text style={[styles.linkHighlight, { color: colors.primaryLight }]}>Cadastre-se gratuitamente</Text>
             </Text>
           </TouchableOpacity>
         </Link>
@@ -182,7 +189,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   container: {
     flexGrow: 1,
@@ -200,8 +206,6 @@ const styles = StyleSheet.create({
     width: 240,
     height: 240,
     borderRadius: 120,
-    backgroundColor: colorAlpha.primary15,
-    // blur simulado com opacidade em camadas
   },
 
   // Header
@@ -221,25 +225,21 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.glowPrimarySubtle,
   },
   logo: {
     fontSize: fontSize.hero,
     fontWeight: fontWeight.extrabold,
-    color: colors.text,
     letterSpacing: -1,
   },
   tagline: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
-    color: colors.primaryLight,
     letterSpacing: 2,
     textTransform: 'uppercase',
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: fontSize.md,
-    color: colors.textSecondary,
     marginTop: spacing.xs,
   },
 
@@ -248,7 +248,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colorAlpha.danger10,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
@@ -257,7 +256,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   errorText: {
-    color: colors.danger,
     fontSize: fontSize.sm,
     flex: 1,
   },
@@ -269,17 +267,10 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     height: layout.inputHeight + 4,
-  },
-  inputWrapperFocused: {
-    borderColor: colors.primary,
-    backgroundColor: colorAlpha.primary10,
-    ...shadows.glowPrimarySubtle,
   },
   inputIcon: {
     marginRight: spacing.sm,
@@ -287,7 +278,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: fontSize.md,
-    color: colors.text,
     height: '100%',
   },
 
@@ -295,7 +285,6 @@ const styles = StyleSheet.create({
   buttonShadow: {
     borderRadius: borderRadius.lg,
     marginTop: spacing.sm,
-    ...shadows.glowPrimary,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -309,7 +298,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   buttonText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
     letterSpacing: 0.5,
@@ -321,11 +309,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
   },
   linkHighlight: {
-    color: colors.primaryLight,
     fontWeight: fontWeight.semibold,
   },
 });

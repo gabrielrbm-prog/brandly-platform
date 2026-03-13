@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { colors, colorAlpha, borderRadius, fontSize, fontWeight, spacing } from '../lib/theme';
+import { borderRadius, fontSize, fontWeight, spacing } from '../lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
 type BadgeSize = 'sm' | 'md';
@@ -13,15 +14,6 @@ interface BadgeProps {
   style?: ViewStyle;
 }
 
-const variantMap: Record<BadgeVariant, { bg: string; text: string }> = {
-  default: { bg: colors.surfaceLight, text: colors.textSecondary },
-  primary: { bg: colorAlpha.primary25, text: colors.primaryLight },
-  success: { bg: colorAlpha.success20, text: colors.success },
-  warning: { bg: colorAlpha.warning20, text: colors.warning },
-  danger: { bg: colorAlpha.danger20, text: colors.danger },
-  info: { bg: colorAlpha.info20, text: colors.info },
-};
-
 export default function Badge({
   label,
   variant = 'default',
@@ -29,6 +21,17 @@ export default function Badge({
   color,
   style,
 }: BadgeProps) {
+  const { colors, colorAlpha } = useTheme();
+
+  const variantMap: Record<BadgeVariant, { bg: string; text: string }> = {
+    default: { bg: colors.surfaceLight, text: colors.textSecondary },
+    primary: { bg: colorAlpha.primary25, text: colors.primaryLight },
+    success: { bg: colorAlpha.success20, text: colors.success },
+    warning: { bg: colorAlpha.warning20, text: colors.warning },
+    danger: { bg: colorAlpha.danger20, text: colors.danger },
+    info: { bg: colorAlpha.info20, text: colors.info },
+  };
+
   const v = color
     ? { bg: color + '20', text: color }
     : variantMap[variant];

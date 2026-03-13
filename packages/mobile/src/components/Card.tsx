@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { colors, borderRadius, fontSize, spacing } from '../lib/theme';
+import { borderRadius, fontSize, spacing } from '../lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface CardProps {
   children: React.ReactNode;
@@ -10,12 +11,29 @@ interface CardProps {
 }
 
 export default function Card({ children, title, subtitle, style }: CardProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+        },
+        style,
+      ]}
+    >
       {(title || subtitle) && (
         <View style={styles.header}>
-          {title && <Text style={styles.title}>{title}</Text>}
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {title && (
+            <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+          )}
+          {subtitle && (
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {subtitle}
+            </Text>
+          )}
         </View>
       )}
       {children}
@@ -25,22 +43,18 @@ export default function Card({ children, title, subtitle, style }: CardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.card,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   header: {
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: '600',
   },
   subtitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: spacing.xs,
   },

@@ -7,7 +7,8 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { colors, borderRadius, fontSize, fontWeight, spacing, layout } from '../lib/theme';
+import { borderRadius, fontSize, fontWeight, spacing, layout } from '../lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
@@ -27,6 +28,7 @@ export default function Input({
   containerStyle,
   ...props
 }: InputProps) {
+  const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
 
   const borderColor = error
@@ -37,13 +39,26 @@ export default function Input({
 
   return (
     <View style={containerStyle}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && (
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          {label}
+        </Text>
+      )}
 
-      <View style={[styles.inputContainer, { borderColor }]}>
+      <View
+        style={[
+          styles.inputContainer,
+          {
+            borderColor,
+            backgroundColor: colors.surface,
+          },
+        ]}
+      >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
         <TextInput
           style={[
             styles.input,
+            { color: colors.text },
             leftIcon ? { paddingLeft: 0 } : null,
             rightIcon ? { paddingRight: 0 } : null,
           ]}
@@ -61,15 +76,18 @@ export default function Input({
         {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {hint && !error && <Text style={styles.hint}>{hint}</Text>}
+      {error && (
+        <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+      )}
+      {hint && !error && (
+        <Text style={[styles.hint, { color: colors.textMuted }]}>{hint}</Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   label: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
     marginBottom: spacing.xs,
@@ -78,14 +96,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: layout.inputHeight,
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
   },
   input: {
     flex: 1,
-    color: colors.text,
     fontSize: fontSize.md,
     paddingVertical: 0,
   },
@@ -96,12 +112,10 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   error: {
-    color: colors.danger,
     fontSize: fontSize.xs,
     marginTop: spacing.xs,
   },
   hint: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     marginTop: spacing.xs,
   },

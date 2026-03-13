@@ -16,18 +16,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { networkApi } from '@/lib/api';
 import {
   borderRadius,
-  colorAlpha,
-  colors,
   fontSize,
   fontWeight,
   layout,
   levelColors,
-  shadows,
   spacing,
 } from '@/lib/theme';
 import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ReferralData {
   code: string;
@@ -48,17 +46,24 @@ function formatCurrency(value: number): string {
 }
 
 const MENU_ITEMS = [
-  { label: 'Studio IA', icon: 'zap' as const, route: '/(tabs)/studio', color: colors.accent },
-  { label: 'Marcas', icon: 'briefcase' as const, route: '/(tabs)/brands', color: colors.info },
-  { label: 'Social', icon: 'bar-chart-2' as const, route: '/(tabs)/social', color: colors.success },
-  { label: 'Formacao', icon: 'book-open' as const, route: '/(tabs)/courses', color: colors.primaryLight },
-  { label: 'Comunidade', icon: 'users' as const, route: '/(tabs)/community', color: colors.cyan },
-  { label: 'Meu Perfil Creator', icon: 'target' as const, route: '/behavioral-result', color: colors.accentLight },
+  { label: 'Studio IA', icon: 'zap' as const, route: '/(tabs)/studio', colorKey: 'accent' },
+  { label: 'Marcas', icon: 'briefcase' as const, route: '/(tabs)/brands', colorKey: 'info' },
+  { label: 'Social', icon: 'bar-chart-2' as const, route: '/(tabs)/social', colorKey: 'success' },
+  { label: 'Formacao', icon: 'book-open' as const, route: '/(tabs)/courses', colorKey: 'primaryLight' },
+  { label: 'Comunidade', icon: 'users' as const, route: '/(tabs)/community', colorKey: 'cyan' },
+  { label: 'Meu Perfil Creator', icon: 'target' as const, route: '/behavioral-result', colorKey: 'accentLight' },
+] as const;
+
+const THEME_OPTIONS = [
+  { mode: 'light' as const, icon: 'sun' as const, label: 'Claro' },
+  { mode: 'dark' as const, icon: 'moon' as const, label: 'Escuro' },
+  { mode: 'system' as const, icon: 'smartphone' as const, label: 'Sistema' },
 ] as const;
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { colors, colorAlpha, shadows, mode, isDark, setMode } = useTheme();
 
   const [referral, setReferral] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +76,7 @@ export default function ProfileScreen() {
       const res = (await networkApi.referralLink()) as ReferralData;
       setReferral(res);
     } catch {
-      // Silently fail — referral info is secondary
+      // Silently fail
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -116,7 +121,7 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { padding: spacing.md, gap: spacing.md }]}>
+      <View style={[styles.container, { backgroundColor: colors.background, padding: spacing.md, gap: spacing.md }]}>
         <SkeletonCard />
         <SkeletonCard />
         <SkeletonCard />
@@ -136,7 +141,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
@@ -154,7 +159,6 @@ export default function ProfileScreen() {
           end={{ x: 0.5, y: 1 }}
           style={styles.profileHeader}
         >
-          {/* Avatar com borda de nivel */}
           <View style={[styles.avatarOuter, { borderColor: levelColor }]}>
             <View style={[styles.avatarGlow, { shadowColor: levelColor }]}>
               <LinearGradient
@@ -163,16 +167,15 @@ export default function ProfileScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.avatar}
               >
-                <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+                <Text style={[styles.avatarText, { color: '#FFFFFF' }]}>{getInitials(userName)}</Text>
               </LinearGradient>
             </View>
           </View>
 
-          <Text style={styles.userName}>{userName}</Text>
-          <Text style={styles.userEmail}>{userEmail}</Text>
-          <Text style={styles.userRole}>{userRole}</Text>
+          <Text style={[styles.userName, { color: colors.text }]}>{userName}</Text>
+          <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{userEmail}</Text>
+          <Text style={[styles.userRole, { color: colors.textMuted }]}>{userRole}</Text>
 
-          {/* Badge de nivel com cor do nivel */}
           <View style={[styles.levelBadge, { borderColor: levelColor, backgroundColor: `${levelColor}22` }]}>
             <View style={[styles.levelDot, { backgroundColor: levelColor }]} />
             <Text style={[styles.levelBadgeText, { color: levelColor }]}>{userLevel}</Text>
@@ -182,36 +185,33 @@ export default function ProfileScreen() {
 
       {/* Stats Row */}
       <AnimatedListItem index={0}>
-        <View style={styles.statsRow}>
-          {/* Videos */}
+        <View style={[styles.statsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.statItem}>
             <View style={[styles.statIconWrapper, { backgroundColor: colorAlpha.accent10 }]}>
               <Feather name="video" size={16} color={colors.accent} />
             </View>
-            <Text style={styles.statValue}>{totalVideos}</Text>
-            <Text style={styles.statLabel}>Videos</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{totalVideos}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Videos</Text>
           </View>
 
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
 
-          {/* Ganhos */}
           <View style={styles.statItem}>
             <View style={[styles.statIconWrapper, { backgroundColor: colorAlpha.success10 }]}>
               <Feather name="dollar-sign" size={16} color={colors.success} />
             </View>
-            <Text style={styles.statValue}>{formatCurrency(totalEarnings)}</Text>
-            <Text style={styles.statLabel}>Ganhos</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{formatCurrency(totalEarnings)}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Ganhos</Text>
           </View>
 
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
 
-          {/* Rede */}
           <View style={styles.statItem}>
             <View style={[styles.statIconWrapper, { backgroundColor: colorAlpha.info10 }]}>
               <Feather name="users" size={16} color={colors.info} />
             </View>
-            <Text style={styles.statValue}>{networkSize}</Text>
-            <Text style={styles.statLabel}>Rede</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{networkSize}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Rede</Text>
           </View>
         </View>
       </AnimatedListItem>
@@ -219,7 +219,7 @@ export default function ProfileScreen() {
       {/* Referral Code Card */}
       {referral?.code && (
         <AnimatedListItem index={1}>
-          <View style={styles.referralCard}>
+          <View style={[styles.referralCard, { borderColor: colors.primary, ...shadows.glowPrimarySubtle }]}>
             <LinearGradient
               colors={[colorAlpha.primary15, colorAlpha.accent10]}
               start={{ x: 0, y: 0 }}
@@ -228,25 +228,29 @@ export default function ProfileScreen() {
             />
             <View style={styles.referralHeader}>
               <Feather name="share-2" size={16} color={colors.primaryLight} />
-              <Text style={styles.referralTitle}>Codigo de Indicacao</Text>
+              <Text style={[styles.referralTitle, { color: colors.text }]}>Codigo de Indicacao</Text>
             </View>
-            <Text style={styles.referralSubtitle}>
+            <Text style={[styles.referralSubtitle, { color: colors.textSecondary }]}>
               Convide amigos e ganhe bonus em cada venda da sua rede
             </Text>
             <View style={styles.referralRow}>
-              <View style={styles.referralCodeBox}>
-                <Text style={styles.referralCode}>{referral.code}</Text>
+              <View style={[styles.referralCodeBox, { backgroundColor: colorAlpha.white10, borderColor: colors.border }]}>
+                <Text style={[styles.referralCode, { color: colors.text }]}>{referral.code}</Text>
               </View>
               <Pressable
-                style={[styles.copyButton, copied && styles.copyButtonSuccess]}
+                style={[
+                  styles.copyButton,
+                  { backgroundColor: colors.primary, ...shadows.glowPrimarySubtle },
+                  copied && { backgroundColor: colorAlpha.success20, borderWidth: 1, borderColor: colors.success },
+                ]}
                 onPress={handleCopyCode}
               >
                 <Feather
                   name={copied ? 'check' : 'copy'}
                   size={14}
-                  color={copied ? colors.success : colors.text}
+                  color={copied ? colors.success : '#FFFFFF'}
                 />
-                <Text style={[styles.copyButtonText, copied && styles.copyButtonTextSuccess]}>
+                <Text style={[styles.copyButtonText, { color: copied ? colors.success : '#FFFFFF' }]}>
                   {copied ? 'Copiado!' : 'Copiar'}
                 </Text>
               </Pressable>
@@ -255,37 +259,86 @@ export default function ProfileScreen() {
         </AnimatedListItem>
       )}
 
-      {/* Menu Items */}
+      {/* Theme Selector */}
       <AnimatedListItem index={2}>
-        <View style={styles.menuCard}>
-          {MENU_ITEMS.map((item, index) => (
-            <Pressable
-              key={item.label}
-              style={({ pressed }) => [
-                styles.menuItem,
-                index < MENU_ITEMS.length - 1 && styles.menuItemBorder,
-                pressed && styles.menuItemPressed,
-              ]}
-              onPress={() => {
-                router.push(item.route as any);
-              }}
-            >
-              <View style={[styles.menuIconCircle, { backgroundColor: `${item.color}18` }]}>
-                <Feather name={item.icon} size={18} color={item.color} />
-              </View>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Feather name="chevron-right" size={16} color={colors.textMuted} />
-            </Pressable>
-          ))}
+        <View style={[styles.themeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.themeHeader}>
+            <View style={[styles.themeIconWrap, { backgroundColor: colorAlpha.accent10 }]}>
+              <Feather name={isDark ? 'moon' : 'sun'} size={16} color={colors.accent} />
+            </View>
+            <Text style={[styles.themeTitle, { color: colors.text }]}>Aparencia</Text>
+          </View>
+          <View style={styles.themeOptions}>
+            {THEME_OPTIONS.map((opt) => {
+              const isActive = mode === opt.mode;
+              return (
+                <Pressable
+                  key={opt.mode}
+                  style={[styles.themeOptionWrap]}
+                  onPress={() => setMode(opt.mode)}
+                >
+                  {isActive ? (
+                    <LinearGradient
+                      colors={[colors.primary, colors.primaryDark]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.themeOption}
+                    >
+                      <Feather name={opt.icon} size={14} color="#FFFFFF" />
+                      <Text style={[styles.themeOptionText, { color: '#FFFFFF', fontWeight: fontWeight.bold }]}>
+                        {opt.label}
+                      </Text>
+                    </LinearGradient>
+                  ) : (
+                    <View style={[styles.themeOption, { backgroundColor: colorAlpha.muted20 }]}>
+                      <Feather name={opt.icon} size={14} color={colors.textMuted} />
+                      <Text style={[styles.themeOptionText, { color: colors.textMuted }]}>
+                        {opt.label}
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
       </AnimatedListItem>
 
-      {/* Logout Button — outline, discreto */}
+      {/* Menu Items */}
+      <AnimatedListItem index={3}>
+        <View style={[styles.menuCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          {MENU_ITEMS.map((item, index) => {
+            const itemColor = colors[item.colorKey as keyof typeof colors] ?? colors.primary;
+            return (
+              <Pressable
+                key={item.label}
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  index < MENU_ITEMS.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border },
+                  pressed && { backgroundColor: colorAlpha.primary10 },
+                ]}
+                onPress={() => {
+                  router.push(item.route as any);
+                }}
+              >
+                <View style={[styles.menuIconCircle, { backgroundColor: `${itemColor}18` }]}>
+                  <Feather name={item.icon} size={18} color={itemColor} />
+                </View>
+                <Text style={[styles.menuLabel, { color: colors.text }]}>{item.label}</Text>
+                <Feather name="chevron-right" size={16} color={colors.textMuted} />
+              </Pressable>
+            );
+          })}
+        </View>
+      </AnimatedListItem>
+
+      {/* Logout Button */}
       <Pressable
         style={({ pressed }) => [
           styles.logoutButton,
+          { borderColor: colors.border },
           loggingOut && { opacity: 0.5 },
-          pressed && styles.logoutButtonPressed,
+          pressed && { backgroundColor: colorAlpha.danger10, borderColor: colors.danger },
         ]}
         onPress={handleLogout}
         disabled={loggingOut}
@@ -295,7 +348,7 @@ export default function ProfileScreen() {
         ) : (
           <>
             <Feather name="log-out" size={16} color={colors.textMuted} />
-            <Text style={styles.logoutButtonText}>Sair da conta</Text>
+            <Text style={[styles.logoutButtonText, { color: colors.textMuted }]}>Sair da conta</Text>
           </>
         )}
       </Pressable>
@@ -306,7 +359,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     paddingBottom: spacing.xxl,
@@ -343,22 +395,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: {
-    color: colors.text,
     fontSize: fontSize.xxl,
     fontWeight: fontWeight.bold,
   },
   userName: {
-    color: colors.text,
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
   },
   userEmail: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: spacing.xs,
   },
   userRole: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
     marginTop: spacing.xs,
   },
@@ -385,10 +433,8 @@ const styles = StyleSheet.create({
   // Stats Row
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     marginHorizontal: spacing.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
@@ -407,18 +453,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxs,
   },
   statValue: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
   },
   statLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
   },
   statDivider: {
     width: layout.dividerHeight,
     height: 48,
-    backgroundColor: colors.border,
   },
 
   // Referral Card
@@ -426,10 +469,8 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
     padding: spacing.md,
     overflow: 'hidden',
-    ...shadows.glowPrimarySubtle,
   },
   referralGradientBg: {
     ...StyleSheet.absoluteFillObject,
@@ -442,12 +483,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   referralTitle: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
   },
   referralSubtitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginBottom: spacing.md,
     lineHeight: 20,
@@ -459,15 +498,12 @@ const styles = StyleSheet.create({
   },
   referralCodeBox: {
     flex: 1,
-    backgroundColor: colorAlpha.white10,
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   referralCode: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
     letterSpacing: 2,
@@ -476,33 +512,66 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    ...shadows.glowPrimarySubtle,
-  },
-  copyButtonSuccess: {
-    backgroundColor: colorAlpha.success20,
-    borderWidth: 1,
-    borderColor: colors.success,
   },
   copyButtonText: {
-    color: colors.text,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
   },
-  copyButtonTextSuccess: {
-    color: colors.success,
+
+  // Theme Selector
+  themeCard: {
+    marginHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: spacing.md,
+  },
+  themeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  themeIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeTitle: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+  },
+  themeOptions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  themeOptionWrap: {
+    flex: 1,
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden',
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
+  },
+  themeOptionText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
   },
 
   // Menu
   menuCard: {
     marginHorizontal: spacing.md,
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     overflow: 'hidden',
   },
   menuItem: {
@@ -511,13 +580,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     gap: spacing.md,
-  },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  menuItemPressed: {
-    backgroundColor: colorAlpha.primary10,
   },
   menuIconCircle: {
     width: 36,
@@ -528,12 +590,11 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     flex: 1,
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.medium,
   },
 
-  // Logout — outline discreto
+  // Logout
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -542,16 +603,10 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingVertical: spacing.md,
     backgroundColor: 'transparent',
   },
-  logoutButtonPressed: {
-    backgroundColor: colorAlpha.danger10,
-    borderColor: colors.danger,
-  },
   logoutButtonText: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
   },

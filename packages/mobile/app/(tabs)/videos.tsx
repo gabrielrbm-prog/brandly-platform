@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,16 +16,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { brandsApi, videosApi } from '@/lib/api';
 import {
   borderRadius,
-  colorAlpha,
-  colors,
   fontSize,
   fontWeight,
   layout,
-  shadows,
   spacing,
   statusColors,
 } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface DailySummary {
   submitted: number;
@@ -56,35 +54,36 @@ const PLATFORMS: { value: Platform; label: string }[] = [
   { value: 'youtube', label: 'YouTube' },
 ];
 
-const STATUS_CONFIG: Record<
-  string,
-  { color: string; label: string; icon: keyof typeof Feather.glyphMap; borderColor: string; bgAlpha: string }
-> = {
-  pending: {
-    color: statusColors.pending,
-    label: 'Pendente',
-    icon: 'clock',
-    borderColor: colors.warning,
-    bgAlpha: colorAlpha.warning10,
-  },
-  approved: {
-    color: statusColors.approved,
-    label: 'Aprovado',
-    icon: 'check-circle',
-    borderColor: colors.success,
-    bgAlpha: colorAlpha.success10,
-  },
-  rejected: {
-    color: statusColors.rejected,
-    label: 'Rejeitado',
-    icon: 'x-circle',
-    borderColor: colors.danger,
-    bgAlpha: colorAlpha.danger10,
-  },
-};
-
 export default function VideosScreen() {
   useAuth();
+  const { colors, colorAlpha, shadows } = useTheme();
+
+  const STATUS_CONFIG: Record<
+    string,
+    { color: string; label: string; icon: keyof typeof Feather.glyphMap; borderColor: string; bgAlpha: string }
+  > = useMemo(() => ({
+    pending: {
+      color: statusColors.pending,
+      label: 'Pendente',
+      icon: 'clock',
+      borderColor: colors.warning,
+      bgAlpha: colorAlpha.warning10,
+    },
+    approved: {
+      color: statusColors.approved,
+      label: 'Aprovado',
+      icon: 'check-circle',
+      borderColor: colors.success,
+      bgAlpha: colorAlpha.success10,
+    },
+    rejected: {
+      color: statusColors.rejected,
+      label: 'Rejeitado',
+      icon: 'x-circle',
+      borderColor: colors.danger,
+      bgAlpha: colorAlpha.danger10,
+    },
+  }), [colors, colorAlpha]);
 
   const [videos, setVideos] = useState<Video[]>([]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
@@ -192,8 +191,17 @@ export default function VideosScreen() {
     ({ item }: { item: Video }) => {
       const status = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.pending;
       return (
-        <View style={[styles.videoCard, { borderLeftColor: status.borderColor }]}>
-          {/* Colored left border accent */}
+        <View
+          style={[
+            styles.videoCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderLeftColor: status.borderColor,
+              ...shadows.sm,
+            },
+          ]}
+        >
           <View style={styles.videoHeader}>
             <View style={styles.videoBrandRow}>
               <Feather
@@ -202,7 +210,7 @@ export default function VideosScreen() {
                 color={status.color}
                 style={styles.statusIcon}
               />
-              <Text style={styles.videoBrandName}>{item.brandName}</Text>
+              <Text style={[styles.videoBrandName, { color: colors.text }]}>{item.brandName}</Text>
             </View>
             <View style={[styles.statusBadge, { backgroundColor: status.bgAlpha }]}>
               <Text style={[styles.statusBadgeText, { color: status.color }]}>
@@ -213,21 +221,21 @@ export default function VideosScreen() {
           <View style={styles.videoFooter}>
             <View style={styles.videoDateRow}>
               <Feather name="calendar" size={12} color={colors.textMuted} />
-              <Text style={styles.videoDate}>{formatDate(item.createdAt)}</Text>
+              <Text style={[styles.videoDate, { color: colors.textMuted }]}>{formatDate(item.createdAt)}</Text>
             </View>
-            <Text style={styles.videoPayment}>
+            <Text style={[styles.videoPayment, { color: colors.success }]}>
               R$ {(item.payment ?? 0).toFixed(2)}
             </Text>
           </View>
         </View>
       );
     },
-    [],
+    [STATUS_CONFIG, colors, shadows],
   );
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -235,14 +243,14 @@ export default function VideosScreen() {
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={videos}
         keyExtractor={(item) => item.id}
@@ -260,18 +268,24 @@ export default function VideosScreen() {
             {/* Daily Progress Hero */}
             <LinearGradient
               colors={['#1E1040', '#1A1A1A']}
-              style={styles.dailyHeroCard}
+              style={[
+                styles.dailyHeroCard,
+                {
+                  borderColor: colorAlpha.primary20,
+                  ...shadows.glowPrimarySubtle,
+                },
+              ]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
               {/* Glow accent */}
-              <View style={styles.heroGlowDot} />
+              <View style={[styles.heroGlowDot, { backgroundColor: colorAlpha.primary15 }]} />
 
               <View style={styles.heroTopRow}>
-                <Text style={styles.heroLabel}>Progresso Diario</Text>
-                <View style={styles.heroDateBadge}>
+                <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>Progresso Diario</Text>
+                <View style={[styles.heroDateBadge, { backgroundColor: colorAlpha.accent10 }]}>
                   <Feather name="sun" size={12} color={colors.accent} />
-                  <Text style={styles.heroDateText}>Hoje</Text>
+                  <Text style={[styles.heroDateText, { color: colors.accent }]}>Hoje</Text>
                 </View>
               </View>
 
@@ -292,32 +306,32 @@ export default function VideosScreen() {
                     <Text style={[styles.heroCountBig, { color: progressColor }]}>
                       {dailyCount}
                     </Text>
-                    <Text style={styles.heroCountSlash}>/ {maxDaily}</Text>
-                    <Text style={styles.heroCountLabel}>videos</Text>
+                    <Text style={[styles.heroCountSlash, { color: colors.textSecondary }]}>/ {maxDaily}</Text>
+                    <Text style={[styles.heroCountLabel, { color: colors.textMuted }]}>videos</Text>
                   </View>
                 </View>
 
                 <View style={styles.heroRightInfo}>
                   <View style={styles.heroStatItem}>
                     <Feather name="check-circle" size={14} color={colors.success} />
-                    <Text style={styles.heroStatValue}>{summary?.approved ?? 0}</Text>
-                    <Text style={styles.heroStatLabel}>aprovados</Text>
+                    <Text style={[styles.heroStatValue, { color: colors.text }]}>{summary?.approved ?? 0}</Text>
+                    <Text style={[styles.heroStatLabel, { color: colors.textMuted }]}>aprovados</Text>
                   </View>
                   <View style={styles.heroStatItem}>
                     <Feather name="clock" size={14} color={colors.warning} />
-                    <Text style={styles.heroStatValue}>{summary?.pending ?? 0}</Text>
-                    <Text style={styles.heroStatLabel}>pendentes</Text>
+                    <Text style={[styles.heroStatValue, { color: colors.text }]}>{summary?.pending ?? 0}</Text>
+                    <Text style={[styles.heroStatLabel, { color: colors.textMuted }]}>pendentes</Text>
                   </View>
                   <View style={styles.heroStatItem}>
                     <Feather name="x-circle" size={14} color={colors.danger} />
-                    <Text style={styles.heroStatValue}>{summary?.rejected ?? 0}</Text>
-                    <Text style={styles.heroStatLabel}>rejeitados</Text>
+                    <Text style={[styles.heroStatValue, { color: colors.text }]}>{summary?.rejected ?? 0}</Text>
+                    <Text style={[styles.heroStatLabel, { color: colors.textMuted }]}>rejeitados</Text>
                   </View>
                 </View>
               </View>
 
               {/* Progress bar */}
-              <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarBg, { backgroundColor: colorAlpha.white10 }]}>
                 <View
                   style={[
                     styles.progressBarFill,
@@ -332,8 +346,8 @@ export default function VideosScreen() {
               {/* Daily earnings */}
               <View style={styles.heroEarningsRow}>
                 <Feather name="dollar-sign" size={14} color={colors.accent} />
-                <Text style={styles.heroEarningsLabel}>Ganhos hoje: </Text>
-                <Text style={styles.heroEarningsValue}>
+                <Text style={[styles.heroEarningsLabel, { color: colors.textSecondary }]}>Ganhos hoje: </Text>
+                <Text style={[styles.heroEarningsValue, { color: colors.accent }]}>
                   R$ {dailyEarnings.toFixed(2)}
                 </Text>
               </View>
@@ -346,15 +360,15 @@ export default function VideosScreen() {
             >
               <LinearGradient
                 colors={[colors.primary, colors.primaryDark]}
-                style={styles.submitButton}
+                style={[styles.submitButton, shadows.glowPrimary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
                 <View style={styles.submitButtonInner}>
-                  <View style={styles.submitIconCircle}>
+                  <View style={[styles.submitIconCircle, { backgroundColor: colorAlpha.white10 }]}>
                     <Feather name="video" size={18} color={colors.text} />
                   </View>
-                  <Text style={styles.submitButtonText}>Enviar Video</Text>
+                  <Text style={[styles.submitButtonText, { color: colors.text }]}>Enviar Video</Text>
                   <Feather name="plus-circle" size={18} color={colors.primaryLight} />
                 </View>
               </LinearGradient>
@@ -362,24 +376,27 @@ export default function VideosScreen() {
 
             {/* List Header */}
             <View style={styles.listTitleRow}>
-              <Text style={styles.listTitle}>Videos Enviados</Text>
-              <View style={styles.listCountBadge}>
-                <Text style={styles.listCountText}>{videos.length}</Text>
+              <Text style={[styles.listTitle, { color: colors.text }]}>Videos Enviados</Text>
+              <View style={[styles.listCountBadge, { backgroundColor: colorAlpha.primary20 }]}>
+                <Text style={[styles.listCountText, { color: colors.primaryLight }]}>{videos.length}</Text>
               </View>
             </View>
           </View>
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: colorAlpha.muted20 }]}>
               <Feather name="film" size={32} color={colors.textMuted} />
             </View>
-            <Text style={styles.emptyTitle}>Nenhum video ainda</Text>
-            <Text style={styles.emptySubtitle}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>Nenhum video ainda</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
               Envie seu primeiro video e comece a ganhar R$10 por aprovacao!
             </Text>
-            <Pressable onPress={openSubmitModal} style={styles.emptyCta}>
-              <Text style={styles.emptyCtaText}>Enviar agora</Text>
+            <Pressable
+              onPress={openSubmitModal}
+              style={[styles.emptyCta, { backgroundColor: colorAlpha.primary20, borderColor: colors.primary }]}
+            >
+              <Text style={[styles.emptyCtaText, { color: colors.primary }]}>Enviar agora</Text>
             </Pressable>
           </View>
         }
@@ -393,20 +410,29 @@ export default function VideosScreen() {
         onRequestClose={() => setModalVisible(false)}
       >
         <Pressable
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: colors.overlayHeavy }]}
           onPress={() => setModalVisible(false)}
         >
-          <Pressable style={styles.modalContent} onPress={() => {}}>
+          <Pressable
+            style={[
+              styles.modalContent,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => {}}
+          >
             {/* Drag handle */}
-            <View style={styles.modalDragHandle} />
+            <View style={[styles.modalDragHandle, { backgroundColor: colors.border }]} />
 
             <View style={styles.modalTitleRow}>
               <Feather name="video" size={20} color={colors.primary} />
-              <Text style={styles.modalTitle}>Enviar Video</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Enviar Video</Text>
             </View>
 
             {/* Brand Selector */}
-            <Text style={styles.inputLabel}>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
               <Feather name="tag" size={12} color={colors.textSecondary} /> Marca
             </Text>
             <View style={styles.brandSelectorContainer}>
@@ -415,15 +441,25 @@ export default function VideosScreen() {
                   key={brand.id}
                   style={[
                     styles.brandOption,
-                    selectedBrand?.id === brand.id && styles.brandOptionSelected,
+                    {
+                      backgroundColor: colors.surfaceLight,
+                      borderColor: colors.border,
+                    },
+                    selectedBrand?.id === brand.id && {
+                      backgroundColor: colorAlpha.primary20,
+                      borderColor: colors.primary,
+                    },
                   ]}
                   onPress={() => setSelectedBrand(brand)}
                 >
                   <Text
                     style={[
                       styles.brandOptionText,
-                      selectedBrand?.id === brand.id &&
-                        styles.brandOptionTextSelected,
+                      { color: colors.textSecondary },
+                      selectedBrand?.id === brand.id && {
+                        color: colors.primary,
+                        fontWeight: fontWeight.semibold,
+                      },
                     ]}
                   >
                     {brand.name}
@@ -433,11 +469,19 @@ export default function VideosScreen() {
             </View>
 
             {/* Video URL */}
-            <Text style={styles.inputLabel}>URL do Video</Text>
-            <View style={styles.inputWrapper}>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>URL do Video</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                {
+                  backgroundColor: colors.surfaceLight,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
               <Feather name="link" size={16} color={colors.textMuted} style={styles.inputIcon} />
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { color: colors.text }]}
                 placeholder="https://..."
                 placeholderTextColor={colors.textMuted}
                 value={videoUrl}
@@ -449,22 +493,32 @@ export default function VideosScreen() {
             </View>
 
             {/* Platform Selector */}
-            <Text style={styles.inputLabel}>Plataforma</Text>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Plataforma</Text>
             <View style={styles.platformContainer}>
               {PLATFORMS.map((p) => (
                 <Pressable
                   key={p.value}
                   style={[
                     styles.platformOption,
-                    selectedPlatform === p.value && styles.platformOptionSelected,
+                    {
+                      backgroundColor: colors.surfaceLight,
+                      borderColor: colors.border,
+                    },
+                    selectedPlatform === p.value && {
+                      backgroundColor: colorAlpha.primary20,
+                      borderColor: colors.primary,
+                    },
                   ]}
                   onPress={() => setSelectedPlatform(p.value)}
                 >
                   <Text
                     style={[
                       styles.platformOptionText,
-                      selectedPlatform === p.value &&
-                        styles.platformOptionTextSelected,
+                      { color: colors.textSecondary },
+                      selectedPlatform === p.value && {
+                        color: colors.primary,
+                        fontWeight: fontWeight.semibold,
+                      },
                     ]}
                   >
                     {p.label}
@@ -481,7 +535,7 @@ export default function VideosScreen() {
             >
               <LinearGradient
                 colors={[colors.primary, colors.primaryDark]}
-                style={styles.modalSubmitButton}
+                style={[styles.modalSubmitButton, shadows.glowPrimary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
@@ -490,7 +544,7 @@ export default function VideosScreen() {
                 ) : (
                   <>
                     <Feather name="send" size={16} color={colors.text} />
-                    <Text style={styles.submitButtonText}>Enviar</Text>
+                    <Text style={[styles.submitButtonText, { color: colors.text }]}>Enviar</Text>
                   </>
                 )}
               </LinearGradient>
@@ -500,7 +554,7 @@ export default function VideosScreen() {
               style={styles.modalCancelButton}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.modalCancelText}>Cancelar</Text>
+              <Text style={[styles.modalCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -512,7 +566,6 @@ export default function VideosScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   listContent: {
     padding: spacing.md,
@@ -520,26 +573,22 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorText: {
-    color: colors.danger,
     fontSize: fontSize.md,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },
 
-  // ─── Daily Hero Card ───
+  // --- Daily Hero Card ---
   dailyHeroCard: {
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colorAlpha.primary20,
     padding: spacing.lg,
     marginBottom: spacing.md,
     overflow: 'hidden',
-    ...shadows.glowPrimarySubtle,
   },
   heroGlowDot: {
     position: 'absolute',
@@ -548,7 +597,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colorAlpha.primary15,
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -557,7 +605,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   heroLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
     letterSpacing: 0.5,
@@ -567,13 +614,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colorAlpha.accent10,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs,
   },
   heroDateText: {
-    color: colors.accent,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
   },
@@ -606,12 +651,10 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
   heroCountSlash: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.medium,
   },
   heroCountLabel: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   heroRightInfo: {
@@ -624,17 +667,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   heroStatValue: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
   },
   heroStatLabel: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   progressBarBg: {
     height: layout.progressBarMd,
-    backgroundColor: colorAlpha.white10,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
     marginBottom: spacing.sm,
@@ -649,22 +689,19 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   heroEarningsLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
   },
   heroEarningsValue: {
-    color: colors.accent,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
   },
 
-  // ─── Submit Button ───
+  // --- Submit Button ---
   submitButton: {
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.lg,
-    ...shadows.glowPrimary,
   },
   submitButtonInner: {
     flexDirection: 'row',
@@ -676,19 +713,17 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colorAlpha.white10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   submitButtonText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
     flex: 1,
     textAlign: 'center',
   },
 
-  // ─── List header ───
+  // --- List header ---
   listTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -696,32 +731,26 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   listTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
   },
   listCountBadge: {
-    backgroundColor: colorAlpha.primary20,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
   listCountText: {
-    color: colors.primaryLight,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
   },
 
-  // ─── Video Cards ───
+  // --- Video Cards ---
   videoCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     borderLeftWidth: 3,
     padding: spacing.md,
     marginBottom: spacing.sm,
-    ...shadows.sm,
   },
   videoHeader: {
     flexDirection: 'row',
@@ -740,7 +769,6 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   videoBrandName: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
     flex: 1,
@@ -765,17 +793,15 @@ const styles = StyleSheet.create({
     gap: spacing.xxs,
   },
   videoDate: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     marginLeft: 2,
   },
   videoPayment: {
-    color: colors.success,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.bold,
   },
 
-  // ─── Empty State ───
+  // --- Empty State ---
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: spacing.xxl,
@@ -785,57 +811,47 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colorAlpha.muted20,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
   },
   emptyTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
     marginBottom: spacing.xs,
   },
   emptySubtitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: spacing.lg,
   },
   emptyCta: {
-    backgroundColor: colorAlpha.primary20,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
   },
   emptyCtaText: {
-    color: colors.primary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
   },
 
-  // ─── Modal ───
+  // --- Modal ---
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.overlayHeavy,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.surface,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
     borderTopWidth: 1,
-    borderColor: colors.border,
   },
   modalDragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: colors.border,
     borderRadius: borderRadius.full,
     alignSelf: 'center',
     marginBottom: spacing.md,
@@ -847,12 +863,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   modalTitle: {
-    color: colors.text,
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
   },
   inputLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
     marginBottom: spacing.sm,
@@ -867,29 +881,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surfaceLight,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  brandOptionSelected: {
-    backgroundColor: colorAlpha.primary20,
-    borderColor: colors.primary,
   },
   brandOptionText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
-  },
-  brandOptionTextSelected: {
-    color: colors.primary,
-    fontWeight: fontWeight.semibold,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceLight,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.md,
     paddingHorizontal: spacing.md,
   },
@@ -898,7 +899,6 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: colors.text,
     fontSize: fontSize.md,
     paddingVertical: spacing.md,
   },
@@ -911,22 +911,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.surfaceLight,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
   },
-  platformOptionSelected: {
-    backgroundColor: colorAlpha.primary20,
-    borderColor: colors.primary,
-  },
   platformOptionText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
-  },
-  platformOptionTextSelected: {
-    color: colors.primary,
-    fontWeight: fontWeight.semibold,
   },
   modalSubmitButton: {
     borderRadius: borderRadius.md,
@@ -936,14 +925,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
     marginBottom: spacing.sm,
-    ...shadows.glowPrimary,
   },
   modalCancelButton: {
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
   modalCancelText: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
   },
 });

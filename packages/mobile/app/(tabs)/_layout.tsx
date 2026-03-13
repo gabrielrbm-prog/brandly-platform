@@ -1,24 +1,12 @@
 import { Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { Platform, View, Text, StyleSheet } from 'react-native';
-import { colors, colorAlpha, borderRadius, fontSize, fontWeight, spacing } from '@/lib/theme';
-
-function TabBarLabel({ label, focused }: { label: string; focused: boolean }) {
-  return (
-    <Text
-      style={{
-        fontSize: 10,
-        fontWeight: focused ? fontWeight.semibold : fontWeight.normal,
-        color: focused ? colors.primary : colors.textMuted,
-        marginTop: 2,
-      }}
-    >
-      {label}
-    </Text>
-  );
-}
+import { Platform, View, Text } from 'react-native';
+import { useTheme } from '@/contexts/ThemeContext';
+import { borderRadius, fontSize, fontWeight, spacing } from '@/lib/theme';
 
 export default function TabLayout() {
+  const { colors, colorAlpha } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -60,17 +48,26 @@ export default function TabLayout() {
         options={{
           title: 'Brandly',
           headerTitle: () => (
-            <View style={styles.headerTitle}>
-              <Text style={styles.headerBrand}>Brandly</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <Text style={{ color: colors.primary, fontSize: fontSize.lg, fontWeight: fontWeight.bold, letterSpacing: 0.5 }}>
+                Brandly
+              </Text>
             </View>
           ),
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+            <View style={[
+              { alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm, paddingTop: spacing.xs, borderRadius: borderRadius.md, minWidth: 44 },
+              focused && { backgroundColor: colorAlpha.primary10 },
+            ]}>
               <Feather name="home" size={20} color={color} />
-              {focused && <View style={styles.tabDot} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, marginTop: 3 }} />}
             </View>
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="Inicio" focused={focused} />,
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ fontSize: 10, fontWeight: focused ? fontWeight.semibold : fontWeight.normal, color: focused ? colors.primary : colors.textMuted, marginTop: 2 }}>
+              Inicio
+            </Text>
+          ),
           tabBarShowLabel: true,
         }}
       />
@@ -79,12 +76,19 @@ export default function TabLayout() {
         options={{
           title: 'Videos',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+            <View style={[
+              { alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm, paddingTop: spacing.xs, borderRadius: borderRadius.md, minWidth: 44 },
+              focused && { backgroundColor: colorAlpha.primary10 },
+            ]}>
               <Feather name="video" size={20} color={color} />
-              {focused && <View style={styles.tabDot} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, marginTop: 3 }} />}
             </View>
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="Videos" focused={focused} />,
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ fontSize: 10, fontWeight: focused ? fontWeight.semibold : fontWeight.normal, color: focused ? colors.primary : colors.textMuted, marginTop: 2 }}>
+              Videos
+            </Text>
+          ),
           tabBarShowLabel: true,
         }}
       />
@@ -93,12 +97,19 @@ export default function TabLayout() {
         options={{
           title: 'Rede',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+            <View style={[
+              { alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm, paddingTop: spacing.xs, borderRadius: borderRadius.md, minWidth: 44 },
+              focused && { backgroundColor: colorAlpha.primary10 },
+            ]}>
               <Feather name="users" size={20} color={color} />
-              {focused && <View style={styles.tabDot} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, marginTop: 3 }} />}
             </View>
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="Rede" focused={focused} />,
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ fontSize: 10, fontWeight: focused ? fontWeight.semibold : fontWeight.normal, color: focused ? colors.primary : colors.textMuted, marginTop: 2 }}>
+              Rede
+            </Text>
+          ),
           tabBarShowLabel: true,
         }}
       />
@@ -107,12 +118,19 @@ export default function TabLayout() {
         options={{
           title: 'Financeiro',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+            <View style={[
+              { alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm, paddingTop: spacing.xs, borderRadius: borderRadius.md, minWidth: 44 },
+              focused && { backgroundColor: colorAlpha.primary10 },
+            ]}>
               <Feather name="dollar-sign" size={20} color={color} />
-              {focused && <View style={styles.tabDot} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, marginTop: 3 }} />}
             </View>
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="Financeiro" focused={focused} />,
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ fontSize: 10, fontWeight: focused ? fontWeight.semibold : fontWeight.normal, color: focused ? colors.primary : colors.textMuted, marginTop: 2 }}>
+              Financeiro
+            </Text>
+          ),
           tabBarShowLabel: true,
         }}
       />
@@ -121,12 +139,19 @@ export default function TabLayout() {
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+            <View style={[
+              { alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm, paddingTop: spacing.xs, borderRadius: borderRadius.md, minWidth: 44 },
+              focused && { backgroundColor: colorAlpha.primary10 },
+            ]}>
               <Feather name="user" size={20} color={color} />
-              {focused && <View style={styles.tabDot} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, marginTop: 3 }} />}
             </View>
           ),
-          tabBarLabel: ({ focused }) => <TabBarLabel label="Perfil" focused={focused} />,
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ fontSize: 10, fontWeight: focused ? fontWeight.semibold : fontWeight.normal, color: focused ? colors.primary : colors.textMuted, marginTop: 2 }}>
+              Perfil
+            </Text>
+          ),
           tabBarShowLabel: true,
         }}
       />
@@ -139,35 +164,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  headerTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  headerBrand: {
-    color: colors.primary,
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.bold,
-    letterSpacing: 0.5,
-  },
-  tabIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingTop: spacing.xs,
-    borderRadius: borderRadius.md,
-    minWidth: 44,
-  },
-  tabIconActive: {
-    backgroundColor: colorAlpha.primary10,
-  },
-  tabDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.primary,
-    marginTop: 3,
-  },
-});

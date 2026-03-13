@@ -15,26 +15,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { socialApi, type SocialAccount, type ConnectResponse } from '@/lib/api';
 import {
   borderRadius,
-  colorAlpha,
-  colors,
   fontSize,
   layout,
   platformColors,
-  shadows,
   spacing,
 } from '@/lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const PLATFORM_CONFIG = {
   instagram: { label: 'Instagram', featherIcon: 'instagram' as const, color: platformColors.instagram },
   tiktok: { label: 'TikTok', featherIcon: 'music' as const, color: platformColors.tiktok },
 } as const;
-
-const METRIC_CONFIG = [
-  { key: 'followers', label: 'Seguidores', icon: 'users' as const, color: colors.info, bg: colorAlpha.info10 },
-  { key: 'avgLikes', label: 'Likes/Post', icon: 'heart' as const, color: colors.danger, bg: colorAlpha.danger10 },
-  { key: 'avgViews', label: 'Views/Post', icon: 'eye' as const, color: colors.accent, bg: colorAlpha.accent10 },
-  { key: 'engagementRate', label: 'Engajamento', icon: 'trending-up' as const, color: colors.success, bg: colorAlpha.success10 },
-] as const;
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -43,6 +34,8 @@ function formatNumber(n: number): string {
 }
 
 export default function SocialScreen() {
+  const { colors, colorAlpha, shadows } = useTheme();
+
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,6 +43,13 @@ export default function SocialScreen() {
   const [syncing, setSyncing] = useState<string | null>(null);
   const [showConnectInfo, setShowConnectInfo] = useState(false);
   const [connectData, setConnectData] = useState<ConnectResponse | null>(null);
+
+  const METRIC_CONFIG = [
+    { key: 'followers', label: 'Seguidores', icon: 'users' as const, color: colors.info, bg: colorAlpha.info10 },
+    { key: 'avgLikes', label: 'Likes/Post', icon: 'heart' as const, color: colors.danger, bg: colorAlpha.danger10 },
+    { key: 'avgViews', label: 'Views/Post', icon: 'eye' as const, color: colors.accent, bg: colorAlpha.accent10 },
+    { key: 'engagementRate', label: 'Engajamento', icon: 'trending-up' as const, color: colors.success, bg: colorAlpha.success10 },
+  ] as const;
 
   const fetchAccounts = useCallback(async () => {
     try {
@@ -122,7 +122,7 @@ export default function SocialScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -134,7 +134,7 @@ export default function SocialScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
@@ -146,19 +146,19 @@ export default function SocialScreen() {
     >
       {/* Header */}
       <View style={styles.headerRow}>
-        <View style={styles.headerIconWrap}>
+        <View style={[styles.headerIconWrap, { backgroundColor: colorAlpha.primary20 }]}>
           <Feather name="bar-chart-2" size={20} color={colors.primary} />
         </View>
         <View>
-          <Text style={styles.title}>Redes Sociais</Text>
-          <Text style={styles.subtitle}>Conecte suas contas para acompanhar metricas</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Redes Sociais</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Conecte suas contas para acompanhar metricas</Text>
         </View>
       </View>
 
       {/* Botao Conectar */}
       {(!hasInstagram || !hasTiktok) && (
         <Pressable
-          style={[styles.connectButtonWrap, connecting && { opacity: 0.6 }]}
+          style={[styles.connectButtonWrap, connecting && { opacity: 0.6 }, shadows.glowPrimary]}
           onPress={handleConnect}
           disabled={connecting}
         >
@@ -173,7 +173,7 @@ export default function SocialScreen() {
             ) : (
               <>
                 <Feather name="plus-circle" size={20} color={colors.text} />
-                <Text style={styles.connectButtonText}>Conectar Rede Social</Text>
+                <Text style={[styles.connectButtonText, { color: colors.text }]}>Conectar Rede Social</Text>
               </>
             )}
           </LinearGradient>
@@ -183,11 +183,11 @@ export default function SocialScreen() {
       {/* Contas Conectadas */}
       {connectedAccounts.length === 0 ? (
         <View style={styles.emptyState}>
-          <View style={styles.emptyIconWrap}>
+          <View style={[styles.emptyIconWrap, { backgroundColor: colorAlpha.primary15, borderColor: colorAlpha.primary30 }]}>
             <Feather name="smartphone" size={32} color={colors.primary} />
           </View>
-          <Text style={styles.emptyTitle}>Nenhuma conta conectada</Text>
-          <Text style={styles.emptySubtitle}>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>Nenhuma conta conectada</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
             Conecte seu Instagram ou TikTok para ver suas metricas de performance
           </Text>
         </View>
@@ -204,7 +204,7 @@ export default function SocialScreen() {
           };
 
           return (
-            <View key={account.id} style={styles.card}>
+            <View key={account.id} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               {/* Header da conta */}
               <View style={styles.cardHeader}>
                 <View style={styles.platformInfo}>
@@ -212,8 +212,8 @@ export default function SocialScreen() {
                     <Feather name={config.featherIcon} size={20} color={config.color} />
                   </View>
                   <View>
-                    <Text style={styles.platformName}>{config.label}</Text>
-                    <Text style={styles.username}>
+                    <Text style={[styles.platformName, { color: colors.text }]}>{config.label}</Text>
+                    <Text style={[styles.username, { color: colors.textSecondary }]}>
                       @{account.username ?? '—'}
                       {account.isVerified && ' ✓'}
                     </Text>
@@ -233,14 +233,14 @@ export default function SocialScreen() {
                     <Text style={[styles.metricValue, { color: m.key === 'engagementRate' ? colors.success : colors.text }]}>
                       {metricValues[m.key]}
                     </Text>
-                    <Text style={styles.metricLabel}>{m.label}</Text>
+                    <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>{m.label}</Text>
                   </View>
                 ))}
               </View>
 
               {/* Ultima sincronizacao */}
               {account.lastSyncAt && (
-                <Text style={styles.lastSync}>
+                <Text style={[styles.lastSync, { color: colors.textMuted }]}>
                   Atualizado: {new Date(account.lastSyncAt).toLocaleDateString('pt-BR')}
                 </Text>
               )}
@@ -248,7 +248,7 @@ export default function SocialScreen() {
               {/* Acoes */}
               <View style={styles.actionsRow}>
                 <Pressable
-                  style={[styles.actionButton, isSyncing && { opacity: 0.6 }]}
+                  style={[styles.actionButton, { backgroundColor: colorAlpha.primary20, borderColor: colors.primary }, isSyncing && { opacity: 0.6 }]}
                   onPress={() => handleSync(account.platform)}
                   disabled={isSyncing}
                 >
@@ -257,16 +257,16 @@ export default function SocialScreen() {
                   ) : (
                     <>
                       <Feather name="refresh-cw" size={14} color={colors.primary} />
-                      <Text style={styles.actionButtonText}>Atualizar</Text>
+                      <Text style={[styles.actionButtonText, { color: colors.primary }]}>Atualizar</Text>
                     </>
                   )}
                 </Pressable>
                 <Pressable
-                  style={styles.disconnectButton}
+                  style={[styles.disconnectButton, { backgroundColor: colorAlpha.danger20, borderColor: colors.danger }]}
                   onPress={() => handleDisconnect(account.platform)}
                 >
                   <Feather name="x" size={14} color={colors.danger} />
-                  <Text style={styles.disconnectButtonText}>Desconectar</Text>
+                  <Text style={[styles.disconnectButtonText, { color: colors.danger }]}>Desconectar</Text>
                 </Pressable>
               </View>
             </View>
@@ -276,21 +276,21 @@ export default function SocialScreen() {
 
       {/* Resumo de engajamento */}
       {connectedAccounts.length > 0 && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Resumo Geral</Text>
-          <View style={[styles.summaryRow, styles.summaryRowBorder]}>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>Resumo Geral</Text>
+          <View style={[styles.summaryRow, styles.summaryRowBorder, { borderBottomColor: colors.border }]}>
             <View style={styles.summaryLabelRow}>
               <Feather name="users" size={14} color={colors.info} />
-              <Text style={styles.summaryLabel}>Total de seguidores</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total de seguidores</Text>
             </View>
             <Text style={[styles.summaryValue, { color: colors.info }]}>
               {formatNumber(connectedAccounts.reduce((s, a) => s + a.followers, 0))}
             </Text>
           </View>
-          <View style={[styles.summaryRow, styles.summaryRowBorder]}>
+          <View style={[styles.summaryRow, styles.summaryRowBorder, { borderBottomColor: colors.border }]}>
             <View style={styles.summaryLabelRow}>
               <Feather name="trending-up" size={14} color={colors.success} />
-              <Text style={styles.summaryLabel}>Engajamento medio</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Engajamento medio</Text>
             </View>
             <Text style={[styles.summaryValue, { color: colors.success }]}>
               {connectedAccounts.length > 0
@@ -305,7 +305,7 @@ export default function SocialScreen() {
           <View style={styles.summaryRow}>
             <View style={styles.summaryLabelRow}>
               <Feather name="link" size={14} color={colors.primaryLight} />
-              <Text style={styles.summaryLabel}>Plataformas conectadas</Text>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Plataformas conectadas</Text>
             </View>
             <Text style={[styles.summaryValue, { color: colors.primaryLight }]}>
               {connectedAccounts.length}
@@ -316,40 +316,40 @@ export default function SocialScreen() {
 
       {/* Modal com instrucoes de conexao */}
       <Modal visible={showConnectInfo} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View style={[styles.modalOverlay, { backgroundColor: colors.overlayHeavy }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {/* Modal icon */}
-            <View style={styles.modalIconWrap}>
+            <View style={[styles.modalIconWrap, { backgroundColor: colorAlpha.primary20, borderColor: colorAlpha.primary30 }]}>
               <Feather name="shield" size={28} color={colors.primary} />
             </View>
-            <Text style={styles.modalTitle}>Conectar Rede Social</Text>
-            <Text style={styles.modalText}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Conectar Rede Social</Text>
+            <Text style={[styles.modalText, { color: colors.textSecondary }]}>
               Para conectar sua conta, voce sera redirecionado para autorizar o acesso
               de leitura das suas metricas publicas.
             </Text>
-            <Text style={styles.modalText}>
+            <Text style={[styles.modalText, { color: colors.textSecondary }]}>
               Nos acessamos apenas dados de performance (seguidores, curtidas, views).
               Nunca publicamos nada em seu nome.
             </Text>
             {connectData && (
-              <View style={styles.modalInfo}>
-                <Text style={styles.modalInfoText}>
+              <View style={[styles.modalInfo, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <Text style={[styles.modalInfoText, { color: colors.textMuted }]}>
                   Ambiente: {connectData.environment}
                 </Text>
-                <Text style={styles.modalInfoText}>
+                <Text style={[styles.modalInfoText, { color: colors.textMuted }]}>
                   Token gerado com sucesso
                 </Text>
               </View>
             )}
             <View style={styles.modalActions}>
               <Pressable
-                style={styles.modalSecondary}
+                style={[styles.modalSecondary, { borderColor: colors.border }]}
                 onPress={() => setShowConnectInfo(false)}
               >
-                <Text style={styles.modalSecondaryText}>Fechar</Text>
+                <Text style={[styles.modalSecondaryText, { color: colors.textSecondary }]}>Fechar</Text>
               </Pressable>
               <Pressable
-                style={styles.modalPrimaryWrap}
+                style={[styles.modalPrimaryWrap, shadows.glowPrimary]}
                 onPress={() => {
                   setShowConnectInfo(false);
                   // TODO: Abrir WebView com Phyllo Connect SDK
@@ -366,7 +366,7 @@ export default function SocialScreen() {
                   end={{ x: 1, y: 0 }}
                   style={styles.modalPrimary}
                 >
-                  <Text style={styles.modalPrimaryText}>Continuar</Text>
+                  <Text style={[styles.modalPrimaryText, { color: colors.text }]}>Continuar</Text>
                 </LinearGradient>
               </Pressable>
             </View>
@@ -378,11 +378,10 @@ export default function SocialScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   content: { padding: spacing.md, paddingBottom: spacing.xxl },
   centered: {
     flex: 1,
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -398,17 +397,14 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: borderRadius.md,
-    backgroundColor: colorAlpha.primary20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    color: colors.text,
     fontSize: fontSize.xxl,
     fontWeight: '700',
   },
   subtitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: 2,
   },
@@ -417,7 +413,6 @@ const styles = StyleSheet.create({
   connectButtonWrap: {
     borderRadius: borderRadius.md,
     marginBottom: spacing.lg,
-    ...shadows.glowPrimary,
   },
   connectButton: {
     flexDirection: 'row',
@@ -428,7 +423,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   connectButtonText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: '600',
   },
@@ -443,19 +437,15 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: borderRadius.xl,
-    backgroundColor: colorAlpha.primary15,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colorAlpha.primary30,
   },
   emptyTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: '600',
   },
   emptySubtitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
@@ -464,15 +454,12 @@ const styles = StyleSheet.create({
 
   // Card
   card: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
   cardTitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -498,12 +485,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   platformName: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: '700',
   },
   username: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: 1,
   },
@@ -547,13 +532,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   metricLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
     marginTop: 2,
   },
 
   lastSync: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     marginBottom: spacing.sm,
   },
@@ -569,14 +552,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: colorAlpha.primary20,
     borderRadius: borderRadius.sm,
     height: layout.iconXl,
     borderWidth: 1,
-    borderColor: colors.primary,
   },
   actionButtonText: {
-    color: colors.primary,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
@@ -586,14 +566,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: colorAlpha.danger20,
     borderRadius: borderRadius.sm,
     height: layout.iconXl,
     borderWidth: 1,
-    borderColor: colors.danger,
   },
   disconnectButtonText: {
-    color: colors.danger,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
@@ -607,7 +584,6 @@ const styles = StyleSheet.create({
   },
   summaryRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   summaryLabelRow: {
     flexDirection: 'row',
@@ -615,7 +591,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   summaryLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
   },
   summaryValue: {
@@ -626,57 +601,47 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.overlayHeavy,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
   },
   modalContent: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     width: '100%',
     maxWidth: 400,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
   },
   modalIconWrap: {
     width: 60,
     height: 60,
     borderRadius: borderRadius.lg,
-    backgroundColor: colorAlpha.primary20,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colorAlpha.primary30,
   },
   modalTitle: {
-    color: colors.text,
     fontSize: fontSize.xl,
     fontWeight: '700',
     marginBottom: spacing.md,
     textAlign: 'center',
   },
   modalText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     lineHeight: 20,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   modalInfo: {
-    backgroundColor: colors.background,
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
     marginVertical: spacing.sm,
     width: '100%',
     borderWidth: 1,
-    borderColor: colors.border,
   },
   modalInfoText: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   modalActions: {
@@ -692,10 +657,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
   },
   modalSecondaryText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
@@ -703,7 +666,6 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: borderRadius.sm,
     overflow: 'hidden',
-    ...shadows.glowPrimary,
   },
   modalPrimary: {
     height: 44,
@@ -711,7 +673,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalPrimaryText: {
-    color: colors.text,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },

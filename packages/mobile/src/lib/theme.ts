@@ -1,11 +1,50 @@
 // ============================================
 // BRANDLY DESIGN SYSTEM — Tokens
 // Alinhado com Brand Guidelines (Wheeler/Kapferer)
+// Suporta Light + Dark mode
 // ============================================
 
-// ─── Colors ───
+// ─── Types ───
 
-export const colors = {
+export interface Colors {
+  background: string; surface: string; surfaceLight: string; card: string;
+  primary: string; primaryLight: string; primaryDark: string; accent: string; accentLight: string;
+  success: string; successLight: string; danger: string; dangerLight: string;
+  warning: string; warningLight: string; info: string; infoLight: string; cyan: string;
+  text: string; textSecondary: string; textMuted: string; textDisabled: string;
+  border: string; borderLight: string;
+  overlay: string; overlayHeavy: string; highlight: string;
+}
+
+export interface ColorAlpha {
+  primary10: string; primary15: string; primary20: string; primary25: string; primary30: string;
+  accent10: string; accent20: string;
+  success10: string; success20: string;
+  danger10: string; danger20: string;
+  warning10: string; warning20: string;
+  info10: string; info20: string;
+  cyan10: string; cyan20: string;
+  muted20: string; muted30: string; muted40: string;
+  white10: string; white20: string;
+}
+
+interface ShadowValue {
+  shadowColor: string;
+  shadowOffset: { width: number; height: number };
+  shadowOpacity: number;
+  shadowRadius: number;
+  elevation: number;
+}
+
+export interface Shadows {
+  sm: ShadowValue; md: ShadowValue; lg: ShadowValue;
+  glowPrimary: ShadowValue; glowPrimarySubtle: ShadowValue;
+  glowSuccess: ShadowValue; glowDanger: ShadowValue;
+}
+
+// ─── Dark Colors (default) ───
+
+export const colors: Colors = {
   // Backgrounds
   background: '#0A0A0A',
   surface: '#1A1A1A',
@@ -44,11 +83,54 @@ export const colors = {
   overlay: 'rgba(0, 0, 0, 0.6)',
   overlayHeavy: 'rgba(0, 0, 0, 0.7)',
   highlight: 'rgba(124, 58, 237, 0.15)',
-} as const;
+};
 
-// ─── Color Opacity Tokens (evitar concatenacao de hex) ───
+// ─── Light Colors ───
 
-export const colorAlpha = {
+export const lightColors: Colors = {
+  // Backgrounds
+  background: '#F8F9FA',
+  surface: '#FFFFFF',
+  surfaceLight: '#F1F3F5',
+  card: '#FFFFFF',
+
+  // Brand — mantidas iguais
+  primary: '#7C3AED',
+  primaryLight: '#A78BFA',
+  primaryDark: '#5B21B6',
+  accent: '#F59E0B',
+  accentLight: '#FBBF24',
+
+  // Semantic — mantidas iguais
+  success: '#10B981',
+  successLight: '#34D399',
+  danger: '#EF4444',
+  dangerLight: '#F87171',
+  warning: '#F59E0B',
+  warningLight: '#FBBF24',
+  info: '#3B82F6',
+  infoLight: '#60A5FA',
+  cyan: '#06B6D4',
+
+  // Text — invertidos
+  text: '#111827',
+  textSecondary: '#4B5563',
+  textMuted: '#9CA3AF',
+  textDisabled: '#D1D5DB',
+
+  // Border
+  border: '#E5E7EB',
+  borderLight: '#D1D5DB',
+
+  // Overlays
+  overlay: 'rgba(0, 0, 0, 0.3)',
+  overlayHeavy: 'rgba(0, 0, 0, 0.5)',
+  highlight: 'rgba(124, 58, 237, 0.08)',
+};
+
+// ─── Dark Color Opacity Tokens ───
+
+export const colorAlpha: ColorAlpha = {
   primary10: 'rgba(124, 58, 237, 0.10)',
   primary15: 'rgba(124, 58, 237, 0.15)',
   primary20: 'rgba(124, 58, 237, 0.20)',
@@ -71,9 +153,36 @@ export const colorAlpha = {
   muted40: 'rgba(107, 114, 128, 0.40)',
   white10: 'rgba(255, 255, 255, 0.10)',
   white20: 'rgba(255, 255, 255, 0.20)',
-} as const;
+};
 
-// ─── Semantic Color Maps (para usar em componentes especificos) ───
+// ─── Light Color Opacity Tokens ───
+
+export const lightColorAlpha: ColorAlpha = {
+  primary10: 'rgba(124, 58, 237, 0.06)',
+  primary15: 'rgba(124, 58, 237, 0.08)',
+  primary20: 'rgba(124, 58, 237, 0.10)',
+  primary25: 'rgba(124, 58, 237, 0.14)',
+  primary30: 'rgba(124, 58, 237, 0.18)',
+  accent10: 'rgba(245, 158, 11, 0.06)',
+  accent20: 'rgba(245, 158, 11, 0.12)',
+  success10: 'rgba(16, 185, 129, 0.06)',
+  success20: 'rgba(16, 185, 129, 0.12)',
+  danger10: 'rgba(239, 68, 68, 0.06)',
+  danger20: 'rgba(239, 68, 68, 0.12)',
+  warning10: 'rgba(245, 158, 11, 0.06)',
+  warning20: 'rgba(245, 158, 11, 0.12)',
+  info10: 'rgba(59, 130, 246, 0.06)',
+  info20: 'rgba(59, 130, 246, 0.12)',
+  cyan10: 'rgba(6, 182, 212, 0.06)',
+  cyan20: 'rgba(6, 182, 212, 0.12)',
+  muted20: 'rgba(107, 114, 128, 0.10)',
+  muted30: 'rgba(107, 114, 128, 0.15)',
+  muted40: 'rgba(107, 114, 128, 0.20)',
+  white10: 'rgba(0, 0, 0, 0.04)',
+  white20: 'rgba(0, 0, 0, 0.08)',
+};
+
+// ─── Semantic Color Maps ───
 
 export const statusColors = {
   pending: colors.warning,
@@ -170,9 +279,9 @@ export const borderRadius = {
   full: 9999,
 } as const;
 
-// ─── Shadows (para usar com RN shadow props) ───
+// ─── Dark Shadows ───
 
-export const shadows = {
+export const shadows: Shadows = {
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -223,7 +332,61 @@ export const shadows = {
     shadowRadius: 10,
     elevation: 6,
   },
-} as const;
+};
+
+// ─── Light Shadows ───
+
+export const lightShadows: Shadows = {
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  md: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  glowPrimary: {
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  glowPrimarySubtle: {
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  glowSuccess: {
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  glowDanger: {
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+};
 
 // ─── Animation Durations ───
 

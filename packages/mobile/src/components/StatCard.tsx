@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { colors, borderRadius, fontSize, spacing } from '../lib/theme';
+import { borderRadius, fontSize, spacing } from '../lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface StatCardProps {
   label: string;
@@ -17,6 +18,8 @@ export default function StatCard({
   trend,
   style,
 }: StatCardProps) {
+  const { colors } = useTheme();
+
   const trendColor =
     trend !== undefined && trend >= 0 ? colors.success : colors.danger;
   const trendText =
@@ -25,13 +28,24 @@ export default function StatCard({
       : undefined;
 
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+        },
+        style,
+      ]}
+    >
       <View style={styles.top}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          {label}
+        </Text>
         {icon && <View style={styles.icon}>{icon}</View>}
       </View>
 
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
 
       {trendText !== undefined && (
         <Text style={[styles.trend, { color: trendColor }]}>{trendText}</Text>
@@ -42,11 +56,9 @@ export default function StatCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.card,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   top: {
     flexDirection: 'row',
@@ -55,14 +67,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   label: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
   },
   icon: {
     opacity: 0.7,
   },
   value: {
-    color: colors.text,
     fontSize: fontSize.xl,
     fontWeight: '700',
   },

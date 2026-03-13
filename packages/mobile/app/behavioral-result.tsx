@@ -12,29 +12,31 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onboardingApi } from '@/lib/api';
 import type { CreatorDiagnostic } from '@/lib/api';
-import { borderRadius, colorAlpha, colors, fontSize, fontWeight, layout, shadows, spacing } from '@/lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { borderRadius, fontSize, fontWeight, layout, spacing } from '@/lib/theme';
 import ScoreRing from '@/components/ScoreRing';
 import AnimatedListItem from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 
-const ARCHETYPE_COLORS: Record<string, string> = {
-  Educador: colors.info,
-  Entertainer: colors.warning,
-  Motivador: colors.danger,
-  Conector: colors.success,
-  Curador: colors.primaryLight,
-  Estrategista: colors.cyan,
-};
-
 export default function BehavioralResultScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { colors, shadows } = useTheme();
   const [diagnostic, setDiagnostic] = useState<CreatorDiagnostic | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fadeIn = useRef(new Animated.Value(0)).current;
   const slideUp = useRef(new Animated.Value(30)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  const ARCHETYPE_COLORS: Record<string, string> = {
+    Educador: colors.info,
+    Entertainer: colors.warning,
+    Motivador: colors.danger,
+    Conector: colors.success,
+    Curador: colors.primaryLight,
+    Estrategista: colors.cyan,
+  };
 
   useEffect(() => {
     if (params.diagnostic) {
@@ -72,7 +74,7 @@ export default function BehavioralResultScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.center, { gap: spacing.md }]}>
+      <View style={[styles.center, { backgroundColor: colors.background, gap: spacing.md }]}>
         <SkeletonCard />
         <SkeletonCard />
       </View>
@@ -81,14 +83,14 @@ export default function BehavioralResultScreen() {
 
   if (!diagnostic) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.emptyText}>Perfil nao encontrado</Text>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Perfil nao encontrado</Text>
         <Pressable style={styles.ctaBtnWrap} onPress={() => router.replace('/behavioral-onboarding')}>
           <LinearGradient
             colors={[colors.primary, colors.primaryDark]}
             style={styles.ctaBtnGradient}
           >
-            <Text style={styles.ctaBtnText}>Fazer analise</Text>
+            <Text style={[styles.ctaBtnText, { color: colors.text }]}>Fazer analise</Text>
           </LinearGradient>
         </Pressable>
       </View>
@@ -98,11 +100,12 @@ export default function BehavioralResultScreen() {
   const accentColor = ARCHETYPE_COLORS[diagnostic.archetype] ?? colors.primary;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Hero Card — Spotify Wrapped style */}
       <Animated.View
         style={[
           styles.heroCard,
+          shadows.lg,
           { borderColor: accentColor + '60' },
           { opacity: fadeIn, transform: [{ translateY: slideUp }, { scale: scaleAnim }] },
         ]}
@@ -123,7 +126,7 @@ export default function BehavioralResultScreen() {
         </View>
 
         <Text style={[styles.heroTitle, { color: accentColor }]}>{diagnostic.title}</Text>
-        <Text style={styles.heroDescription}>{diagnostic.shortDescription}</Text>
+        <Text style={[styles.heroDescription, { color: colors.textSecondary }]}>{diagnostic.shortDescription}</Text>
 
         {/* Readiness Score Ring */}
         <ScoreRing score={diagnostic.readinessScore} color={accentColor} label="Prontidao" />
@@ -138,30 +141,30 @@ export default function BehavioralResultScreen() {
 
       {/* Superpower */}
       <AnimatedListItem index={0}>
-        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+        <Animated.View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, opacity: fadeIn }]}>
           <View style={styles.cardHeader}>
             <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
               <Feather name="zap" size={16} color={accentColor} />
             </View>
-            <Text style={styles.cardTitle}>Seu Superpoder</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Seu Superpoder</Text>
           </View>
-          <Text style={styles.superpowerText}>{diagnostic.superpower}</Text>
+          <Text style={[styles.superpowerText, { color: colors.text }]}>{diagnostic.superpower}</Text>
         </Animated.View>
       </AnimatedListItem>
 
       {/* Strengths */}
       <AnimatedListItem index={1}>
-        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+        <Animated.View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, opacity: fadeIn }]}>
           <View style={styles.cardHeader}>
             <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
               <Feather name="target" size={16} color={accentColor} />
             </View>
-            <Text style={styles.cardTitle}>Seus Pontos Fortes</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Seus Pontos Fortes</Text>
           </View>
           {diagnostic.strengths.map((s, i) => (
             <View key={i} style={styles.strengthRow}>
               <Feather name="check-circle" size={16} color={accentColor} />
-              <Text style={styles.strengthText}>{s}</Text>
+              <Text style={[styles.strengthText, { color: colors.text }]}>{s}</Text>
             </View>
           ))}
         </Animated.View>
@@ -169,14 +172,14 @@ export default function BehavioralResultScreen() {
 
       {/* Content Style */}
       <AnimatedListItem index={2}>
-        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+        <Animated.View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, opacity: fadeIn }]}>
           <View style={styles.cardHeader}>
             <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
               <Feather name="film" size={16} color={accentColor} />
             </View>
-            <Text style={styles.cardTitle}>Estilo de Conteudo</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Estilo de Conteudo</Text>
           </View>
-          <Text style={styles.cardDescription}>{diagnostic.contentStyle}</Text>
+          <Text style={[styles.cardDescription, { color: colors.textSecondary }]}>{diagnostic.contentStyle}</Text>
           <View style={styles.tagsRow}>
             {diagnostic.idealFormats.map((f, i) => (
               <LinearGradient
@@ -195,12 +198,12 @@ export default function BehavioralResultScreen() {
 
       {/* Product Match */}
       <AnimatedListItem index={3}>
-        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+        <Animated.View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, opacity: fadeIn }]}>
           <View style={styles.cardHeader}>
             <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
               <Feather name="tag" size={16} color={accentColor} />
             </View>
-            <Text style={styles.cardTitle}>Segmentos que Combinam</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Segmentos que Combinam</Text>
           </View>
           <View style={styles.tagsRow}>
             {diagnostic.productMatch.map((p, i) => (
@@ -219,7 +222,7 @@ export default function BehavioralResultScreen() {
       </AnimatedListItem>
 
       {/* Motivation */}
-      <Animated.View style={[styles.motivationCard, { borderColor: accentColor + '50', borderLeftColor: accentColor, opacity: fadeIn }]}>
+      <Animated.View style={[styles.motivationCard, { backgroundColor: colors.surface, borderColor: accentColor + '50', borderLeftColor: accentColor, opacity: fadeIn }]}>
         <View style={styles.motivationIconRow}>
           <View style={[styles.motivationIconCircle, { backgroundColor: accentColor + '20' }]}>
             <Feather name="message-circle" size={18} color={accentColor} />
@@ -242,13 +245,13 @@ export default function BehavioralResultScreen() {
           style={styles.ctaBtnGradient}
         >
           <Feather name="arrow-right" size={20} color={colors.text} style={{ marginRight: spacing.sm }} />
-          <Text style={styles.ctaBtnText}>Comecar minha jornada</Text>
+          <Text style={[styles.ctaBtnText, { color: colors.text }]}>Comecar minha jornada</Text>
         </LinearGradient>
       </Pressable>
 
       <Pressable style={styles.secondaryBtn} onPress={() => router.replace('/behavioral-onboarding')}>
         <Feather name="refresh-cw" size={14} color={colors.textSecondary} style={{ marginRight: spacing.xs }} />
-        <Text style={styles.secondaryBtnText}>Refazer analise</Text>
+        <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>Refazer analise</Text>
       </Pressable>
     </ScrollView>
   );
@@ -257,7 +260,6 @@ export default function BehavioralResultScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     padding: spacing.md,
@@ -267,13 +269,11 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: fontSize.lg,
     marginBottom: spacing.lg,
   },
@@ -286,7 +286,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
     position: 'relative',
-    ...shadows.lg,
   },
   heroGlowBlob: {
     position: 'absolute',
@@ -316,7 +315,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   heroDescription: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
     textAlign: 'center',
     lineHeight: 24,
@@ -343,10 +341,8 @@ const styles = StyleSheet.create({
 
   // Card
   card: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.lg,
   },
   cardHeader: {
@@ -364,12 +360,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
   },
   cardDescription: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
     lineHeight: 22,
     marginBottom: spacing.md,
@@ -377,7 +371,6 @@ const styles = StyleSheet.create({
 
   // Superpower
   superpowerText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
     fontStyle: 'italic',
@@ -393,7 +386,6 @@ const styles = StyleSheet.create({
   },
   strengthText: {
     flex: 1,
-    color: colors.text,
     fontSize: fontSize.md,
     lineHeight: 22,
   },
@@ -432,7 +424,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     padding: spacing.lg,
     paddingLeft: spacing.xl,
-    backgroundColor: colors.surface,
   },
   motivationIconRow: {
     marginBottom: spacing.md,
@@ -464,7 +455,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaBtnText: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
     letterSpacing: 0.2,
@@ -476,7 +466,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   secondaryBtnText: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
     fontWeight: fontWeight.medium,
   },

@@ -14,20 +14,19 @@ import { Link, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import {
-  colors,
-  colorAlpha,
   fontSize,
   fontWeight,
   spacing,
   borderRadius,
-  shadows,
   layout,
 } from '@/lib/theme';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
+  const { colors, colorAlpha, shadows } = useTheme();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -62,7 +61,7 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -70,7 +69,7 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Glow orb decorativo */}
-        <View style={styles.glowOrb} pointerEvents="none" />
+        <View style={[styles.glowOrb, { backgroundColor: colorAlpha.primary10 }]} pointerEvents="none" />
 
         {/* Header */}
         <View style={styles.header}>
@@ -79,28 +78,32 @@ export default function RegisterScreen() {
               colors={[colors.primary, colors.primaryLight]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.logoGradient}
+              style={[styles.logoGradient, shadows.glowPrimarySubtle]}
             >
               <Feather name="zap" size={28} color={colors.text} />
             </LinearGradient>
-            <Text style={styles.logo}>Brandly</Text>
+            <Text style={[styles.logo, { color: colors.text }]}>Brandly</Text>
           </View>
-          <Text style={styles.tagline}>Profissao Creator</Text>
-          <Text style={styles.subtitle}>Crie sua conta gratuitamente</Text>
+          <Text style={[styles.tagline, { color: colors.primaryLight }]}>Profissao Creator</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Crie sua conta gratuitamente</Text>
         </View>
 
         {/* Erro */}
         {error ? (
-          <View style={styles.errorContainer}>
+          <View style={[styles.errorContainer, { backgroundColor: colorAlpha.danger10 }]}>
             <Feather name="alert-circle" size={14} color={colors.danger} />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
           </View>
         ) : null}
 
         {/* Formulario */}
         <View style={styles.form}>
           {/* Nome */}
-          <View style={[styles.inputWrapper, nameFocused && styles.inputWrapperFocused]}>
+          <View style={[
+            styles.inputWrapper,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            nameFocused && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10, ...shadows.glowPrimarySubtle },
+          ]}>
             <Feather
               name="user"
               size={18}
@@ -108,7 +111,7 @@ export default function RegisterScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Nome completo"
               placeholderTextColor={colors.textMuted}
               autoCapitalize="words"
@@ -120,7 +123,11 @@ export default function RegisterScreen() {
           </View>
 
           {/* Email */}
-          <View style={[styles.inputWrapper, emailFocused && styles.inputWrapperFocused]}>
+          <View style={[
+            styles.inputWrapper,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            emailFocused && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10, ...shadows.glowPrimarySubtle },
+          ]}>
             <Feather
               name="mail"
               size={18}
@@ -128,7 +135,7 @@ export default function RegisterScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Email"
               placeholderTextColor={colors.textMuted}
               keyboardType="email-address"
@@ -142,7 +149,11 @@ export default function RegisterScreen() {
           </View>
 
           {/* Senha */}
-          <View style={[styles.inputWrapper, passwordFocused && styles.inputWrapperFocused]}>
+          <View style={[
+            styles.inputWrapper,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            passwordFocused && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10, ...shadows.glowPrimarySubtle },
+          ]}>
             <Feather
               name="lock"
               size={18}
@@ -150,7 +161,7 @@ export default function RegisterScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Senha"
               placeholderTextColor={colors.textMuted}
               secureTextEntry
@@ -162,7 +173,12 @@ export default function RegisterScreen() {
           </View>
 
           {/* Codigo de indicacao */}
-          <View style={[styles.inputWrapper, referralFocused && styles.inputWrapperFocused, styles.inputWrapperOptional]}>
+          <View style={[
+            styles.inputWrapper,
+            styles.inputWrapperOptional,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            referralFocused && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10, ...shadows.glowPrimarySubtle },
+          ]}>
             <Feather
               name="gift"
               size={18}
@@ -170,7 +186,7 @@ export default function RegisterScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Codigo de indicacao (opcional)"
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
@@ -181,8 +197,8 @@ export default function RegisterScreen() {
               onBlur={() => setReferralFocused(false)}
             />
             {referralCode.length > 0 && (
-              <View style={styles.bonusBadge}>
-                <Text style={styles.bonusBadgeText}>Bonus</Text>
+              <View style={[styles.bonusBadge, { backgroundColor: colorAlpha.accent20, borderColor: colors.accent }]}>
+                <Text style={[styles.bonusBadgeText, { color: colors.accent }]}>Bonus</Text>
               </View>
             )}
           </View>
@@ -192,7 +208,7 @@ export default function RegisterScreen() {
             onPress={handleRegister}
             disabled={isLoading}
             activeOpacity={0.85}
-            style={[styles.buttonShadow, isLoading && styles.buttonDisabled]}
+            style={[styles.buttonShadow, shadows.glowPrimary, isLoading && styles.buttonDisabled]}
           >
             <LinearGradient
               colors={
@@ -208,7 +224,7 @@ export default function RegisterScreen() {
                 <ActivityIndicator color={colors.text} />
               ) : (
                 <>
-                  <Text style={styles.buttonText}>Criar conta</Text>
+                  <Text style={[styles.buttonText, { color: colors.text }]}>Criar conta</Text>
                   <Feather name="arrow-right" size={18} color={colors.text} />
                 </>
               )}
@@ -216,19 +232,19 @@ export default function RegisterScreen() {
           </TouchableOpacity>
 
           {/* Aviso de termos */}
-          <Text style={styles.termsText}>
+          <Text style={[styles.termsText, { color: colors.textMuted }]}>
             Ao criar sua conta voce concorda com os{' '}
-            <Text style={styles.termsLink}>Termos de Uso</Text> e{' '}
-            <Text style={styles.termsLink}>Politica de Privacidade</Text>.
+            <Text style={{ color: colors.primaryLight }}>Termos de Uso</Text> e{' '}
+            <Text style={{ color: colors.primaryLight }}>Politica de Privacidade</Text>.
           </Text>
         </View>
 
         {/* Link Login */}
         <Link href="/(auth)/login" asChild>
           <TouchableOpacity style={styles.linkContainer}>
-            <Text style={styles.linkText}>
+            <Text style={[styles.linkText, { color: colors.textSecondary }]}>
               Ja tem conta?{' '}
-              <Text style={styles.linkHighlight}>Entrar</Text>
+              <Text style={[styles.linkHighlight, { color: colors.primaryLight }]}>Entrar</Text>
             </Text>
           </TouchableOpacity>
         </Link>
@@ -240,7 +256,6 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   container: {
     flexGrow: 1,
@@ -258,7 +273,6 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: colorAlpha.primary10,
   },
 
   // Header
@@ -278,25 +292,21 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.glowPrimarySubtle,
   },
   logo: {
     fontSize: fontSize['4xl'],
     fontWeight: fontWeight.extrabold,
-    color: colors.text,
     letterSpacing: -1,
   },
   tagline: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
-    color: colors.primaryLight,
     letterSpacing: 2,
     textTransform: 'uppercase',
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: fontSize.md,
-    color: colors.textSecondary,
     marginTop: spacing.xs,
   },
 
@@ -305,7 +315,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colorAlpha.danger10,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
@@ -314,7 +323,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   errorText: {
-    color: colors.danger,
     fontSize: fontSize.sm,
     flex: 1,
   },
@@ -326,17 +334,10 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     height: layout.inputHeight + 4,
-  },
-  inputWrapperFocused: {
-    borderColor: colors.primary,
-    backgroundColor: colorAlpha.primary10,
-    ...shadows.glowPrimarySubtle,
   },
   inputWrapperOptional: {
     borderStyle: 'dashed',
@@ -347,19 +348,15 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: fontSize.md,
-    color: colors.text,
     height: '100%',
   },
   bonusBadge: {
-    backgroundColor: colorAlpha.accent20,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderWidth: 1,
-    borderColor: colors.accent,
   },
   bonusBadgeText: {
-    color: colors.accent,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
   },
@@ -368,7 +365,6 @@ const styles = StyleSheet.create({
   buttonShadow: {
     borderRadius: borderRadius.lg,
     marginTop: spacing.sm,
-    ...shadows.glowPrimary,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -382,7 +378,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   buttonText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
     letterSpacing: 0.5,
@@ -390,13 +385,9 @@ const styles = StyleSheet.create({
 
   // Termos
   termsText: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     textAlign: 'center',
     lineHeight: 18,
-  },
-  termsLink: {
-    color: colors.primaryLight,
   },
 
   // Link
@@ -405,11 +396,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
   },
   linkHighlight: {
-    color: colors.primaryLight,
     fontWeight: fontWeight.semibold,
   },
 });

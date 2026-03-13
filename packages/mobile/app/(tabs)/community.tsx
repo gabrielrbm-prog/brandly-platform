@@ -12,15 +12,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { communityApi } from '@/lib/api';
 import {
   borderRadius,
-  colorAlpha,
-  colors,
   fontSize,
   fontWeight as fw,
   layout,
   medalColors,
-  shadows,
   spacing,
 } from '@/lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedListItem from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 
@@ -73,6 +71,8 @@ function formatDate(dateStr: string): string {
 }
 
 export default function CommunityScreen() {
+  const { colors, colorAlpha, shadows } = useTheme();
+
   const [tab, setTab] = useState<TabType>('ranking');
   const [rankingType, setRankingType] = useState<RankingType>('production');
   const [rankingPeriod, setRankingPeriod] = useState<RankingPeriod>('month');
@@ -114,12 +114,12 @@ export default function CommunityScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
       {/* Tab Bar */}
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {([
           { key: 'ranking', label: 'Ranking', icon: 'award' as const, activeColor: colors.accent },
           { key: 'lives', label: 'Lives', icon: 'radio' as const, activeColor: colors.danger },
@@ -142,14 +142,14 @@ export default function CommunityScreen() {
                   <View style={[styles.tabIconCircle, { backgroundColor: colorAlpha.white20 }]}>
                     <Feather name={t.icon} size={14} color={colors.text} />
                   </View>
-                  <Text style={styles.tabLabelActive}>{t.label}</Text>
+                  <Text style={[styles.tabLabelActive, { color: colors.text }]}>{t.label}</Text>
                 </LinearGradient>
               ) : (
                 <View style={styles.tabItemInner}>
                   <View style={[styles.tabIconCircle, { backgroundColor: colorAlpha.muted20 }]}>
                     <Feather name={t.icon} size={14} color={colors.textMuted} />
                   </View>
-                  <Text style={styles.tabLabel}>{t.label}</Text>
+                  <Text style={[styles.tabLabel, { color: colors.textMuted }]}>{t.label}</Text>
                 </View>
               )}
             </Pressable>
@@ -186,13 +186,13 @@ export default function CommunityScreen() {
                             end={{ x: 1, y: 0 }}
                             style={styles.filterBtnActive}
                           >
-                            <Text style={styles.filterTextActive}>
+                            <Text style={[styles.filterTextActive, { color: colors.text }]}>
                               {t === 'production' ? 'Videos' : 'Ganhos'}
                             </Text>
                           </LinearGradient>
                         ) : (
-                          <View style={styles.filterBtn}>
-                            <Text style={styles.filterText}>
+                          <View style={[styles.filterBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <Text style={[styles.filterText, { color: colors.textMuted }]}>
                               {t === 'production' ? 'Videos' : 'Ganhos'}
                             </Text>
                           </View>
@@ -217,13 +217,13 @@ export default function CommunityScreen() {
                             end={{ x: 1, y: 0 }}
                             style={styles.filterBtnActive}
                           >
-                            <Text style={styles.filterTextActive}>
+                            <Text style={[styles.filterTextActive, { color: colors.text }]}>
                               {p === 'week' ? 'Semana' : 'Mes'}
                             </Text>
                           </LinearGradient>
                         ) : (
-                          <View style={styles.filterBtn}>
-                            <Text style={styles.filterText}>
+                          <View style={[styles.filterBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <Text style={[styles.filterText, { color: colors.textMuted }]}>
                               {p === 'week' ? 'Semana' : 'Mes'}
                             </Text>
                           </View>
@@ -235,30 +235,30 @@ export default function CommunityScreen() {
               </View>
 
               {ranking.length === 0 ? (
-                <View style={styles.emptyCard}>
-                  <View style={styles.emptyIconWrap}>
+                <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <View style={[styles.emptyIconWrap, { backgroundColor: colorAlpha.primary15, borderColor: colorAlpha.primary30 }]}>
                     <Feather name="award" size={28} color={colors.accent} />
                   </View>
-                  <Text style={styles.emptyText}>Nenhum creator no ranking ainda</Text>
-                  <Text style={styles.emptySubtext}>Os primeiros resultados apareceram em breve!</Text>
+                  <Text style={[styles.emptyText, { color: colors.text }]}>Nenhum creator no ranking ainda</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Os primeiros resultados apareceram em breve!</Text>
                 </View>
               ) : (
                 <AnimatedListItem index={0}>
-                <View style={styles.card}>
+                <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   {ranking.map((entry, i) => (
-                    <View key={entry.creatorId} style={[styles.rankRow, i < ranking.length - 1 && styles.rankRowBorder]}>
+                    <View key={entry.creatorId} style={[styles.rankRow, i < ranking.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
                       <View style={styles.rankPosition}>
                         {i < 3 ? (
                           <LinearGradient
                             colors={MEDAL_GRADIENTS[i]}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
-                            style={styles.medal}
+                            style={[styles.medal, shadows.md]}
                           >
                             <Feather name="award" size={12} color={colors.background} />
                           </LinearGradient>
                         ) : (
-                          <Text style={styles.rankNumber}>{i + 1}</Text>
+                          <Text style={[styles.rankNumber, { color: colors.textMuted }]}>{i + 1}</Text>
                         )}
                       </View>
                       {/* Avatar with colored ring for top 3 */}
@@ -266,17 +266,17 @@ export default function CommunityScreen() {
                         styles.rankAvatarWrap,
                         i < 3 && { borderColor: RANK_RING_COLORS[i], borderWidth: 2 },
                       ]}>
-                        <View style={styles.rankAvatar}>
-                          <Text style={styles.rankInitial}>{entry.name.charAt(0).toUpperCase()}</Text>
+                        <View style={[styles.rankAvatar, { backgroundColor: colors.surfaceLight }]}>
+                          <Text style={[styles.rankInitial, { color: colors.text }]}>{entry.name.charAt(0).toUpperCase()}</Text>
                         </View>
                         {i >= 3 && (
-                          <View style={styles.rankNumberOverlay}>
-                            <Text style={styles.rankNumberOverlayText}>{i + 1}</Text>
+                          <View style={[styles.rankNumberOverlay, { backgroundColor: colors.primaryDark, borderColor: colors.surface }]}>
+                            <Text style={[styles.rankNumberOverlayText, { color: colors.text }]}>{i + 1}</Text>
                           </View>
                         )}
                       </View>
-                      <Text style={styles.rankName}>{entry.name}</Text>
-                      <Text style={[styles.rankValue, i < 3 && { color: MEDAL_COLORS[i] }]}>
+                      <Text style={[styles.rankName, { color: colors.text }]}>{entry.name}</Text>
+                      <Text style={[styles.rankValue, { color: i < 3 ? MEDAL_COLORS[i] : colors.primaryLight }]}>
                         {rankingType === 'production'
                           ? `${entry.total} videos`
                           : formatCurrency(entry.total)}
@@ -294,22 +294,22 @@ export default function CommunityScreen() {
             <>
               {lives.upcoming.length > 0 && (
                 <AnimatedListItem index={0}>
-                <View style={styles.card}>
+                <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <View style={styles.cardTitleRow}>
                     <View style={[styles.cardTitleIcon, { backgroundColor: colorAlpha.success10 }]}>
                       <Feather name="radio" size={14} color={colors.success} />
                     </View>
-                    <Text style={styles.cardTitle}>Proximas Lives</Text>
+                    <Text style={[styles.cardTitle, { color: colors.text }]}>Proximas Lives</Text>
                   </View>
                   {lives.upcoming.map(live => (
-                    <View key={live.id} style={styles.liveRow}>
+                    <View key={live.id} style={[styles.liveRow, { borderBottomColor: colors.border }]}>
                       <View style={[styles.liveIconWrap, { backgroundColor: colorAlpha.success10 }]}>
                         <Feather name="radio" size={14} color={colors.success} />
                       </View>
                       <View style={styles.liveInfo}>
-                        <Text style={styles.liveTitle}>{live.title}</Text>
-                        {live.instructorName && <Text style={styles.liveInstructor}>com {live.instructorName}</Text>}
-                        <Text style={styles.liveDate}>{formatDate(live.scheduledAt)}</Text>
+                        <Text style={[styles.liveTitle, { color: colors.text }]}>{live.title}</Text>
+                        {live.instructorName && <Text style={[styles.liveInstructor, { color: colors.textSecondary }]}>com {live.instructorName}</Text>}
+                        <Text style={[styles.liveDate, { color: colors.textMuted }]}>{formatDate(live.scheduledAt)}</Text>
                       </View>
                     </View>
                   ))}
@@ -319,21 +319,21 @@ export default function CommunityScreen() {
 
               {lives.past.length > 0 && (
                 <AnimatedListItem index={1}>
-                <View style={styles.card}>
+                <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <View style={styles.cardTitleRow}>
                     <View style={[styles.cardTitleIcon, { backgroundColor: colorAlpha.muted20 }]}>
                       <Feather name="play-circle" size={14} color={colors.textMuted} />
                     </View>
-                    <Text style={styles.cardTitle}>Lives Anteriores</Text>
+                    <Text style={[styles.cardTitle, { color: colors.text }]}>Lives Anteriores</Text>
                   </View>
                   {lives.past.map(live => (
-                    <View key={live.id} style={styles.liveRow}>
+                    <View key={live.id} style={[styles.liveRow, { borderBottomColor: colors.border }]}>
                       <View style={[styles.liveIconWrap, { backgroundColor: colorAlpha.muted20 }]}>
                         <Feather name="play-circle" size={14} color={colors.textMuted} />
                       </View>
                       <View style={styles.liveInfo}>
                         <Text style={[styles.liveTitle, { color: colors.textSecondary }]}>{live.title}</Text>
-                        <Text style={styles.liveDate}>{formatDate(live.scheduledAt)}</Text>
+                        <Text style={[styles.liveDate, { color: colors.textMuted }]}>{formatDate(live.scheduledAt)}</Text>
                       </View>
                     </View>
                   ))}
@@ -342,12 +342,12 @@ export default function CommunityScreen() {
               )}
 
               {lives.upcoming.length === 0 && lives.past.length === 0 && (
-                <View style={styles.emptyCard}>
+                <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <View style={[styles.emptyIconWrap, { backgroundColor: colorAlpha.danger10, borderColor: 'rgba(239,68,68,0.3)' }]}>
                     <Feather name="radio" size={28} color={colors.danger} />
                   </View>
-                  <Text style={styles.emptyText}>Nenhuma live agendada</Text>
-                  <Text style={styles.emptySubtext}>Fique atento, novas lives serao anunciadas em breve!</Text>
+                  <Text style={[styles.emptyText, { color: colors.text }]}>Nenhuma live agendada</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Fique atento, novas lives serao anunciadas em breve!</Text>
                 </View>
               )}
             </>
@@ -357,17 +357,17 @@ export default function CommunityScreen() {
           {tab === 'cases' && (
             <>
               {cases.length === 0 ? (
-                <View style={styles.emptyCard}>
+                <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <View style={[styles.emptyIconWrap, { backgroundColor: colorAlpha.accent10, borderColor: 'rgba(245,158,11,0.3)' }]}>
                     <Feather name="star" size={28} color={colors.accent} />
                   </View>
-                  <Text style={styles.emptyText}>Nenhum case de sucesso ainda</Text>
-                  <Text style={styles.emptySubtext}>Seja o primeiro a contar sua historia!</Text>
+                  <Text style={[styles.emptyText, { color: colors.text }]}>Nenhum case de sucesso ainda</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Seja o primeiro a contar sua historia!</Text>
                 </View>
               ) : (
                 cases.map((c, i) => (
                   <AnimatedListItem key={c.id} index={i}>
-                  <View style={styles.caseCard}>
+                  <View style={[styles.caseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <View style={styles.caseHeader}>
                       {/* Avatar with gradient ring */}
                       <LinearGradient
@@ -376,24 +376,24 @@ export default function CommunityScreen() {
                         end={{ x: 1, y: 1 }}
                         style={styles.caseAvatarRing}
                       >
-                        <View style={styles.caseAvatar}>
-                          <Text style={styles.caseInitial}>{c.creatorName.charAt(0).toUpperCase()}</Text>
+                        <View style={[styles.caseAvatar, { backgroundColor: colorAlpha.primary20 }]}>
+                          <Text style={[styles.caseInitial, { color: colors.primaryLight }]}>{c.creatorName.charAt(0).toUpperCase()}</Text>
                         </View>
                       </LinearGradient>
                       <View style={styles.caseHeaderInfo}>
-                        <Text style={styles.caseName}>{c.creatorName}</Text>
+                        <Text style={[styles.caseName, { color: colors.text }]}>{c.creatorName}</Text>
                         {c.earnings && (
                           <View style={styles.earningsBadge}>
                             <Feather name="dollar-sign" size={12} color={colors.success} />
-                            <Text style={styles.caseEarnings}>{formatCurrency(c.earnings)}</Text>
+                            <Text style={[styles.caseEarnings, { color: colors.success }]}>{formatCurrency(c.earnings)}</Text>
                           </View>
                         )}
                       </View>
                     </View>
                     {/* Quote-style story */}
-                    <View style={styles.quoteBar} />
-                    <Text style={styles.caseTitle}>{c.title}</Text>
-                    <Text style={styles.caseStory} numberOfLines={4}>{c.story}</Text>
+                    <View style={[styles.quoteBar, { backgroundColor: colors.primary }]} />
+                    <Text style={[styles.caseTitle, { color: colors.text }]}>{c.title}</Text>
+                    <Text style={[styles.caseStory, { color: colors.textSecondary }]} numberOfLines={4}>{c.story}</Text>
                   </View>
                   </AnimatedListItem>
                 ))
@@ -407,19 +407,17 @@ export default function CommunityScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   content: { padding: spacing.md, paddingBottom: spacing.xxl, gap: spacing.md },
   loadingContainer: { paddingVertical: spacing.xxl, alignItems: 'center' },
 
   // Tabs
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.xs,
     gap: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   tabItem: {
     flex: 1,
@@ -448,8 +446,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabLabel: { color: colors.textMuted, fontSize: fontSize.sm, fontWeight: '600' },
-  tabLabelActive: { color: colors.text, fontSize: fontSize.sm, fontWeight: '700' },
+  tabLabel: { fontSize: fontSize.sm, fontWeight: '600' },
+  tabLabelActive: { fontSize: fontSize.sm, fontWeight: '700' },
 
   // Filters
   filtersRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
@@ -459,24 +457,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   filterBtnActive: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
   },
-  filterText: { color: colors.textMuted, fontSize: fontSize.xs, fontWeight: '600' },
-  filterTextActive: { color: colors.text, fontSize: fontSize.xs, fontWeight: '700' },
+  filterText: { fontSize: fontSize.xs, fontWeight: '600' },
+  filterTextActive: { fontSize: fontSize.xs, fontWeight: '700' },
 
   // Card
   card: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
   },
   cardTitleRow: {
@@ -492,14 +486,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
+  cardTitle: { fontSize: fontSize.lg, fontWeight: '700' },
 
   // Empty
   emptyCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.xl,
     alignItems: 'center',
     gap: spacing.md,
@@ -511,11 +503,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    backgroundColor: colorAlpha.primary15,
-    borderColor: colorAlpha.primary30,
   },
-  emptyText: { color: colors.text, fontSize: fontSize.md, fontWeight: '600', textAlign: 'center' },
-  emptySubtext: { color: colors.textSecondary, fontSize: fontSize.sm, textAlign: 'center', lineHeight: 20 },
+  emptyText: { fontSize: fontSize.md, fontWeight: '600', textAlign: 'center' },
+  emptySubtext: { fontSize: fontSize.sm, textAlign: 'center', lineHeight: 20 },
 
   // Ranking
   rankRow: {
@@ -524,7 +514,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
-  rankRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
   rankPosition: { width: layout.avatarSm, alignItems: 'center' },
   medal: {
     width: 30,
@@ -532,10 +521,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.md,
   },
-  medalText: { color: colors.background, fontSize: fontSize.sm, fontWeight: fw.extrabold },
-  rankNumber: { color: colors.textMuted, fontSize: fontSize.md, fontWeight: '600' },
+  medalText: { fontSize: fontSize.sm, fontWeight: fw.extrabold },
+  rankNumber: { fontSize: fontSize.md, fontWeight: '600' },
   rankAvatarWrap: {
     width: 38,
     height: 38,
@@ -551,11 +539,10 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: colors.surfaceLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rankInitial: { color: colors.text, fontSize: fontSize.sm, fontWeight: '700' },
+  rankInitial: { fontSize: fontSize.sm, fontWeight: '700' },
   rankNumberOverlay: {
     position: 'absolute',
     bottom: -2,
@@ -563,15 +550,13 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: colors.primaryDark,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.surface,
   },
-  rankNumberOverlayText: { color: colors.text, fontSize: 8, fontWeight: '700' },
-  rankName: { flex: 1, color: colors.text, fontSize: fontSize.sm, fontWeight: '500' },
-  rankValue: { color: colors.primaryLight, fontSize: fontSize.sm, fontWeight: '700' },
+  rankNumberOverlayText: { fontSize: 8, fontWeight: '700' },
+  rankName: { flex: 1, fontSize: fontSize.sm, fontWeight: '500' },
+  rankValue: { fontSize: fontSize.sm, fontWeight: '700' },
 
   // Lives
   liveRow: {
@@ -580,7 +565,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   liveIconWrap: {
     width: 32,
@@ -591,16 +575,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   liveInfo: { flex: 1 },
-  liveTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
-  liveInstructor: { color: colors.textSecondary, fontSize: fontSize.sm, marginTop: 2 },
-  liveDate: { color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 },
+  liveTitle: { fontSize: fontSize.md, fontWeight: '600' },
+  liveInstructor: { fontSize: fontSize.sm, marginTop: 2 },
+  liveDate: { fontSize: fontSize.xs, marginTop: 2 },
 
   // Cases
   caseCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     overflow: 'hidden',
   },
@@ -617,20 +599,19 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: colorAlpha.primary20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  caseInitial: { color: colors.primaryLight, fontSize: fontSize.md, fontWeight: '700' },
+  caseInitial: { fontSize: fontSize.md, fontWeight: '700' },
   caseHeaderInfo: { flex: 1 },
-  caseName: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
+  caseName: { fontSize: fontSize.md, fontWeight: '600' },
   earningsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
     marginTop: 2,
   },
-  caseEarnings: { color: colors.success, fontSize: fontSize.sm, fontWeight: '700' },
+  caseEarnings: { fontSize: fontSize.sm, fontWeight: '700' },
   quoteBar: {
     width: 3,
     height: '100%' as any,
@@ -638,10 +619,9 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: colors.primary,
     borderTopLeftRadius: borderRadius.md,
     borderBottomLeftRadius: borderRadius.md,
   },
-  caseTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700', marginBottom: spacing.xs },
-  caseStory: { color: colors.textSecondary, fontSize: fontSize.sm, lineHeight: 20 },
+  caseTitle: { fontSize: fontSize.lg, fontWeight: '700', marginBottom: spacing.xs },
+  caseStory: { fontSize: fontSize.sm, lineHeight: 20 },
 });

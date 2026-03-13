@@ -7,7 +7,8 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { colors, fontSize, fontWeight } from '../lib/theme';
+import { fontSize, fontWeight } from '../lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -20,13 +21,6 @@ interface ScoreRingProps {
   duration?: number;
 }
 
-function getScoreColor(score: number): string {
-  if (score < 40) return colors.danger;
-  if (score < 60) return colors.warning;
-  if (score < 80) return colors.info;
-  return colors.success;
-}
-
 export default function ScoreRing({
   score,
   size = 100,
@@ -35,6 +29,15 @@ export default function ScoreRing({
   label,
   duration = 1000,
 }: ScoreRingProps) {
+  const { colors } = useTheme();
+
+  function getScoreColor(s: number): string {
+    if (s < 40) return colors.danger;
+    if (s < 60) return colors.warning;
+    if (s < 80) return colors.info;
+    return colors.success;
+  }
+
   const progress = useSharedValue(0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -79,7 +82,11 @@ export default function ScoreRing({
       </Svg>
       <View style={styles.labelContainer}>
         <Text style={[styles.value, { color: resolvedColor }]}>{score}</Text>
-        {label && <Text style={styles.label}>{label}</Text>}
+        {label && (
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            {label}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -99,7 +106,6 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.extrabold,
   },
   label: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
   },

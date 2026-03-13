@@ -15,24 +15,14 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onboardingApi } from '@/lib/api';
 import type { OnboardingQuestion, CreatorDiagnostic } from '@/lib/api';
-import { borderRadius, colorAlpha, colors, fontSize, fontWeight, layout, shadows, spacing } from '@/lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { borderRadius, fontSize, fontWeight, layout, spacing } from '@/lib/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const BLOCK_LABELS = [
-  { range: [1, 4], label: 'Motivacao e Contexto', emoji: '🎯', color: colors.primary },
-  { range: [5, 8], label: 'Estilo de Conteudo', emoji: '🎬', color: colors.info },
-  { range: [9, 12], label: 'Segmentos e Afinidade', emoji: '🏷️', color: colors.success },
-  { range: [13, 16], label: 'Redes Sociais', emoji: '📱', color: colors.accent },
-  { range: [17, 20], label: 'Personalidade', emoji: '🧠', color: colors.cyan },
-];
-
-function getBlockInfo(questionId: number) {
-  return BLOCK_LABELS.find(b => questionId >= b.range[0] && questionId <= b.range[1]);
-}
-
 export default function BehavioralOnboardingScreen() {
   const router = useRouter();
+  const { colors, colorAlpha, shadows } = useTheme();
   const [questions, setQuestions] = useState<OnboardingQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string | string[] | number>>({});
@@ -41,6 +31,18 @@ export default function BehavioralOnboardingScreen() {
   const [sliderValue, setSliderValue] = useState(50);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const loadingPulse = useRef(new Animated.Value(0.6)).current;
+
+  const BLOCK_LABELS = [
+    { range: [1, 4], label: 'Motivacao e Contexto', emoji: '🎯', color: colors.primary },
+    { range: [5, 8], label: 'Estilo de Conteudo', emoji: '🎬', color: colors.info },
+    { range: [9, 12], label: 'Segmentos e Afinidade', emoji: '🏷️', color: colors.success },
+    { range: [13, 16], label: 'Redes Sociais', emoji: '📱', color: colors.accent },
+    { range: [17, 20], label: 'Personalidade', emoji: '🧠', color: colors.cyan },
+  ];
+
+  function getBlockInfo(questionId: number) {
+    return BLOCK_LABELS.find(b => questionId >= b.range[0] && questionId <= b.range[1]);
+  }
 
   useEffect(() => {
     loadQuestions();
@@ -168,7 +170,7 @@ export default function BehavioralOnboardingScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
         <Animated.View style={[styles.loadingIconWrap, { opacity: loadingPulse }]}>
           <LinearGradient
             colors={[colors.primary, colors.primaryLight]}
@@ -177,15 +179,15 @@ export default function BehavioralOnboardingScreen() {
             <Feather name="cpu" size={32} color={colors.text} />
           </LinearGradient>
         </Animated.View>
-        <Text style={styles.loadingText}>Preparando suas perguntas...</Text>
-        <Text style={styles.loadingSubtext}>Personalizando para o seu perfil</Text>
+        <Text style={[styles.loadingText, { color: colors.text }]}>Preparando suas perguntas...</Text>
+        <Text style={[styles.loadingSubtext, { color: colors.textSecondary }]}>Personalizando para o seu perfil</Text>
       </View>
     );
   }
 
   if (submitting) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
         <Animated.View style={[styles.loadingIconWrap, { opacity: loadingPulse }]}>
           <LinearGradient
             colors={[colors.primary, colors.accent]}
@@ -196,15 +198,15 @@ export default function BehavioralOnboardingScreen() {
             <Feather name="zap" size={32} color={colors.text} />
           </LinearGradient>
         </Animated.View>
-        <Text style={styles.loadingText}>Analisando seu perfil com IA...</Text>
-        <Text style={styles.loadingSubtext}>Isso pode levar alguns segundos</Text>
+        <Text style={[styles.loadingText, { color: colors.text }]}>Analisando seu perfil com IA...</Text>
+        <Text style={[styles.loadingSubtext, { color: colors.textSecondary }]}>Isso pode levar alguns segundos</Text>
         <View style={styles.loadingDotsRow}>
           {[0, 1, 2].map(i => (
             <Animated.View
               key={i}
               style={[
                 styles.loadingDot,
-                { opacity: loadingPulse, transform: [{ scale: loadingPulse }] },
+                { backgroundColor: colors.primary, opacity: loadingPulse, transform: [{ scale: loadingPulse }] },
               ]}
             />
           ))}
@@ -220,21 +222,21 @@ export default function BehavioralOnboardingScreen() {
   const blockColor = blockInfo?.color ?? colors.primary;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable
           onPress={goPrev}
           disabled={currentIndex === 0}
-          style={[styles.headerIconBtn, currentIndex === 0 && { opacity: 0.3 }]}
+          style={[styles.headerIconBtn, { backgroundColor: colors.surface, borderColor: colors.border }, currentIndex === 0 && { opacity: 0.3 }]}
         >
           <Feather name="chevron-left" size={20} color={colors.primaryLight} />
         </Pressable>
 
-        <View style={styles.headerCountPill}>
-          <Text style={styles.headerCountText}>{currentIndex + 1}</Text>
-          <Text style={styles.headerCountSep}>/</Text>
-          <Text style={styles.headerCountTotal}>{questions.length}</Text>
+        <View style={[styles.headerCountPill, { backgroundColor: colorAlpha.primary15, borderColor: colors.primary + '40' }]}>
+          <Text style={[styles.headerCountText, { color: colors.primaryLight }]}>{currentIndex + 1}</Text>
+          <Text style={[styles.headerCountSep, { color: colors.textMuted }]}>/</Text>
+          <Text style={[styles.headerCountTotal, { color: colors.textSecondary }]}>{questions.length}</Text>
         </View>
 
         <Pressable
@@ -244,14 +246,14 @@ export default function BehavioralOnboardingScreen() {
               { text: 'Sair', style: 'destructive', onPress: () => router.back() },
             ]);
           }}
-          style={styles.headerIconBtn}
+          style={[styles.headerIconBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
           <Feather name="x" size={20} color={colors.textSecondary} />
         </Pressable>
       </View>
 
       {/* Progress Bar */}
-      <View style={styles.progressContainer}>
+      <View style={[styles.progressContainer, { backgroundColor: colors.surface }]}>
         <LinearGradient
           colors={[colors.primary, colors.primaryLight]}
           start={{ x: 0, y: 0 }}
@@ -272,9 +274,9 @@ export default function BehavioralOnboardingScreen() {
 
       {/* Question */}
       <Animated.View style={[styles.questionContainer, { opacity: fadeAnim }]}>
-        <Text style={styles.questionText}>{currentQuestion.question}</Text>
+        <Text style={[styles.questionText, { color: colors.text }]}>{currentQuestion.question}</Text>
         {currentQuestion.subtitle && (
-          <Text style={styles.questionSubtitle}>{currentQuestion.subtitle}</Text>
+          <Text style={[styles.questionSubtitle, { color: colors.textSecondary }]}>{currentQuestion.subtitle}</Text>
         )}
 
         <ScrollView style={styles.optionsScroll} contentContainerStyle={styles.optionsContent} showsVerticalScrollIndicator={false}>
@@ -286,15 +288,16 @@ export default function BehavioralOnboardingScreen() {
                 key={opt.value}
                 style={[
                   styles.optionCard,
-                  isSelected && styles.optionCardSelected,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  isSelected && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10 },
                   isSelected && shadows.glowPrimarySubtle,
                 ]}
                 onPress={() => handleSingleSelect(currentQuestion.id, opt.value)}
               >
                 {opt.emoji && <Text style={styles.optionEmoji}>{opt.emoji}</Text>}
-                <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>{opt.label}</Text>
+                <Text style={[styles.optionLabel, { color: colors.text }, isSelected && { color: colors.primaryLight, fontWeight: fontWeight.bold }]}>{opt.label}</Text>
                 {isSelected && (
-                  <View style={styles.checkIconWrap}>
+                  <View style={[styles.checkIconWrap, { backgroundColor: colorAlpha.primary20, borderColor: colors.primary }]}>
                     <Feather name="check" size={14} color={colors.primary} />
                   </View>
                 )}
@@ -312,15 +315,16 @@ export default function BehavioralOnboardingScreen() {
                     key={opt.value}
                     style={[
                       styles.optionCard,
-                      selected && styles.optionCardSelected,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                      selected && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10 },
                       selected && shadows.glowPrimarySubtle,
                     ]}
                     onPress={() => handleMultipleSelect(currentQuestion.id, opt.value)}
                   >
                     {opt.emoji && <Text style={styles.optionEmoji}>{opt.emoji}</Text>}
-                    <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>{opt.label}</Text>
+                    <Text style={[styles.optionLabel, { color: colors.text }, selected && { color: colors.primaryLight, fontWeight: fontWeight.bold }]}>{opt.label}</Text>
                     {selected && (
-                      <View style={styles.checkIconWrap}>
+                      <View style={[styles.checkIconWrap, { backgroundColor: colorAlpha.primary20, borderColor: colors.primary }]}>
                         <Feather name="check" size={14} color={colors.primary} />
                       </View>
                     )}
@@ -336,7 +340,7 @@ export default function BehavioralOnboardingScreen() {
                     style={styles.confirmBtnGradient}
                   >
                     <Feather name="arrow-right" size={18} color={colors.text} />
-                    <Text style={styles.confirmBtnText}>Confirmar</Text>
+                    <Text style={[styles.confirmBtnText, { color: colors.text }]}>Confirmar</Text>
                   </LinearGradient>
                 </Pressable>
               )}
@@ -353,8 +357,8 @@ export default function BehavioralOnboardingScreen() {
                     key={opt.value}
                     style={[
                       styles.swipeCard,
-                      i === 0 ? styles.swipeCardLeft : styles.swipeCardRight,
-                      isSelected && styles.swipeCardSelected,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                      isSelected && { borderColor: colors.primary },
                       isSelected && shadows.glowPrimarySubtle,
                     ]}
                     onPress={() => handleSwipe(currentQuestion.id, opt.value)}
@@ -368,11 +372,11 @@ export default function BehavioralOnboardingScreen() {
                       />
                     )}
                     {opt.emoji && <Text style={styles.swipeEmoji}>{opt.emoji}</Text>}
-                    <Text style={[styles.swipeLabel, isSelected && styles.swipeLabelSelected]}>
+                    <Text style={[styles.swipeLabel, { color: colors.text }, isSelected && { color: colors.primaryLight, fontWeight: fontWeight.bold }]}>
                       {opt.label}
                     </Text>
                     {isSelected && (
-                      <View style={styles.swipeCheckBadge}>
+                      <View style={[styles.swipeCheckBadge, { backgroundColor: colorAlpha.primary20, borderColor: colors.primary }]}>
                         <Feather name="check" size={12} color={colors.primary} />
                       </View>
                     )}
@@ -392,14 +396,14 @@ export default function BehavioralOnboardingScreen() {
                   end={{ x: 1, y: 1 }}
                   style={styles.sliderValueBadge}
                 >
-                  <Text style={styles.sliderValueText}>{sliderValue}%</Text>
+                  <Text style={[styles.sliderValueText, { color: colors.text }]}>{sliderValue}%</Text>
                 </LinearGradient>
               </View>
               <View style={styles.sliderLabels}>
-                <Text style={styles.sliderLabelText}>{currentQuestion.sliderConfig.minLabel}</Text>
-                <Text style={styles.sliderLabelText}>{currentQuestion.sliderConfig.maxLabel}</Text>
+                <Text style={[styles.sliderLabelText, { color: colors.textSecondary }]}>{currentQuestion.sliderConfig.minLabel}</Text>
+                <Text style={[styles.sliderLabelText, { color: colors.textSecondary }]}>{currentQuestion.sliderConfig.maxLabel}</Text>
               </View>
-              <View style={styles.sliderTrack}>
+              <View style={[styles.sliderTrack, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <LinearGradient
                   colors={[colors.primary, colors.primaryLight]}
                   start={{ x: 0, y: 0 }}
@@ -407,7 +411,7 @@ export default function BehavioralOnboardingScreen() {
                   style={[styles.sliderFill, { width: `${sliderValue}%` }]}
                 />
                 <View
-                  style={[styles.sliderThumb, { left: `${sliderValue}%` }]}
+                  style={[styles.sliderThumb, { left: `${sliderValue}%`, borderColor: colors.background }, shadows.glowPrimarySubtle]}
                   onStartShouldSetResponder={() => true}
                   onResponderMove={(e) => {
                     const trackWidth = SCREEN_WIDTH - 80;
@@ -429,7 +433,7 @@ export default function BehavioralOnboardingScreen() {
                   style={styles.confirmBtnGradient}
                 >
                   <Feather name="arrow-right" size={18} color={colors.text} />
-                  <Text style={styles.confirmBtnText}>Confirmar</Text>
+                  <Text style={[styles.confirmBtnText, { color: colors.text }]}>Confirmar</Text>
                 </LinearGradient>
               </Pressable>
             </View>
@@ -446,7 +450,8 @@ export default function BehavioralOnboardingScreen() {
                       key={opt.value}
                       style={[
                         styles.gridItem,
-                        selected && styles.gridItemSelected,
+                        { backgroundColor: colors.surface, borderColor: colors.border },
+                        selected && { borderColor: colors.primary },
                         selected && shadows.glowPrimarySubtle,
                       ]}
                       onPress={() => handleGridSelect(currentQuestion.id, opt.value, currentQuestion.maxSelections ?? 4)}
@@ -458,9 +463,9 @@ export default function BehavioralOnboardingScreen() {
                         />
                       )}
                       <Text style={styles.gridEmoji}>{opt.emoji}</Text>
-                      <Text style={[styles.gridLabel, selected && styles.gridLabelSelected]}>{opt.label}</Text>
+                      <Text style={[styles.gridLabel, { color: colors.text }, selected && { color: colors.primaryLight, fontWeight: fontWeight.bold }]}>{opt.label}</Text>
                       {selected && (
-                        <View style={styles.gridCheckBadge}>
+                        <View style={[styles.gridCheckBadge, { backgroundColor: colorAlpha.primary20, borderColor: colors.primary }]}>
                           <Feather name="check" size={10} color={colors.primary} />
                         </View>
                       )}
@@ -477,7 +482,7 @@ export default function BehavioralOnboardingScreen() {
                     style={styles.confirmBtnGradient}
                   >
                     <Feather name="arrow-right" size={18} color={colors.text} />
-                    <Text style={styles.confirmBtnText}>Confirmar</Text>
+                    <Text style={[styles.confirmBtnText, { color: colors.text }]}>Confirmar</Text>
                   </LinearGradient>
                 </Pressable>
               )}
@@ -497,7 +502,7 @@ export default function BehavioralOnboardingScreen() {
               style={styles.submitBtnGradient}
             >
               <Feather name="zap" size={20} color={colors.text} style={{ marginRight: spacing.sm }} />
-              <Text style={styles.submitBtnText}>Analisar meu perfil</Text>
+              <Text style={[styles.submitBtnText, { color: colors.text }]}>Analisar meu perfil</Text>
             </LinearGradient>
           </Pressable>
         </View>
@@ -509,11 +514,9 @@ export default function BehavioralOnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   center: {
     flex: 1,
-    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
@@ -529,14 +532,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
     marginTop: spacing.sm,
     textAlign: 'center',
   },
   loadingSubtext: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: spacing.xs,
     textAlign: 'center',
@@ -550,7 +551,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primary,
   },
 
   // Header
@@ -566,35 +566,28 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: borderRadius.sm,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerCountPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colorAlpha.primary15,
     borderWidth: 1,
-    borderColor: colors.primary + '40',
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     gap: 3,
   },
   headerCountText: {
-    color: colors.primaryLight,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.bold,
   },
   headerCountSep: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.normal,
   },
   headerCountTotal: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
   },
@@ -602,7 +595,6 @@ const styles = StyleSheet.create({
   // Progress
   progressContainer: {
     height: layout.progressBarMd,
-    backgroundColor: colors.surface,
     marginHorizontal: spacing.md,
     borderRadius: borderRadius.xs,
     overflow: 'hidden',
@@ -644,14 +636,12 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   questionText: {
-    color: colors.text,
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
     lineHeight: 34,
     letterSpacing: -0.3,
   },
   questionSubtitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: spacing.xs,
     lineHeight: 20,
@@ -671,16 +661,10 @@ const styles = StyleSheet.create({
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
-    borderColor: colors.border,
     padding: spacing.md,
     gap: spacing.sm,
-  },
-  optionCardSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colorAlpha.primary10,
   },
   optionEmoji: {
     fontSize: fontSize.xl,
@@ -689,22 +673,15 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     flex: 1,
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.medium,
     lineHeight: 22,
-  },
-  optionLabelSelected: {
-    color: colors.primaryLight,
-    fontWeight: fontWeight.bold,
   },
   checkIconWrap: {
     width: 24,
     height: 24,
     borderRadius: borderRadius.full,
-    backgroundColor: colorAlpha.primary20,
     borderWidth: 1,
-    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -716,10 +693,8 @@ const styles = StyleSheet.create({
   },
   swipeCard: {
     flex: 1,
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
-    borderColor: colors.border,
     padding: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -727,25 +702,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  swipeCardLeft: {},
-  swipeCardRight: {},
-  swipeCardSelected: {
-    borderColor: colors.primary,
-  },
   swipeEmoji: {
     fontSize: fontSize['3xl'],
     marginBottom: spacing.sm,
   },
   swipeLabel: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
     textAlign: 'center',
     lineHeight: 22,
-  },
-  swipeLabelSelected: {
-    color: colors.primaryLight,
-    fontWeight: fontWeight.bold,
   },
   swipeCheckBadge: {
     position: 'absolute',
@@ -754,9 +719,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: borderRadius.full,
-    backgroundColor: colorAlpha.primary20,
     borderWidth: 1,
-    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -777,7 +740,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sliderValueText: {
-    color: colors.text,
     fontSize: fontSize['2xl'],
     fontWeight: fontWeight.extrabold,
     letterSpacing: -0.5,
@@ -788,18 +750,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sliderLabelText: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
     maxWidth: '45%',
     lineHeight: 18,
   },
   sliderTrack: {
     height: layout.progressBarLg,
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.sm,
     position: 'relative',
     borderWidth: 1,
-    borderColor: colors.border,
   },
   sliderFill: {
     height: '100%',
@@ -813,9 +772,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginLeft: -16,
     borderWidth: 3,
-    borderColor: colors.background,
     overflow: 'hidden',
-    ...shadows.glowPrimarySubtle,
   },
   sliderThumbGradient: {
     flex: 1,
@@ -830,10 +787,8 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     width: (SCREEN_WIDTH - spacing.md * 2 - spacing.sm * 2) / 3,
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
-    borderColor: colors.border,
     padding: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -841,23 +796,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  gridItemSelected: {
-    borderColor: colors.primary,
-  },
   gridEmoji: {
     fontSize: fontSize['2xl'],
     marginBottom: spacing.xs,
   },
   gridLabel: {
-    color: colors.text,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.medium,
     textAlign: 'center',
     lineHeight: 16,
-  },
-  gridLabelSelected: {
-    color: colors.primaryLight,
-    fontWeight: fontWeight.bold,
   },
   gridCheckBadge: {
     position: 'absolute',
@@ -866,9 +813,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: borderRadius.full,
-    backgroundColor: colorAlpha.primary20,
     borderWidth: 1,
-    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -888,7 +833,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   confirmBtnText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
   },
@@ -910,7 +854,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   submitBtnText: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
     letterSpacing: 0.2,

@@ -11,8 +11,9 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { colors, borderRadius, fontSize, fontWeight, spacing, layout, shadows } from '../lib/theme';
+import { borderRadius, fontSize, fontWeight, spacing, layout } from '../lib/theme';
 import { springConfig, glowShadow } from '../lib/animations';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -28,14 +29,6 @@ interface ButtonProps {
   icon?: React.ReactNode;
   glow?: boolean;
 }
-
-const variantMap: Record<Variant, { bg: string; text: string; border?: string }> = {
-  primary: { bg: colors.primary, text: colors.text },
-  secondary: { bg: colors.surfaceLight, text: colors.text },
-  outline: { bg: 'transparent', text: colors.primary, border: colors.primary },
-  ghost: { bg: 'transparent', text: colors.textSecondary },
-  danger: { bg: colors.danger, text: colors.text },
-};
 
 const sizeMap: Record<Size, { height: number; px: number; fs: number }> = {
   sm: { height: layout.buttonHeightSm, px: spacing.md, fs: fontSize.sm },
@@ -54,6 +47,16 @@ export default function Button({
   icon,
   glow = false,
 }: ButtonProps) {
+  const { colors, shadows } = useTheme();
+
+  const variantMap: Record<Variant, { bg: string; text: string; border?: string }> = {
+    primary: { bg: colors.primary, text: colors.text },
+    secondary: { bg: colors.surfaceLight, text: colors.text },
+    outline: { bg: 'transparent', text: colors.primary, border: colors.primary },
+    ghost: { bg: 'transparent', text: colors.textSecondary },
+    danger: { bg: colors.danger, text: colors.text },
+  };
+
   const v = variantMap[variant];
   const s = sizeMap[size];
   const isDisabled = disabled || loading;

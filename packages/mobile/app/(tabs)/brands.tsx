@@ -13,8 +13,9 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { brandsApi } from '@/lib/api';
-import { borderRadius, categoryColors, colorAlpha, colors, fontSize, fontWeight as fw, layout, shadows, spacing } from '@/lib/theme';
+import { borderRadius, categoryColors, fontSize, fontWeight as fw, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const CATEGORIES = [
   'Todas',
@@ -47,6 +48,7 @@ const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Feather>['name'
 
 export default function BrandsScreen() {
   useAuth();
+  const { colors, colorAlpha, shadows } = useTheme();
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [myBrands, setMyBrands] = useState<Brand[]>([]);
@@ -120,7 +122,8 @@ export default function BrandsScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.brandCard,
-            isMine && styles.myBrandCard,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            isMine && [styles.myBrandCard, { borderColor: colorAlpha.primary25, borderBottomColor: colors.border }],
             pressed && styles.brandCardPressed,
           ]}
           onPress={() => handleBrandPress(item)}
@@ -138,9 +141,9 @@ export default function BrandsScreen() {
 
               <View style={styles.brandNameBlock}>
                 <View style={styles.brandNameRow}>
-                  <Text style={styles.brandName}>{item.name}</Text>
+                  <Text style={[styles.brandName, { color: colors.text }]}>{item.name}</Text>
                   {isMine && (
-                    <View style={styles.starBadge}>
+                    <View style={[styles.starBadge, { backgroundColor: colorAlpha.accent20 }]}>
                       <Feather name="star" size={10} color={colors.accent} />
                     </View>
                   )}
@@ -154,21 +157,21 @@ export default function BrandsScreen() {
             </View>
 
             {/* Description */}
-            <Text style={styles.brandDescription} numberOfLines={2}>
+            <Text style={[styles.brandDescription, { color: colors.textSecondary }]} numberOfLines={2}>
               {item.description}
             </Text>
 
             {/* Slots bar */}
             <View style={styles.brandFooter}>
               <View style={styles.slotsLabelRow}>
-                <Text style={styles.slotsText}>
+                <Text style={[styles.slotsText, { color: colors.textMuted }]}>
                   {item.creatorsConnected}/{item.maxSlots} creators
                 </Text>
                 <Text style={[styles.slotsPercent, { color: fillColor }]}>
                   {Math.round(fillPct)}%
                 </Text>
               </View>
-              <View style={styles.slotsBarBg}>
+              <View style={[styles.slotsBarBg, { backgroundColor: colors.border }]}>
                 <View
                   style={[
                     styles.slotsBarFill,
@@ -184,7 +187,7 @@ export default function BrandsScreen() {
         </Pressable>
       );
     },
-    [handleBrandPress],
+    [colors, colorAlpha, handleBrandPress],
   );
 
   const ListHeader = useCallback(
@@ -210,13 +213,13 @@ export default function BrandsScreen() {
                     end={{ x: 1, y: 0 }}
                     style={[styles.categoryPill, styles.categoryPillActive]}
                   >
-                    <Text style={[styles.categoryPillText, styles.categoryPillTextActive]}>
+                    <Text style={[styles.categoryPillText, styles.categoryPillTextActive, { color: colors.text }]}>
                       {cat}
                     </Text>
                   </LinearGradient>
                 ) : (
-                  <View style={styles.categoryPill}>
-                    <Text style={styles.categoryPillText}>{cat}</Text>
+                  <View style={[styles.categoryPill, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Text style={[styles.categoryPillText, { color: colors.textSecondary }]}>{cat}</Text>
                   </View>
                 )}
               </Pressable>
@@ -228,28 +231,28 @@ export default function BrandsScreen() {
         {myBrands.length > 0 && (
           <View style={styles.myBrandsSection}>
             <View style={styles.sectionTitleRow}>
-              <View style={styles.sectionTitleIcon}>
+              <View style={[styles.sectionTitleIcon, { backgroundColor: colorAlpha.accent20 }]}>
                 <Feather name="star" size={14} color={colors.accent} />
               </View>
-              <Text style={styles.sectionTitle}>Minhas Marcas</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Minhas Marcas</Text>
             </View>
-            <View style={[styles.myBrandsSectionBox, shadows.glowPrimarySubtle]}>
+            <View style={[styles.myBrandsSectionBox, { borderColor: colorAlpha.primary25 }, shadows.glowPrimarySubtle]}>
               {myBrands.map((brand) =>
                 renderBrandCard({ item: brand, isMine: true }),
               )}
             </View>
-            <View style={styles.sectionDivider} />
-            <Text style={styles.sectionTitle}>Todas as Marcas</Text>
+            <View style={[styles.sectionDivider, { backgroundColor: colors.border }]} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Todas as Marcas</Text>
           </View>
         )}
       </View>
     ),
-    [myBrands, selectedCategory, handleBrandPress, renderBrandCard],
+    [colors, colorAlpha, shadows, myBrands, selectedCategory, handleBrandPress, renderBrandCard],
   );
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -257,14 +260,14 @@ export default function BrandsScreen() {
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={brands}
         keyExtractor={(item) => item.id}
@@ -280,13 +283,13 @@ export default function BrandsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Feather name="search" size={28} color={colors.textMuted} />
             </View>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               Nenhuma marca encontrada nesta categoria.
             </Text>
-            <Text style={styles.emptySubtext}>
+            <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>
               Tente selecionar outra categoria.
             </Text>
           </View>
@@ -299,7 +302,6 @@ export default function BrandsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   listContent: {
     padding: spacing.md,
@@ -307,12 +309,10 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorText: {
-    color: colors.danger,
     fontSize: fontSize.md,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
@@ -327,20 +327,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'transparent',
   },
   categoryPillActive: {
     borderWidth: 0,
   },
   categoryPillText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: fw.medium,
   },
   categoryPillTextActive: {
-    color: colors.text,
     fontWeight: '600',
   },
 
@@ -358,12 +355,10 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: borderRadius.xs,
-    backgroundColor: colorAlpha.accent20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sectionTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fw.bold,
     marginBottom: spacing.md,
@@ -371,32 +366,26 @@ const styles = StyleSheet.create({
   myBrandsSectionBox: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colorAlpha.primary25,
     overflow: 'hidden',
     marginBottom: spacing.sm,
   },
   sectionDivider: {
     height: layout.dividerHeight,
-    backgroundColor: colors.border,
     marginVertical: spacing.lg,
   },
 
   // Brand Card
   brandCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.md,
     overflow: 'hidden',
     flexDirection: 'row',
   },
   myBrandCard: {
-    borderColor: colorAlpha.primary25,
     borderRadius: 0,
     marginBottom: 0,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   brandCardPressed: {
     opacity: 0.75,
@@ -431,7 +420,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   brandName: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fw.semibold,
     flex: 1,
@@ -440,7 +428,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: borderRadius.full,
-    backgroundColor: colorAlpha.accent20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -455,7 +442,6 @@ const styles = StyleSheet.create({
     fontWeight: fw.semibold,
   },
   brandDescription: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     lineHeight: 20,
     marginBottom: spacing.md,
@@ -471,7 +457,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   slotsText: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   slotsPercent: {
@@ -480,7 +465,6 @@ const styles = StyleSheet.create({
   },
   slotsBarBg: {
     height: layout.progressBarMd,
-    backgroundColor: colors.border,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
@@ -499,21 +483,17 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
     textAlign: 'center',
     fontWeight: '500',
   },
   emptySubtext: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
     textAlign: 'center',
   },

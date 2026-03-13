@@ -13,15 +13,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { networkApi } from '@/lib/api';
 import {
   borderRadius,
-  colorAlpha,
-  colors,
   fontSize,
   fontWeight,
   layout,
   levelColors,
-  shadows,
   spacing,
 } from '@/lib/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 
@@ -72,19 +70,6 @@ type FeatherIconName = keyof typeof Feather.glyphMap;
 
 const LEVEL_COLORS: Record<string, string> = levelColors;
 
-const BONUS_CONFIG: Array<{
-  key: keyof NetworkStats['bonuses'];
-  label: string;
-  icon: FeatherIconName;
-  color: string;
-  bg: string;
-}> = [
-  { key: 'direct', label: 'Direto', icon: 'arrow-right', color: colors.info, bg: colorAlpha.info10 },
-  { key: 'infinite', label: 'Infinito', icon: 'repeat', color: colors.primaryLight, bg: colorAlpha.primary10 },
-  { key: 'matching', label: 'Equiparacao', icon: 'git-merge', color: colors.warning, bg: colorAlpha.warning10 },
-  { key: 'global', label: 'Global', icon: 'globe', color: colors.success, bg: colorAlpha.success10 },
-];
-
 const REQ_CONFIG: Array<{
   key: 'qv' | 'directs' | 'pml';
   label: string;
@@ -100,12 +85,27 @@ function formatCurrency(value: string | number): string {
 }
 
 export default function NetworkScreen() {
+  const { colors, colorAlpha, shadows } = useTheme();
+
   const [stats, setStats] = useState<NetworkStats | null>(null);
   const [directs, setDirects] = useState<DirectMember[]>([]);
   const [referral, setReferral] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const BONUS_CONFIG: Array<{
+    key: keyof NetworkStats['bonuses'];
+    label: string;
+    icon: FeatherIconName;
+    color: string;
+    bg: string;
+  }> = [
+    { key: 'direct', label: 'Direto', icon: 'arrow-right', color: colors.info, bg: colorAlpha.info10 },
+    { key: 'infinite', label: 'Infinito', icon: 'repeat', color: colors.primaryLight, bg: colorAlpha.primary10 },
+    { key: 'matching', label: 'Equiparacao', icon: 'git-merge', color: colors.warning, bg: colorAlpha.warning10 },
+    { key: 'global', label: 'Global', icon: 'globe', color: colors.success, bg: colorAlpha.success10 },
+  ];
 
   const fetchData = useCallback(async () => {
     try {
@@ -141,7 +141,7 @@ export default function NetworkScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { padding: spacing.md, gap: spacing.md }]}>
+      <View style={[styles.container, { backgroundColor: colors.background, padding: spacing.md, gap: spacing.md }]}>
         <SkeletonCard />
         <SkeletonCard />
         <SkeletonCard />
@@ -154,7 +154,7 @@ export default function NetworkScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
@@ -164,7 +164,7 @@ export default function NetworkScreen() {
         <AnimatedListItem index={0}>
           <LinearGradient
             colors={[`${levelColor}20`, colors.surface]}
-            style={styles.levelCard}
+            style={[styles.levelCard, { borderColor: colorAlpha.primary20 }]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
@@ -177,14 +177,14 @@ export default function NetworkScreen() {
                   <Feather name="award" size={24} color={levelColor} />
                 </View>
                 <View>
-                  <Text style={styles.levelLabel}>Nivel Atual</Text>
+                  <Text style={[styles.levelLabel, { color: colors.textMuted }]}>Nivel Atual</Text>
                   <Text style={[styles.levelName, { color: levelColor }]}>{stats.level.current}</Text>
                 </View>
               </View>
               {stats.level.nextLevel && (
-                <View style={styles.nextLevelWrap}>
+                <View style={[styles.nextLevelWrap, { backgroundColor: colorAlpha.muted20 }]}>
                   <Feather name="arrow-up" size={12} color={colors.textMuted} />
-                  <Text style={styles.nextLevelText}>{stats.level.nextLevel}</Text>
+                  <Text style={[styles.nextLevelText, { color: colors.textSecondary }]}>{stats.level.nextLevel}</Text>
                 </View>
               )}
             </View>
@@ -200,14 +200,14 @@ export default function NetworkScreen() {
                       <View style={styles.requirementTop}>
                         <View style={styles.reqLabelRow}>
                           <Feather name={req.icon} size={12} color={colors.textMuted} />
-                          <Text style={styles.reqLabel}>{req.label}</Text>
+                          <Text style={[styles.reqLabel, { color: colors.textSecondary }]}>{req.label}</Text>
                         </View>
                         <Text style={styles.reqValue}>
                           <Text style={[styles.reqCurrent, { color: levelColor }]}>{data.current}</Text>
-                          <Text style={styles.reqSeparator}> / {data.required}</Text>
+                          <Text style={[styles.reqSeparator, { color: colors.textMuted }]}> / {data.required}</Text>
                         </Text>
                       </View>
-                      <View style={styles.progressTrack}>
+                      <View style={[styles.progressTrack, { backgroundColor: colorAlpha.muted20 }]}>
                         <LinearGradient
                           colors={[levelColor, `${levelColor}80`]}
                           start={{ x: 0, y: 0 }}
@@ -229,7 +229,7 @@ export default function NetworkScreen() {
         <AnimatedListItem index={1}>
           <View style={styles.sectionHeader}>
             <Feather name="users" size={14} color={colors.textMuted} />
-            <Text style={styles.sectionTitle}>Minha Rede</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Minha Rede</Text>
           </View>
           <View style={styles.statsGrid}>
             <View style={[styles.statCard, { backgroundColor: colorAlpha.info10, borderColor: colorAlpha.info20 }]}>
@@ -237,7 +237,7 @@ export default function NetworkScreen() {
                 <Feather name="users" size={16} color={colors.info} />
               </View>
               <Text style={[styles.statGridValue, { color: colors.info }]}>{stats.network.totalMembers}</Text>
-              <Text style={styles.statGridLabel}>Rede Total</Text>
+              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Rede Total</Text>
             </View>
 
             <View style={[styles.statCard, { backgroundColor: colorAlpha.success10, borderColor: colorAlpha.success20 }]}>
@@ -245,7 +245,7 @@ export default function NetworkScreen() {
                 <Feather name="check-circle" size={16} color={colors.success} />
               </View>
               <Text style={[styles.statGridValue, { color: colors.success }]}>{stats.network.activeMembers}</Text>
-              <Text style={styles.statGridLabel}>Ativos</Text>
+              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Ativos</Text>
             </View>
 
             <View style={[styles.statCard, { backgroundColor: colorAlpha.primary10, borderColor: colorAlpha.primary20 }]}>
@@ -253,7 +253,7 @@ export default function NetworkScreen() {
                 <Feather name="user-plus" size={16} color={colors.primaryLight} />
               </View>
               <Text style={[styles.statGridValue, { color: colors.primaryLight }]}>{stats.network.directsActive}</Text>
-              <Text style={styles.statGridLabel}>Diretos</Text>
+              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Diretos</Text>
             </View>
 
             <View style={[styles.statCard, { backgroundColor: colorAlpha.accent10, borderColor: colorAlpha.accent20 }]}>
@@ -263,7 +263,7 @@ export default function NetworkScreen() {
               <Text style={[styles.statGridValue, { color: colors.accent, fontSize: fontSize.sm }]}>
                 {formatCurrency(stats.network.totalVolume)}
               </Text>
-              <Text style={styles.statGridLabel}>Volume</Text>
+              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Volume</Text>
             </View>
           </View>
         </AnimatedListItem>
@@ -272,10 +272,10 @@ export default function NetworkScreen() {
       {/* ─── Bonuses Card ─── */}
       {stats && (
         <AnimatedListItem index={2}>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, ...shadows.sm }]}>
             <View style={styles.cardTitleRow}>
               <Feather name="gift" size={16} color={colors.primary} />
-              <Text style={styles.cardTitle}>Bonus do Mes</Text>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Bonus do Mes</Text>
             </View>
 
             {BONUS_CONFIG.map((cfg) => {
@@ -290,10 +290,10 @@ export default function NetworkScreen() {
                   </View>
                   <View style={styles.bonusItemContent}>
                     <View style={styles.bonusItemTop}>
-                      <Text style={styles.bonusLabel}>{cfg.label}</Text>
-                      <Text style={styles.bonusValue}>{formatCurrency(value)}</Text>
+                      <Text style={[styles.bonusLabel, { color: colors.textSecondary }]}>{cfg.label}</Text>
+                      <Text style={[styles.bonusValue, { color: colors.text }]}>{formatCurrency(value)}</Text>
                     </View>
-                    <View style={styles.bonusMiniBarBg}>
+                    <View style={[styles.bonusMiniBarBg, { backgroundColor: colorAlpha.muted20 }]}>
                       <View
                         style={[
                           styles.bonusMiniBarFill,
@@ -306,12 +306,12 @@ export default function NetworkScreen() {
               );
             })}
 
-            <View style={styles.bonusTotalRow}>
+            <View style={[styles.bonusTotalRow, { borderTopColor: colors.border }]}>
               <View style={styles.bonusTotalLeft}>
                 <Feather name="trending-up" size={16} color={colors.success} />
-                <Text style={styles.bonusTotalLabel}>Total do mes</Text>
+                <Text style={[styles.bonusTotalLabel, { color: colors.text }]}>Total do mes</Text>
               </View>
-              <Text style={styles.bonusTotalValue}>{formatCurrency(stats.bonuses.total)}</Text>
+              <Text style={[styles.bonusTotalValue, { color: colors.success }]}>{formatCurrency(stats.bonuses.total)}</Text>
             </View>
           </View>
         </AnimatedListItem>
@@ -320,7 +320,7 @@ export default function NetworkScreen() {
       {/* ─── Referral Link Card ─── */}
       {referral && (
         <AnimatedListItem index={3}>
-          <View style={styles.referralCard}>
+          <View style={[styles.referralCard, { borderColor: colors.primary, ...shadows.glowPrimarySubtle }]}>
             <LinearGradient
               colors={[colorAlpha.primary15, colorAlpha.accent10]}
               start={{ x: 0, y: 0 }}
@@ -329,19 +329,23 @@ export default function NetworkScreen() {
             />
             <View style={styles.cardTitleRow}>
               <Feather name="share-2" size={16} color={colors.primaryLight} />
-              <Text style={styles.cardTitle}>Link de Indicacao</Text>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Link de Indicacao</Text>
             </View>
-            <Text style={styles.referralSubtitle}>
+            <Text style={[styles.referralSubtitle, { color: colors.textSecondary }]}>
               Compartilhe e ganhe bonus em cada venda da sua rede
             </Text>
 
-            <View style={styles.referralUrlBox}>
+            <View style={[styles.referralUrlBox, { backgroundColor: colorAlpha.white10, borderColor: colors.border }]}>
               <Feather name="link" size={14} color={colors.textMuted} />
-              <Text style={styles.referralUrl} numberOfLines={1}>{referral.referralUrl}</Text>
+              <Text style={[styles.referralUrl, { color: colors.textSecondary }]} numberOfLines={1}>{referral.referralUrl}</Text>
             </View>
 
             <Pressable
-              style={[styles.copyBtn, copied && styles.copyBtnSuccess]}
+              style={[
+                styles.copyBtn,
+                { backgroundColor: colors.primary, ...shadows.glowPrimarySubtle },
+                copied && { backgroundColor: colorAlpha.success20, borderWidth: 1, borderColor: colors.success },
+              ]}
               onPress={handleCopy}
             >
               <Feather
@@ -349,22 +353,22 @@ export default function NetworkScreen() {
                 size={14}
                 color={copied ? colors.success : colors.text}
               />
-              <Text style={[styles.copyBtnText, copied && styles.copyBtnTextSuccess]}>
+              <Text style={[styles.copyBtnText, { color: copied ? colors.success : colors.text }]}>
                 {copied ? 'Copiado!' : 'Copiar Link'}
               </Text>
             </Pressable>
 
-            <View style={styles.referralStatsRow}>
+            <View style={[styles.referralStatsRow, { backgroundColor: colorAlpha.white10 }]}>
               <View style={styles.referralStatItem}>
                 <Feather name="user-plus" size={12} color={colors.textMuted} />
-                <Text style={styles.referralStatValue}>{referral.totalReferrals}</Text>
-                <Text style={styles.referralStatLabel}>indicados</Text>
+                <Text style={[styles.referralStatValue, { color: colors.text }]}>{referral.totalReferrals}</Text>
+                <Text style={[styles.referralStatLabel, { color: colors.textMuted }]}>indicados</Text>
               </View>
-              <View style={styles.referralStatDivider} />
+              <View style={[styles.referralStatDivider, { backgroundColor: colors.border }]} />
               <View style={styles.referralStatItem}>
                 <Feather name="activity" size={12} color={colors.success} />
                 <Text style={[styles.referralStatValue, { color: colors.success }]}>{referral.activeReferrals}</Text>
-                <Text style={styles.referralStatLabel}>ativos</Text>
+                <Text style={[styles.referralStatLabel, { color: colors.textMuted }]}>ativos</Text>
               </View>
             </View>
           </View>
@@ -373,32 +377,32 @@ export default function NetworkScreen() {
 
       {/* ─── Direct Members ─── */}
       <AnimatedListItem index={4}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, ...shadows.sm }]}>
           <View style={styles.cardTitleRow}>
             <Feather name="user-check" size={16} color={colors.primary} />
-            <Text style={styles.cardTitle}>Meus Diretos</Text>
-            <View style={styles.memberCountBadge}>
-              <Text style={styles.memberCountText}>{directs.length}</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Meus Diretos</Text>
+            <View style={[styles.memberCountBadge, { backgroundColor: colorAlpha.primary20 }]}>
+              <Text style={[styles.memberCountText, { color: colors.primaryLight }]}>{directs.length}</Text>
             </View>
           </View>
 
           {directs.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Feather name="users" size={28} color={colors.textMuted} />
-              <Text style={styles.emptyText}>Nenhum membro direto ainda</Text>
-              <Text style={styles.emptySubtext}>Compartilhe seu link de indicacao!</Text>
+              <Text style={[styles.emptyText, { color: colors.text }]}>Nenhum membro direto ainda</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>Compartilhe seu link de indicacao!</Text>
             </View>
           ) : (
             directs.map((member, index) => {
               const memberColor = LEVEL_COLORS[member.level] ?? colors.textMuted;
               const isLast = index === directs.length - 1;
               return (
-                <View key={member.id} style={[styles.memberRow, !isLast && styles.memberRowBorder]}>
-                  <View style={[styles.memberAvatar, { borderColor: memberColor }]}>
-                    <Text style={styles.memberInitial}>{member.name.charAt(0).toUpperCase()}</Text>
+                <View key={member.id} style={[styles.memberRow, !isLast && styles.memberRowBorder, !isLast && { borderBottomColor: colors.border }]}>
+                  <View style={[styles.memberAvatar, { borderColor: memberColor, backgroundColor: colors.surfaceLight }]}>
+                    <Text style={[styles.memberInitial, { color: colors.text }]}>{member.name.charAt(0).toUpperCase()}</Text>
                   </View>
                   <View style={styles.memberInfo}>
-                    <Text style={styles.memberName}>{member.name}</Text>
+                    <Text style={[styles.memberName, { color: colors.text }]}>{member.name}</Text>
                     <View style={styles.memberMetaRow}>
                       <View style={[styles.memberLevelBadge, { backgroundColor: `${memberColor}20` }]}>
                         <Text style={[styles.memberLevelText, { color: memberColor }]}>{member.level}</Text>
@@ -406,7 +410,7 @@ export default function NetworkScreen() {
                       {member.directCount > 0 && (
                         <View style={styles.memberDirectsTag}>
                           <Feather name="users" size={10} color={colors.textMuted} />
-                          <Text style={styles.memberDirectsText}>{member.directCount}</Text>
+                          <Text style={[styles.memberDirectsText, { color: colors.textMuted }]}>{member.directCount}</Text>
                         </View>
                       )}
                     </View>
@@ -428,14 +432,13 @@ export default function NetworkScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   content: { padding: spacing.md, paddingBottom: spacing.xxl, gap: spacing.md },
 
   // ─── Level Hero Card ───
   levelCard: {
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colorAlpha.primary20,
     padding: spacing.lg,
     overflow: 'hidden',
   },
@@ -466,7 +469,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   levelLabel: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
     textTransform: 'uppercase',
@@ -481,13 +483,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
-    backgroundColor: colorAlpha.muted20,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs,
   },
   nextLevelText: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.medium,
   },
@@ -505,13 +505,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  reqLabel: { color: colors.textSecondary, fontSize: fontSize.sm },
+  reqLabel: { fontSize: fontSize.sm },
   reqValue: { fontSize: fontSize.sm },
   reqCurrent: { fontWeight: fontWeight.bold },
-  reqSeparator: { color: colors.textMuted, fontWeight: fontWeight.normal },
+  reqSeparator: { fontWeight: fontWeight.normal },
   progressTrack: {
     height: 5,
-    backgroundColor: colorAlpha.muted20,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
@@ -527,7 +526,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   sectionTitle: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
     textTransform: 'uppercase',
@@ -558,24 +556,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   statGridValue: {
-    color: colors.text,
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
     marginBottom: 2,
   },
   statGridLabel: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
 
   // ─── Generic Card ───
   card: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
-    ...shadows.sm,
   },
   cardTitleRow: {
     flexDirection: 'row',
@@ -585,7 +578,6 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     flex: 1,
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
   },
@@ -615,17 +607,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bonusLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
   },
   bonusValue: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
   },
   bonusMiniBarBg: {
     height: 3,
-    backgroundColor: colorAlpha.muted20,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
@@ -640,7 +629,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   bonusTotalLeft: {
     flexDirection: 'row',
@@ -648,12 +636,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   bonusTotalLabel: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
   },
   bonusTotalValue: {
-    color: colors.success,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
   },
@@ -662,13 +648,10 @@ const styles = StyleSheet.create({
   referralCard: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
     padding: spacing.md,
     overflow: 'hidden',
-    ...shadows.glowPrimarySubtle,
   },
   referralSubtitle: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
@@ -678,17 +661,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colorAlpha.white10,
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.sm,
   },
   referralUrl: {
     flex: 1,
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
   },
   copyBtn: {
@@ -696,29 +676,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
     height: layout.buttonHeight,
     marginBottom: spacing.md,
-    ...shadows.glowPrimarySubtle,
-  },
-  copyBtnSuccess: {
-    backgroundColor: colorAlpha.success20,
-    borderWidth: 1,
-    borderColor: colors.success,
   },
   copyBtnText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
-  },
-  copyBtnTextSuccess: {
-    color: colors.success,
   },
   referralStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colorAlpha.white10,
     borderRadius: borderRadius.md,
     padding: spacing.sm,
   },
@@ -730,29 +698,24 @@ const styles = StyleSheet.create({
     gap: spacing.xxs,
   },
   referralStatValue: {
-    color: colors.text,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.bold,
   },
   referralStatLabel: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   referralStatDivider: {
     width: 1,
     height: 20,
-    backgroundColor: colors.border,
   },
 
   // ─── Members ───
   memberCountBadge: {
-    backgroundColor: colorAlpha.primary20,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
   memberCountText: {
-    color: colors.primaryLight,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.bold,
   },
@@ -762,12 +725,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   emptyText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.medium,
   },
   emptySubtext: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
   },
   memberRow: {
@@ -778,25 +739,21 @@ const styles = StyleSheet.create({
   },
   memberRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   memberAvatar: {
     width: 42,
     height: 42,
     borderRadius: 21,
     borderWidth: 2,
-    backgroundColor: colors.surfaceLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   memberInitial: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
   },
   memberInfo: { flex: 1, gap: spacing.xxs },
   memberName: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
   },
@@ -820,7 +777,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   memberDirectsText: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   memberRight: {

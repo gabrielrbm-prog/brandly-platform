@@ -1,12 +1,14 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { colors } from '@/lib/theme';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
-export default function RootLayout() {
+function AppStack() {
+  const { colors, isDark } = useTheme();
+
   return (
-    <AuthProvider>
-      <StatusBar style="light" />
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.text,
@@ -17,6 +19,16 @@ export default function RootLayout() {
         <Stack.Screen name="behavioral-onboarding" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         <Stack.Screen name="behavioral-result" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
       </Stack>
-    </AuthProvider>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppStack />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

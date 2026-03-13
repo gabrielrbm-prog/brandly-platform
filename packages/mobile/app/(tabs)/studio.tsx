@@ -15,8 +15,9 @@ import * as Clipboard from 'expo-clipboard';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { brandsApi, scriptsApi } from '@/lib/api';
-import { borderRadius, colorAlpha, colors, fontSize, layout, shadows, spacing } from '@/lib/theme';
+import { borderRadius, fontSize, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // ─── Types ───
 
@@ -51,6 +52,7 @@ type TabOption = 'generate' | 'library';
 
 export default function StudioScreen() {
   useAuth();
+  const { colors, colorAlpha, shadows } = useTheme();
 
   const [tab, setTab] = useState<TabOption>('generate');
   const [myBrands, setMyBrands] = useState<Brand[]>([]);
@@ -183,9 +185,16 @@ export default function StudioScreen() {
       const isCopied = copiedId === script.id;
 
       return (
-        <View key={script.id} style={[styles.scriptCard, script.isUsed && styles.scriptCardUsed]}>
+        <View
+          key={script.id}
+          style={[
+            styles.scriptCard,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            script.isUsed && { opacity: 0.5, borderColor: colorAlpha.muted40 },
+          ]}
+        >
           {/* Colored left accent border */}
-          <View style={styles.scriptCardAccent} />
+          <View style={[styles.scriptCardAccent, { backgroundColor: colors.primary }]} />
 
           <Pressable onPress={() => handleOpenScript(script)} style={styles.scriptCardInner}>
             <View style={styles.scriptHeader}>
@@ -193,25 +202,25 @@ export default function StudioScreen() {
                 <View style={styles.scriptHookIcon}>
                   <Feather name="zap" size={12} color={colors.primary} />
                 </View>
-                <Text style={styles.hookText} numberOfLines={isExpanded ? undefined : 2}>
+                <Text style={[styles.hookText, { color: colors.primaryLight }]} numberOfLines={isExpanded ? undefined : 2}>
                   {script.hook}
                 </Text>
               </View>
               {script.isUsed && (
-                <View style={styles.usedBadge}>
+                <View style={[styles.usedBadge, { backgroundColor: colorAlpha.muted30 }]}>
                   <Feather name="check" size={10} color={colors.textMuted} />
-                  <Text style={styles.usedBadgeText}>Usado</Text>
+                  <Text style={[styles.usedBadgeText, { color: colors.textMuted }]}>Usado</Text>
                 </View>
               )}
             </View>
 
-            <Text style={styles.bodyPreview} numberOfLines={isExpanded ? undefined : 2}>
+            <Text style={[styles.bodyPreview, { color: colors.textSecondary }]} numberOfLines={isExpanded ? undefined : 2}>
               {script.body}
             </Text>
 
             <View style={styles.ctaRow}>
               <Feather name="arrow-right-circle" size={12} color={colors.accent} />
-              <Text style={styles.ctaText} numberOfLines={1}>
+              <Text style={[styles.ctaText, { color: colors.accent }]} numberOfLines={1}>
                 {script.cta}
               </Text>
             </View>
@@ -219,17 +228,20 @@ export default function StudioScreen() {
 
           <View style={styles.scriptActions}>
             <Pressable
-              style={[styles.actionButton, styles.copyButton, isCopied && styles.copyButtonDone]}
+              style={[
+                styles.actionButton,
+                { backgroundColor: isCopied ? colorAlpha.success20 : colorAlpha.primary20 },
+              ]}
               onPress={() => handleCopy(script)}
             >
               <Feather name={isCopied ? 'check' : 'copy'} size={13} color={isCopied ? colors.success : colors.primary} />
-              <Text style={[styles.actionButtonText, isCopied && { color: colors.success }]}>
+              <Text style={[styles.actionButtonText, { color: isCopied ? colors.success : colors.primary }]}>
                 {isCopied ? 'Copiado' : 'Copiar'}
               </Text>
             </Pressable>
             {!script.isUsed && (
               <Pressable
-                style={[styles.actionButton, styles.useButton]}
+                style={[styles.actionButton, { backgroundColor: colorAlpha.success20 }]}
                 onPress={() => handleMarkUsed(script)}
               >
                 <Feather name="check-circle" size={13} color={colors.success} />
@@ -240,7 +252,7 @@ export default function StudioScreen() {
         </View>
       );
     },
-    [expandedScript, copiedId, handleCopy, handleMarkUsed, handleOpenScript],
+    [expandedScript, copiedId, handleCopy, handleMarkUsed, handleOpenScript, colors, colorAlpha],
   );
 
   // ─── Tab: Generate ───
@@ -249,20 +261,20 @@ export default function StudioScreen() {
     <ScrollView contentContainerStyle={styles.tabContent}>
       {/* Step 1: Selecionar marca */}
       <View style={styles.stepLabelRow}>
-        <View style={styles.stepIconBadge}>
+        <View style={[styles.stepIconBadge, { backgroundColor: colorAlpha.primary20 }]}>
           <Feather name="briefcase" size={12} color={colors.primary} />
         </View>
-        <Text style={styles.stepLabel}>1. Selecione a marca</Text>
+        <Text style={[styles.stepLabel, { color: colors.textSecondary }]}>1. Selecione a marca</Text>
       </View>
       {myBrands.length === 0 ? (
         <View style={styles.emptyState}>
-          <View style={styles.emptyIconCircle}>
+          <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Feather name="briefcase" size={28} color={colors.textMuted} />
           </View>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             Voce ainda nao esta conectado a nenhuma marca.
           </Text>
-          <Text style={styles.emptySubtext}>
+          <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>
             Va em Marcas no menu do Perfil para se conectar.
           </Text>
         </View>
@@ -286,13 +298,13 @@ export default function StudioScreen() {
                     end={{ x: 1, y: 0 }}
                     style={[styles.brandChip, styles.brandChipActive]}
                   >
-                    <Text style={[styles.brandChipText, styles.brandChipTextActive]}>
+                    <Text style={[styles.brandChipText, { color: colors.text, fontWeight: '600' }]}>
                       {brand.name}
                     </Text>
                   </LinearGradient>
                 ) : (
-                  <View style={styles.brandChip}>
-                    <Text style={styles.brandChipText}>{brand.name}</Text>
+                  <View style={[styles.brandChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Text style={[styles.brandChipText, { color: colors.textSecondary }]}>{brand.name}</Text>
                   </View>
                 )}
               </Pressable>
@@ -305,17 +317,17 @@ export default function StudioScreen() {
       {selectedBrand && (
         <>
           <View style={styles.stepLabelRow}>
-            <View style={styles.stepIconBadge}>
+            <View style={[styles.stepIconBadge, { backgroundColor: colorAlpha.primary20 }]}>
               <Feather name="file-text" size={12} color={colors.primary} />
             </View>
-            <Text style={styles.stepLabel}>2. Selecione o briefing</Text>
+            <Text style={[styles.stepLabel, { color: colors.textSecondary }]}>2. Selecione o briefing</Text>
           </View>
           {briefings.length === 0 ? (
             <View style={styles.emptyState}>
-              <View style={styles.emptyIconCircle}>
+              <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Feather name="file-text" size={28} color={colors.textMuted} />
               </View>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                 Nenhum briefing ativo para {selectedBrand.name}.
               </Text>
             </View>
@@ -327,24 +339,25 @@ export default function StudioScreen() {
                   key={briefing.id}
                   style={[
                     styles.briefingCard,
-                    isActive && styles.briefingCardActive,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    isActive && { borderColor: colors.primary, backgroundColor: colorAlpha.primary10 },
                   ]}
                   onPress={() => setSelectedBriefing(briefing)}
                 >
-                  {isActive && <View style={styles.briefingAccentBorder} />}
+                  {isActive && <View style={[styles.briefingAccentBorder, { backgroundColor: colors.primary }]} />}
                   <View style={styles.briefingCardInner}>
                     <View style={styles.briefingTitleRow}>
-                      <Text style={styles.briefingTitle}>{briefing.title}</Text>
+                      <Text style={[styles.briefingTitle, { color: colors.text }]}>{briefing.title}</Text>
                       {isActive && (
                         <Feather name="check-circle" size={18} color={colors.primary} />
                       )}
                     </View>
-                    <Text style={styles.briefingDesc} numberOfLines={2}>
+                    <Text style={[styles.briefingDesc, { color: colors.textSecondary }]} numberOfLines={2}>
                       {briefing.description}
                     </Text>
                     {briefing.tone && (
-                      <View style={styles.toneBadge}>
-                        <Text style={styles.toneBadgeText}>Tom: {briefing.tone}</Text>
+                      <View style={[styles.toneBadge, { backgroundColor: colorAlpha.accent20 }]}>
+                        <Text style={[styles.toneBadgeText, { color: colors.accent }]}>Tom: {briefing.tone}</Text>
                       </View>
                     )}
                   </View>
@@ -359,10 +372,10 @@ export default function StudioScreen() {
       {selectedBriefing && (
         <>
           <View style={styles.stepLabelRow}>
-            <View style={styles.stepIconBadge}>
+            <View style={[styles.stepIconBadge, { backgroundColor: colorAlpha.primary20 }]}>
               <Feather name="cpu" size={12} color={colors.primary} />
             </View>
-            <Text style={styles.stepLabel}>3. Gerar roteiros com IA</Text>
+            <Text style={[styles.stepLabel, { color: colors.textSecondary }]}>3. Gerar roteiros com IA</Text>
           </View>
           <Pressable
             onPress={handleGenerate}
@@ -378,19 +391,19 @@ export default function StudioScreen() {
               {generating ? (
                 <View style={styles.generatingRow}>
                   <ActivityIndicator size="small" color={colors.text} />
-                  <Text style={styles.generateButtonText}>Gerando roteiros...</Text>
+                  <Text style={[styles.generateButtonText, { color: colors.text }]}>Gerando roteiros...</Text>
                 </View>
               ) : (
                 <View style={styles.generatingRow}>
                   <Feather name="zap" size={20} color={colors.text} />
-                  <Text style={styles.generateButtonText}>
+                  <Text style={[styles.generateButtonText, { color: colors.text }]}>
                     Gerar Roteiros (3x3x2)
                   </Text>
                 </View>
               )}
             </LinearGradient>
           </Pressable>
-          <Text style={styles.generateHint}>
+          <Text style={[styles.generateHint, { color: colors.textMuted }]}>
             A IA gera 3 ganchos × 3 corpos × 2 CTAs = ate 18 combinacoes unicas
           </Text>
         </>
@@ -399,8 +412,8 @@ export default function StudioScreen() {
       {/* Roteiros gerados */}
       {scripts.length > 0 && (
         <>
-          <View style={styles.sectionDivider} />
-          <Text style={styles.sectionTitle}>
+          <View style={[styles.sectionDivider, { backgroundColor: colors.border }]} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             {scripts.length} Roteiros Gerados
           </Text>
           {scripts.map(renderScriptCard)}
@@ -419,28 +432,28 @@ export default function StudioScreen() {
       <ScrollView contentContainerStyle={styles.tabContent}>
         {libraryScripts.length === 0 ? (
           <View style={styles.emptyState}>
-            <View style={styles.emptyIconCircle}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Feather name="layers" size={32} color={colors.textMuted} />
             </View>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               Sua biblioteca esta vazia.
             </Text>
-            <Text style={styles.emptySubtext}>
+            <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>
               Gere roteiros na aba "Gerar" para comecar.
             </Text>
           </View>
         ) : (
           <>
             {/* Stats Row */}
-            <View style={styles.libraryStats}>
+            <View style={[styles.libraryStats, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={styles.libraryStat}>
                 <View style={[styles.libraryStatIcon, { backgroundColor: colorAlpha.primary20 }]}>
                   <Feather name="layers" size={16} color={colors.primary} />
                 </View>
-                <Text style={styles.libraryStatValue}>{libraryScripts.length}</Text>
-                <Text style={styles.libraryStatLabel}>Total</Text>
+                <Text style={[styles.libraryStatValue, { color: colors.text }]}>{libraryScripts.length}</Text>
+                <Text style={[styles.libraryStatLabel, { color: colors.textSecondary }]}>Total</Text>
               </View>
-              <View style={styles.libraryStatDivider} />
+              <View style={[styles.libraryStatDivider, { backgroundColor: colors.border }]} />
               <View style={styles.libraryStat}>
                 <View style={[styles.libraryStatIcon, { backgroundColor: colorAlpha.success20 }]}>
                   <Feather name="check-circle" size={16} color={colors.success} />
@@ -448,9 +461,9 @@ export default function StudioScreen() {
                 <Text style={[styles.libraryStatValue, { color: colors.success }]}>
                   {unused.length}
                 </Text>
-                <Text style={styles.libraryStatLabel}>Disponiveis</Text>
+                <Text style={[styles.libraryStatLabel, { color: colors.textSecondary }]}>Disponiveis</Text>
               </View>
-              <View style={styles.libraryStatDivider} />
+              <View style={[styles.libraryStatDivider, { backgroundColor: colors.border }]} />
               <View style={styles.libraryStat}>
                 <View style={[styles.libraryStatIcon, { backgroundColor: colorAlpha.muted20 }]}>
                   <Feather name="archive" size={16} color={colors.textMuted} />
@@ -458,20 +471,20 @@ export default function StudioScreen() {
                 <Text style={[styles.libraryStatValue, { color: colors.textMuted }]}>
                   {used.length}
                 </Text>
-                <Text style={styles.libraryStatLabel}>Usados</Text>
+                <Text style={[styles.libraryStatLabel, { color: colors.textSecondary }]}>Usados</Text>
               </View>
             </View>
 
             {unused.length > 0 && (
               <>
-                <Text style={styles.sectionTitle}>Disponiveis ({unused.length})</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Disponiveis ({unused.length})</Text>
                 {unused.map(renderScriptCard)}
               </>
             )}
 
             {used.length > 0 && (
               <>
-                <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text, marginTop: spacing.lg }]}>
                   Usados ({used.length})
                 </Text>
                 {used.map(renderScriptCard)}
@@ -492,13 +505,13 @@ export default function StudioScreen() {
       presentationStyle="pageSheet"
       onRequestClose={() => setScriptModalVisible(false)}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
+      <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
           <View style={styles.modalTitleRow}>
             <Feather name="file-text" size={18} color={colors.primary} />
-            <Text style={styles.modalTitle}>Roteiro Completo</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Roteiro Completo</Text>
           </View>
-          <Pressable style={styles.modalCloseBtn} onPress={() => setScriptModalVisible(false)}>
+          <Pressable style={[styles.modalCloseBtn, { backgroundColor: colors.surface }]} onPress={() => setScriptModalVisible(false)}>
             <Feather name="x" size={18} color={colors.textSecondary} />
           </Pressable>
         </View>
@@ -514,7 +527,7 @@ export default function StudioScreen() {
                 <Text style={[styles.modalSectionLabel, { color: colors.primary }]}>GANCHO</Text>
               </View>
               <View style={[styles.modalSectionBody, { borderLeftColor: colors.primary }]}>
-                <Text style={styles.modalSectionText}>{selectedFullScript.hook}</Text>
+                <Text style={[styles.modalSectionText, { color: colors.text }]}>{selectedFullScript.hook}</Text>
               </View>
             </View>
 
@@ -527,7 +540,7 @@ export default function StudioScreen() {
                 <Text style={[styles.modalSectionLabel, { color: colors.info }]}>CORPO</Text>
               </View>
               <View style={[styles.modalSectionBody, { borderLeftColor: colors.info }]}>
-                <Text style={styles.modalSectionText}>{selectedFullScript.body}</Text>
+                <Text style={[styles.modalSectionText, { color: colors.text }]}>{selectedFullScript.body}</Text>
               </View>
             </View>
 
@@ -540,11 +553,11 @@ export default function StudioScreen() {
                 <Text style={[styles.modalSectionLabel, { color: colors.accent }]}>CTA</Text>
               </View>
               <View style={[styles.modalSectionBody, { borderLeftColor: colors.accent }]}>
-                <Text style={styles.modalSectionText}>{selectedFullScript.cta}</Text>
+                <Text style={[styles.modalSectionText, { color: colors.text }]}>{selectedFullScript.cta}</Text>
               </View>
             </View>
 
-            <View style={styles.modalDivider} />
+            <View style={[styles.modalDivider, { backgroundColor: colors.border }]} />
 
             {/* Roteiro completo */}
             <View style={styles.modalSection}>
@@ -552,10 +565,10 @@ export default function StudioScreen() {
                 <View style={[styles.modalSectionIconBadge, { backgroundColor: colorAlpha.muted20 }]}>
                   <Feather name="code" size={12} color={colors.textSecondary} />
                 </View>
-                <Text style={styles.modalSectionLabel}>ROTEIRO COMPLETO</Text>
+                <Text style={[styles.modalSectionLabel, { color: colors.textMuted }]}>ROTEIRO COMPLETO</Text>
               </View>
-              <View style={styles.modalFullScriptBlock}>
-                <Text style={styles.modalFullScript}>{selectedFullScript.fullScript}</Text>
+              <View style={[styles.modalFullScriptBlock, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.modalFullScript, { color: colors.text }]}>{selectedFullScript.fullScript}</Text>
               </View>
             </View>
 
@@ -574,7 +587,7 @@ export default function StudioScreen() {
                   style={styles.modalActionButton}
                 >
                   <Feather name="copy" size={16} color={colors.text} />
-                  <Text style={styles.modalActionText}>Copiar Roteiro</Text>
+                  <Text style={[styles.modalActionText, { color: colors.text }]}>Copiar Roteiro</Text>
                 </LinearGradient>
               </Pressable>
               {!selectedFullScript.isUsed && (
@@ -600,7 +613,7 @@ export default function StudioScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -608,10 +621,10 @@ export default function StudioScreen() {
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
-        <Pressable style={styles.retryButton} onPress={fetchBrands}>
-          <Text style={styles.retryText}>Tentar novamente</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
+        <Pressable style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={fetchBrands}>
+          <Text style={[styles.retryText, { color: colors.text }]}>Tentar novamente</Text>
         </Pressable>
       </View>
     );
@@ -620,10 +633,10 @@ export default function StudioScreen() {
   // ─── Main Render ───
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Tab Switcher — pill segmented control */}
-      <View style={styles.tabBarWrapper}>
-        <View style={styles.tabBar}>
+      <View style={[styles.tabBarWrapper, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <View style={[styles.tabBar, { backgroundColor: colors.surface }]}>
           <Pressable style={styles.tabItemWrapper} onPress={() => setTab('generate')}>
             {tab === 'generate' ? (
               <LinearGradient
@@ -633,12 +646,12 @@ export default function StudioScreen() {
                 style={styles.tabItemActive}
               >
                 <Feather name="cpu" size={14} color={colors.text} />
-                <Text style={styles.tabTextActive}>Gerar</Text>
+                <Text style={[styles.tabTextActive, { color: colors.text }]}>Gerar</Text>
               </LinearGradient>
             ) : (
               <View style={styles.tabItemInactive}>
                 <Feather name="cpu" size={14} color={colors.textMuted} />
-                <Text style={styles.tabText}>Gerar</Text>
+                <Text style={[styles.tabText, { color: colors.textMuted }]}>Gerar</Text>
               </View>
             )}
           </Pressable>
@@ -652,12 +665,12 @@ export default function StudioScreen() {
                 style={styles.tabItemActive}
               >
                 <Feather name="layers" size={14} color={colors.text} />
-                <Text style={styles.tabTextActive}>Biblioteca</Text>
+                <Text style={[styles.tabTextActive, { color: colors.text }]}>Biblioteca</Text>
               </LinearGradient>
             ) : (
               <View style={styles.tabItemInactive}>
                 <Feather name="layers" size={14} color={colors.textMuted} />
-                <Text style={styles.tabText}>Biblioteca</Text>
+                <Text style={[styles.tabText, { color: colors.textMuted }]}>Biblioteca</Text>
               </View>
             )}
           </Pressable>
@@ -676,16 +689,13 @@ export default function StudioScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
-    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorText: {
-    color: colors.danger,
     fontSize: fontSize.md,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
@@ -694,11 +704,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.primary,
     borderRadius: borderRadius.sm,
   },
   retryText: {
-    color: colors.text,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
@@ -707,13 +715,10 @@ const styles = StyleSheet.create({
   tabBarWrapper: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     padding: 4,
     gap: 4,
@@ -738,12 +743,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   tabText: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
     fontWeight: '500',
   },
   tabTextActive: {
-    color: colors.text,
     fontSize: fontSize.sm,
     fontWeight: '700',
   },
@@ -766,12 +769,10 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: borderRadius.xs,
-    backgroundColor: colorAlpha.primary20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -787,40 +788,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   brandChipActive: {
     borderWidth: 0,
   },
   brandChipText: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: '500',
-  },
-  brandChipTextActive: {
-    color: colors.text,
-    fontWeight: '600',
   },
 
   // Briefing Cards
   briefingCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.sm,
     overflow: 'hidden',
     flexDirection: 'row',
   },
-  briefingCardActive: {
-    borderColor: colors.primary,
-    backgroundColor: colorAlpha.primary10,
-  },
   briefingAccentBorder: {
     width: 3,
-    backgroundColor: colors.primary,
     borderTopLeftRadius: borderRadius.md,
     borderBottomLeftRadius: borderRadius.md,
   },
@@ -835,27 +822,23 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   briefingTitle: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: '600',
     flex: 1,
     marginRight: spacing.sm,
   },
   briefingDesc: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     lineHeight: 20,
   },
   toneBadge: {
     marginTop: spacing.sm,
     alignSelf: 'flex-start',
-    backgroundColor: colorAlpha.accent20,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
   },
   toneBadgeText: {
-    color: colors.accent,
     fontSize: fontSize.xs,
     fontWeight: '600',
   },
@@ -868,7 +851,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   generateButtonText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: '700',
   },
@@ -878,7 +860,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   generateHint: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     textAlign: 'center',
     marginTop: spacing.sm,
@@ -887,11 +868,9 @@ const styles = StyleSheet.create({
   // Section
   sectionDivider: {
     height: layout.dividerHeight,
-    backgroundColor: colors.border,
     marginVertical: spacing.lg,
   },
   sectionTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: '700',
     marginBottom: spacing.md,
@@ -899,26 +878,19 @@ const styles = StyleSheet.create({
 
   // Script Card
   scriptCard: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.sm,
     overflow: 'hidden',
     flexDirection: 'row',
   },
   scriptCardAccent: {
     width: 3,
-    backgroundColor: colors.primary,
   },
   scriptCardInner: {
     flex: 1,
     padding: spacing.md,
     paddingBottom: spacing.sm,
-  },
-  scriptCardUsed: {
-    opacity: 0.5,
-    borderColor: colorAlpha.muted40,
   },
   scriptHeader: {
     flexDirection: 'row',
@@ -937,7 +909,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   hookText: {
-    color: colors.primaryLight,
     fontSize: fontSize.md,
     fontWeight: '700',
     flex: 1,
@@ -946,18 +917,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: colorAlpha.muted30,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
   },
   usedBadgeText: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     fontWeight: '600',
   },
   bodyPreview: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     lineHeight: 20,
     marginBottom: spacing.xs,
@@ -969,7 +937,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   ctaText: {
-    color: colors.accent,
     fontSize: fontSize.sm,
     fontWeight: '600',
     flex: 1,
@@ -988,17 +955,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
   },
-  copyButton: {
-    backgroundColor: colorAlpha.primary20,
-  },
-  copyButtonDone: {
-    backgroundColor: colorAlpha.success20,
-  },
-  useButton: {
-    backgroundColor: colorAlpha.success20,
-  },
   actionButtonText: {
-    color: colors.primary,
     fontSize: fontSize.xs,
     fontWeight: '600',
   },
@@ -1006,10 +963,8 @@ const styles = StyleSheet.create({
   // Library Stats
   libraryStats: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.lg,
     alignItems: 'center',
@@ -1028,18 +983,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   libraryStatValue: {
-    color: colors.text,
     fontSize: fontSize.xl,
     fontWeight: '700',
   },
   libraryStatLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
   },
   libraryStatDivider: {
     width: layout.dividerHeight,
     height: layout.avatarSm,
-    backgroundColor: colors.border,
   },
 
   // Empty State
@@ -1052,21 +1004,17 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
     textAlign: 'center',
     fontWeight: '500',
   },
   emptySubtext: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
     textAlign: 'center',
   },
@@ -1074,7 +1022,6 @@ const styles = StyleSheet.create({
   // Modal
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -1082,7 +1029,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   modalTitleRow: {
     flexDirection: 'row',
@@ -1090,7 +1036,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   modalTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: '700',
   },
@@ -1098,7 +1043,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1123,7 +1067,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalSectionLabel: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     fontWeight: '700',
     letterSpacing: 1,
@@ -1134,25 +1077,20 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   modalSectionText: {
-    color: colors.text,
     fontSize: fontSize.md,
     lineHeight: 24,
   },
   modalDivider: {
     height: layout.dividerHeight,
-    backgroundColor: colors.border,
     marginVertical: spacing.md,
   },
   modalFullScriptBlock: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     overflow: 'hidden',
   },
   modalFullScript: {
-    color: colors.text,
     fontSize: fontSize.md,
     lineHeight: 26,
     fontFamily: 'monospace',
@@ -1171,7 +1109,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   modalActionText: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: '600',
   },

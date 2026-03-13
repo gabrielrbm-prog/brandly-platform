@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,15 +15,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { financialApi } from '@/lib/api';
 import {
   borderRadius,
-  colorAlpha,
-  colors,
   fontSize,
   fontWeight,
   layout,
-  shadows,
   spacing,
 } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedListItem from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 
@@ -52,37 +50,6 @@ interface Transaction {
 
 type FeatherIconName = keyof typeof Feather.glyphMap;
 
-const TYPE_CONFIG: Record<string, { icon: FeatherIconName; color: string; bg: string }> = {
-  video: { icon: 'film', color: colors.primary, bg: colorAlpha.primary15 },
-  commission: { icon: 'trending-up', color: colors.success, bg: colorAlpha.success10 },
-  bonus: { icon: 'award', color: colors.accent, bg: colorAlpha.accent10 },
-  withdrawal: { icon: 'arrow-down-circle', color: colors.info, bg: colorAlpha.info10 },
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  completed: colors.success,
-  pending: colors.warning,
-  failed: colors.danger,
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  completed: 'Concluido',
-  pending: 'Pendente',
-  failed: 'Falhou',
-};
-
-const EARNINGS_CONFIG: Array<{
-  key: keyof Omit<EarningsData, 'total'>;
-  label: string;
-  icon: FeatherIconName;
-  color: string;
-  bg: string;
-}> = [
-  { key: 'videos', label: 'Videos', icon: 'film', color: colors.primary, bg: colorAlpha.primary15 },
-  { key: 'commissions', label: 'Comissoes', icon: 'trending-up', color: colors.success, bg: colorAlpha.success10 },
-  { key: 'bonuses', label: 'Bonus', icon: 'award', color: colors.accent, bg: colorAlpha.accent10 },
-];
-
 function formatCurrency(value: number): string {
   return `R$ ${value.toFixed(2).replace('.', ',')}`;
 }
@@ -94,6 +61,7 @@ function formatDate(dateStr: string): string {
 
 export default function FinancialScreen() {
   const { user } = useAuth();
+  const { colors, colorAlpha, shadows } = useTheme();
 
   const [balance, setBalance] = useState<BalanceData | null>(null);
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
@@ -106,6 +74,38 @@ export default function FinancialScreen() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [pixKey, setPixKey] = useState('');
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+
+  // Theme-dependent configs (recomputed when theme changes)
+  const TYPE_CONFIG = useMemo<Record<string, { icon: FeatherIconName; color: string; bg: string }>>(() => ({
+    video: { icon: 'film', color: colors.primary, bg: colorAlpha.primary15 },
+    commission: { icon: 'trending-up', color: colors.success, bg: colorAlpha.success10 },
+    bonus: { icon: 'award', color: colors.accent, bg: colorAlpha.accent10 },
+    withdrawal: { icon: 'arrow-down-circle', color: colors.info, bg: colorAlpha.info10 },
+  }), [colors, colorAlpha]);
+
+  const STATUS_COLORS = useMemo<Record<string, string>>(() => ({
+    completed: colors.success,
+    pending: colors.warning,
+    failed: colors.danger,
+  }), [colors]);
+
+  const STATUS_LABELS: Record<string, string> = {
+    completed: 'Concluido',
+    pending: 'Pendente',
+    failed: 'Falhou',
+  };
+
+  const EARNINGS_CONFIG = useMemo<Array<{
+    key: keyof Omit<EarningsData, 'total'>;
+    label: string;
+    icon: FeatherIconName;
+    color: string;
+    bg: string;
+  }>>(() => [
+    { key: 'videos', label: 'Videos', icon: 'film', color: colors.primary, bg: colorAlpha.primary15 },
+    { key: 'commissions', label: 'Comissoes', icon: 'trending-up', color: colors.success, bg: colorAlpha.success10 },
+    { key: 'bonuses', label: 'Bonus', icon: 'award', color: colors.accent, bg: colorAlpha.accent10 },
+  ], [colors, colorAlpha]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -166,7 +166,7 @@ export default function FinancialScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { padding: spacing.md, gap: spacing.md }]}>
+      <View style={[styles.container, { backgroundColor: colors.background, padding: spacing.md, gap: spacing.md }]}>
         <SkeletonCard />
         <SkeletonCard />
         <SkeletonCard />
@@ -188,7 +188,7 @@ export default function FinancialScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
@@ -202,16 +202,22 @@ export default function FinancialScreen() {
       <AnimatedListItem index={0}>
         <LinearGradient
           colors={['#1E1040', '#121212']}
-          style={styles.balanceCard}
+          style={[
+            styles.balanceCard,
+            {
+              borderColor: colorAlpha.primary20,
+              ...shadows.glowPrimarySubtle,
+            },
+          ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
           {/* Decorative glow blob */}
-          <View style={styles.balanceGlowBlob} />
+          <View style={[styles.balanceGlowBlob, { backgroundColor: colorAlpha.primary10 }]} />
 
           <View style={styles.balanceTopRow}>
             <View>
-              <Text style={styles.balanceLabel}>Saldo Disponivel</Text>
+              <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>Saldo Disponivel</Text>
               <Text
                 style={[
                   styles.balanceAmount,
@@ -226,33 +232,41 @@ export default function FinancialScreen() {
                 {formatCurrency(balance?.available ?? 0)}
               </Text>
             </View>
-            <View style={styles.balanceIconCircle}>
+            <View
+              style={[
+                styles.balanceIconCircle,
+                {
+                  backgroundColor: colorAlpha.primary15,
+                  borderColor: colorAlpha.primary30,
+                },
+              ]}
+            >
               <Feather name="credit-card" size={22} color={colors.primaryLight} />
             </View>
           </View>
 
           {/* Secondary stats row */}
-          <View style={styles.balanceStatsRow}>
+          <View style={[styles.balanceStatsRow, { backgroundColor: colorAlpha.white10 }]}>
             <View style={styles.balanceStatItem}>
               <Feather name="clock" size={12} color={colors.warning} />
-              <Text style={styles.balanceStatLabel}>Pendente</Text>
-              <Text style={styles.balanceStatValue}>
+              <Text style={[styles.balanceStatLabel, { color: colors.textMuted }]}>Pendente</Text>
+              <Text style={[styles.balanceStatValue, { color: colors.textSecondary }]}>
                 {formatCurrency(balance?.pending ?? 0)}
               </Text>
             </View>
-            <View style={styles.balanceStatDivider} />
+            <View style={[styles.balanceStatDivider, { backgroundColor: colors.border }]} />
             <View style={styles.balanceStatItem}>
               <Feather name="arrow-up-circle" size={12} color={colors.info} />
-              <Text style={styles.balanceStatLabel}>Sacado</Text>
-              <Text style={styles.balanceStatValue}>
+              <Text style={[styles.balanceStatLabel, { color: colors.textMuted }]}>Sacado</Text>
+              <Text style={[styles.balanceStatValue, { color: colors.textSecondary }]}>
                 {formatCurrency(balance?.withdrawn ?? 0)}
               </Text>
             </View>
-            <View style={styles.balanceStatDivider} />
+            <View style={[styles.balanceStatDivider, { backgroundColor: colors.border }]} />
             <View style={styles.balanceStatItem}>
               <Feather name="bar-chart-2" size={12} color={colors.textSecondary} />
-              <Text style={styles.balanceStatLabel}>Total</Text>
-              <Text style={styles.balanceStatValue}>
+              <Text style={[styles.balanceStatLabel, { color: colors.textMuted }]}>Total</Text>
+              <Text style={[styles.balanceStatValue, { color: colors.textSecondary }]}>
                 {formatCurrency(balance?.total ?? 0)}
               </Text>
             </View>
@@ -266,21 +280,29 @@ export default function FinancialScreen() {
             >
               <LinearGradient
                 colors={[colors.accent, '#D97706']}
-                style={styles.withdrawButton}
+                style={[styles.withdrawButton, shadows.md]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
                 <Feather name="download" size={16} color={colors.background} />
-                <Text style={styles.withdrawButtonText}>Solicitar Saque</Text>
+                <Text style={[styles.withdrawButtonText, { color: colors.background }]}>Solicitar Saque</Text>
               </LinearGradient>
             </Pressable>
           ) : (
             <View style={styles.withdrawForm}>
               {/* Amount input */}
-              <View style={[styles.inputWrapper, isInsufficientFunds && styles.inputWrapperError]}>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  {
+                    backgroundColor: colorAlpha.white10,
+                    borderColor: isInsufficientFunds ? colors.danger : colors.border,
+                  },
+                ]}
+              >
                 <Feather name="dollar-sign" size={16} color={colors.textMuted} />
                 <TextInput
-                  style={styles.formInput}
+                  style={[styles.formInput, { color: colors.text }]}
                   placeholder="Valor (R$)"
                   placeholderTextColor={colors.textMuted}
                   keyboardType="numeric"
@@ -291,15 +313,23 @@ export default function FinancialScreen() {
               {isInsufficientFunds && (
                 <View style={styles.validationRow}>
                   <Feather name="alert-circle" size={12} color={colors.danger} />
-                  <Text style={styles.validationError}>Saldo insuficiente</Text>
+                  <Text style={[styles.validationError, { color: colors.danger }]}>Saldo insuficiente</Text>
                 </View>
               )}
 
               {/* PIX key input */}
-              <View style={styles.inputWrapper}>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  {
+                    backgroundColor: colorAlpha.white10,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
                 <Feather name="key" size={16} color={colors.textMuted} />
                 <TextInput
-                  style={styles.formInput}
+                  style={[styles.formInput, { color: colors.text }]}
                   placeholder="Chave PIX"
                   placeholderTextColor={colors.textMuted}
                   value={pixKey}
@@ -325,16 +355,22 @@ export default function FinancialScreen() {
                     ) : (
                       <>
                         <Feather name="check" size={16} color={colors.background} />
-                        <Text style={styles.withdrawSubmitText}>Confirmar</Text>
+                        <Text style={[styles.withdrawSubmitText, { color: colors.background }]}>Confirmar</Text>
                       </>
                     )}
                   </LinearGradient>
                 </Pressable>
                 <Pressable
-                  style={styles.withdrawCancel}
+                  style={[
+                    styles.withdrawCancel,
+                    {
+                      backgroundColor: colorAlpha.muted20,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   onPress={() => setShowWithdrawForm(false)}
                 >
-                  <Text style={styles.withdrawCancelText}>Cancelar</Text>
+                  <Text style={[styles.withdrawCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
                 </Pressable>
               </View>
             </View>
@@ -344,10 +380,19 @@ export default function FinancialScreen() {
 
       {/* ─── Earnings Breakdown Card ─── */}
       <AnimatedListItem index={1}>
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              ...shadows.sm,
+            },
+          ]}
+        >
           <View style={styles.cardTitleRow}>
             <Feather name="pie-chart" size={16} color={colors.primary} />
-            <Text style={styles.cardTitle}>Ganhos deste mes</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Ganhos deste mes</Text>
           </View>
 
           {EARNINGS_CONFIG.map((cfg, i) => {
@@ -363,14 +408,24 @@ export default function FinancialScreen() {
                 </View>
                 <View style={styles.earningsItemContent}>
                   <View style={styles.earningsItemTop}>
-                    <Text style={styles.earningsLabel}>{cfg.label}</Text>
+                    <Text style={[styles.earningsLabel, { color: colors.textSecondary }]}>{cfg.label}</Text>
                     <View style={styles.earningsRight}>
-                      <Text style={styles.earningsValue}>{formatCurrency(amount)}</Text>
-                      <Text style={styles.earningsCount}>{count}x</Text>
+                      <Text style={[styles.earningsValue, { color: colors.text }]}>{formatCurrency(amount)}</Text>
+                      <Text
+                        style={[
+                          styles.earningsCount,
+                          {
+                            color: colors.textMuted,
+                            backgroundColor: colorAlpha.muted20,
+                          },
+                        ]}
+                      >
+                        {count}x
+                      </Text>
                     </View>
                   </View>
                   {/* Mini progress bar */}
-                  <View style={styles.earningsMiniBarBg}>
+                  <View style={[styles.earningsMiniBarBg, { backgroundColor: colorAlpha.muted20 }]}>
                     <View
                       style={[
                         styles.earningsMiniBarFill,
@@ -383,12 +438,12 @@ export default function FinancialScreen() {
             );
           })}
 
-          <View style={styles.earningsTotalRow}>
+          <View style={[styles.earningsTotalRow, { borderTopColor: colors.border }]}>
             <View style={styles.earningsTotalLeft}>
               <Feather name="trending-up" size={16} color={colors.success} />
-              <Text style={styles.earningsTotalLabel}>Total do mes</Text>
+              <Text style={[styles.earningsTotalLabel, { color: colors.text }]}>Total do mes</Text>
             </View>
-            <Text style={styles.earningsTotalValue}>
+            <Text style={[styles.earningsTotalValue, { color: colors.success }]}>
               {formatCurrency(earnings?.total ?? 0)}
             </Text>
           </View>
@@ -397,16 +452,25 @@ export default function FinancialScreen() {
 
       {/* ─── Recent Transactions ─── */}
       <AnimatedListItem index={2}>
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              ...shadows.sm,
+            },
+          ]}
+        >
           <View style={styles.cardTitleRow}>
             <Feather name="list" size={16} color={colors.primary} />
-            <Text style={styles.cardTitle}>Transacoes recentes</Text>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Transacoes recentes</Text>
           </View>
 
           {transactions.length === 0 ? (
             <View style={styles.emptyTxContainer}>
               <Feather name="inbox" size={28} color={colors.textMuted} />
-              <Text style={styles.emptyText}>Nenhuma transacao encontrada.</Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nenhuma transacao encontrada.</Text>
             </View>
           ) : (
             transactions.map((tx, index) => {
@@ -422,18 +486,18 @@ export default function FinancialScreen() {
               return (
                 <View
                   key={tx.id}
-                  style={[styles.txRow, !isLast && styles.txRowBorder]}
+                  style={[styles.txRow, !isLast && styles.txRowBorder, !isLast && { borderBottomColor: colors.border }]}
                 >
                   <View style={[styles.txIconCircle, { backgroundColor: cfg.bg }]}>
                     <Feather name={cfg.icon} size={16} color={cfg.color} />
                   </View>
                   <View style={styles.txInfo}>
-                    <Text style={styles.txDescription} numberOfLines={1}>
+                    <Text style={[styles.txDescription, { color: colors.text }]} numberOfLines={1}>
                       {tx.description}
                     </Text>
                     <View style={styles.txDateRow}>
                       <Feather name="calendar" size={10} color={colors.textMuted} />
-                      <Text style={styles.txDate}>{formatDate(tx.date)}</Text>
+                      <Text style={[styles.txDate, { color: colors.textMuted }]}>{formatDate(tx.date)}</Text>
                     </View>
                   </View>
                   <View style={styles.txRight}>
@@ -472,7 +536,6 @@ export default function FinancialScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     padding: spacing.md,
@@ -484,10 +547,8 @@ const styles = StyleSheet.create({
   balanceCard: {
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colorAlpha.primary20,
     padding: spacing.lg,
     overflow: 'hidden',
-    ...shadows.glowPrimarySubtle,
   },
   balanceGlowBlob: {
     position: 'absolute',
@@ -496,7 +557,6 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: colorAlpha.primary10,
   },
   balanceTopRow: {
     flexDirection: 'row',
@@ -505,7 +565,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   balanceLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
     letterSpacing: 0.5,
@@ -521,17 +580,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colorAlpha.primary15,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colorAlpha.primary30,
   },
   balanceStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.lg,
-    backgroundColor: colorAlpha.white10,
     borderRadius: borderRadius.md,
     padding: spacing.sm,
   },
@@ -543,14 +599,11 @@ const styles = StyleSheet.create({
   balanceStatDivider: {
     width: 1,
     height: 28,
-    backgroundColor: colors.border,
   },
   balanceStatLabel: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   balanceStatValue: {
-    color: colors.textSecondary,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
   },
@@ -561,10 +614,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    ...shadows.md,
   },
   withdrawButtonText: {
-    color: colors.background,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
   },
@@ -574,19 +625,13 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colorAlpha.white10,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
   },
-  inputWrapperError: {
-    borderColor: colors.danger,
-  },
   formInput: {
     flex: 1,
-    color: colors.text,
     fontSize: fontSize.md,
     paddingVertical: spacing.md,
   },
@@ -597,7 +642,6 @@ const styles = StyleSheet.create({
     marginTop: -spacing.xs,
   },
   validationError: {
-    color: colors.danger,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.medium,
   },
@@ -618,34 +662,27 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   withdrawSubmitText: {
-    color: colors.background,
     fontSize: fontSize.md,
     fontWeight: fontWeight.bold,
   },
   withdrawCancel: {
     flex: 1,
-    backgroundColor: colorAlpha.muted20,
     borderRadius: borderRadius.md,
     height: layout.buttonHeight,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
   },
   withdrawCancelText: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
   },
 
   // ─── Generic Card ───
   card: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
-    ...shadows.sm,
   },
   cardTitleRow: {
     flexDirection: 'row',
@@ -654,7 +691,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cardTitle: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
   },
@@ -684,7 +720,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   earningsLabel: {
-    color: colors.textSecondary,
     fontSize: fontSize.md,
   },
   earningsRight: {
@@ -693,22 +728,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   earningsValue: {
-    color: colors.text,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
   },
   earningsCount: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.normal,
-    backgroundColor: colorAlpha.muted20,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.xs,
     paddingVertical: 1,
   },
   earningsMiniBarBg: {
     height: 3,
-    backgroundColor: colorAlpha.muted20,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
@@ -723,7 +754,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   earningsTotalLeft: {
     flexDirection: 'row',
@@ -731,12 +761,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   earningsTotalLabel: {
-    color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
   },
   earningsTotalValue: {
-    color: colors.success,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
   },
@@ -748,7 +776,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   emptyText: {
-    color: colors.textMuted,
     fontSize: fontSize.sm,
     textAlign: 'center',
   },
@@ -760,7 +787,6 @@ const styles = StyleSheet.create({
   },
   txRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   txIconCircle: {
     width: 40,
@@ -774,7 +800,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   txDescription: {
-    color: colors.text,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
   },
@@ -784,7 +809,6 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   txDate: {
-    color: colors.textMuted,
     fontSize: fontSize.xs,
   },
   txRight: {

@@ -1,5 +1,6 @@
 // ============================================
 // BRANDLY DESIGN SYSTEM — Tokens
+// Alinhado com Brand Guidelines (Wheeler/Kapferer)
 // ============================================
 
 // ─── Colors ───
@@ -41,7 +42,35 @@ export const colors = {
 
   // Overlays
   overlay: 'rgba(0, 0, 0, 0.6)',
-  highlight: 'rgba(124, 58, 237, 0.15)', // primary/15
+  overlayHeavy: 'rgba(0, 0, 0, 0.7)',
+  highlight: 'rgba(124, 58, 237, 0.15)',
+} as const;
+
+// ─── Color Opacity Tokens (evitar concatenacao de hex) ───
+
+export const colorAlpha = {
+  primary10: 'rgba(124, 58, 237, 0.10)',
+  primary15: 'rgba(124, 58, 237, 0.15)',
+  primary20: 'rgba(124, 58, 237, 0.20)',
+  primary25: 'rgba(124, 58, 237, 0.25)',
+  primary30: 'rgba(124, 58, 237, 0.30)',
+  accent10: 'rgba(245, 158, 11, 0.10)',
+  accent20: 'rgba(245, 158, 11, 0.20)',
+  success10: 'rgba(16, 185, 129, 0.10)',
+  success20: 'rgba(16, 185, 129, 0.20)',
+  danger10: 'rgba(239, 68, 68, 0.10)',
+  danger20: 'rgba(239, 68, 68, 0.20)',
+  warning10: 'rgba(245, 158, 11, 0.10)',
+  warning20: 'rgba(245, 158, 11, 0.20)',
+  info10: 'rgba(59, 130, 246, 0.10)',
+  info20: 'rgba(59, 130, 246, 0.20)',
+  cyan10: 'rgba(6, 182, 212, 0.10)',
+  cyan20: 'rgba(6, 182, 212, 0.20)',
+  muted20: 'rgba(107, 114, 128, 0.20)',
+  muted30: 'rgba(107, 114, 128, 0.30)',
+  muted40: 'rgba(107, 114, 128, 0.40)',
+  white10: 'rgba(255, 255, 255, 0.10)',
+  white20: 'rgba(255, 255, 255, 0.20)',
 } as const;
 
 // ─── Semantic Color Maps (para usar em componentes especificos) ───
@@ -182,9 +211,20 @@ export const layout = {
   tabBarHeight: 49,
   buttonHeight: 48,
   buttonHeightSm: 36,
+  buttonHeightLg: 56,
   inputHeight: 48,
   avatarSm: 32,
   avatarMd: 48,
   avatarLg: 80,
+  iconSm: 16,
+  iconMd: 24,
+  iconLg: 32,
+  iconXl: 40,
+  dividerHeight: 1,
+  progressBarSm: 4,
+  progressBarMd: 6,
+  progressBarLg: 8,
+  dotSm: 8,
+  dotMd: 10,
   maxContentWidth: 600,
 } as const;

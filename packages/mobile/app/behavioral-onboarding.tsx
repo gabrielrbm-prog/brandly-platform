@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { onboardingApi } from '@/lib/api';
 import type { OnboardingQuestion, CreatorDiagnostic } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
 
   // Progress
   progressContainer: {
-    height: 4,
+    height: layout.progressBarSm,
     backgroundColor: colors.surface,
     marginHorizontal: spacing.md,
     borderRadius: 2,
@@ -458,10 +458,10 @@ const styles = StyleSheet.create({
   },
   optionCardSelected: {
     borderColor: colors.primary,
-    backgroundColor: colors.primary + '1A',
+    backgroundColor: colorAlpha.primary10,
   },
   optionEmoji: {
-    fontSize: 22,
+    fontSize: fontSize.xl,
   },
   optionLabel: {
     flex: 1,
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
   swipeCardRight: {},
   swipeCardSelected: {
     borderColor: colors.primary,
-    backgroundColor: colors.primary + '1A',
+    backgroundColor: colorAlpha.primary10,
   },
   swipeLabel: {
     color: colors.text,
@@ -527,15 +527,15 @@ const styles = StyleSheet.create({
     maxWidth: '45%',
   },
   sliderTrack: {
-    height: 8,
+    height: layout.progressBarLg,
     backgroundColor: colors.surface,
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
     position: 'relative',
   },
   sliderFill: {
     height: '100%',
     backgroundColor: colors.primary,
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
   },
   sliderThumb: {
     position: 'absolute',
@@ -575,10 +575,10 @@ const styles = StyleSheet.create({
   },
   gridItemSelected: {
     borderColor: colors.primary,
-    backgroundColor: colors.primary + '1A',
+    backgroundColor: colorAlpha.primary10,
   },
   gridEmoji: {
-    fontSize: 28,
+    fontSize: fontSize['2xl'],
     marginBottom: spacing.xs,
   },
   gridLabel: {
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   confirmBtn: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    height: 48,
+    height: layout.buttonHeight,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.md,
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
   submitBtn: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    height: 56,
+    height: layout.buttonHeightLg,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { brandsApi, videosApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing, statusColors } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, layout, spacing, statusColors } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DailySummary {
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   progressBarBg: {
-    height: 8,
+    height: layout.progressBarLg,
     backgroundColor: colors.border,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.overlayHeavy,
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   brandOptionSelected: {
-    backgroundColor: colors.primary + '30',
+    backgroundColor: colorAlpha.primary30,
     borderColor: colors.primary,
   },
   brandOptionText: {
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   platformOptionSelected: {
-    backgroundColor: colors.primary + '30',
+    backgroundColor: colorAlpha.primary30,
     borderColor: colors.primary,
   },
   platformOptionText: {

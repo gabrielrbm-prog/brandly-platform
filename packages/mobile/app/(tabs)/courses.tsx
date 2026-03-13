@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { coursesApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
 
 interface Course {
   id: string;
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
 
   // Progress Card
   progressCard: {
-    backgroundColor: colors.primary + '1A',
+    backgroundColor: colorAlpha.primary10,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.primary,
@@ -240,8 +240,8 @@ const styles = StyleSheet.create({
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   progressTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
   progressPercent: { color: colors.primaryLight, fontSize: fontSize.xl, fontWeight: '800' },
-  progressTrack: { height: 8, backgroundColor: colors.surface, borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
+  progressTrack: { height: layout.progressBarLg, backgroundColor: colors.surface, borderRadius: borderRadius.xs, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: borderRadius.xs },
   certificateBanner: { marginTop: spacing.sm, alignItems: 'center' },
   certificateText: { color: colors.success, fontSize: fontSize.sm, fontWeight: '700' },
 
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     alignItems: 'center',
   },
-  emptyEmoji: { fontSize: 48, marginBottom: spacing.md },
+  emptyEmoji: { fontSize: fontSize.emoji, marginBottom: spacing.md },
   emptyText: { color: colors.text, fontSize: fontSize.lg, fontWeight: '600' },
   emptySubtext: { color: colors.textSecondary, fontSize: fontSize.sm, marginTop: spacing.xs },
 
@@ -266,10 +266,10 @@ const styles = StyleSheet.create({
   },
   courseHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   courseOrderBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary + '33',
+    width: layout.avatarSm,
+    height: layout.avatarSm,
+    borderRadius: layout.avatarSm / 2,
+    backgroundColor: colorAlpha.primary20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   courseMetaText: { color: colors.textMuted, fontSize: fontSize.xs },
   courseProgress: { color: colors.primaryLight, fontSize: fontSize.xs, fontWeight: '600' },
   courseArrow: { color: colors.textMuted, fontSize: fontSize.sm },
-  courseProgressTrack: { height: 4, backgroundColor: colors.surfaceLight, borderRadius: 2, marginTop: spacing.sm, overflow: 'hidden' },
+  courseProgressTrack: { height: layout.progressBarSm, backgroundColor: colors.surfaceLight, borderRadius: 2, marginTop: spacing.sm, overflow: 'hidden' },
   courseProgressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 2 },
 
   // Lessons
@@ -303,16 +303,16 @@ const styles = StyleSheet.create({
   },
   lessonBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
   lessonCheck: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: layout.iconMd,
+    height: layout.iconMd,
+    borderRadius: layout.iconMd / 2,
     borderWidth: 2,
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   lessonCheckCompleted: { backgroundColor: colors.success, borderColor: colors.success },
-  lessonCheckMark: { color: colors.text, fontSize: 12, fontWeight: '700' },
+  lessonCheckMark: { color: colors.text, fontSize: fontSize.xs, fontWeight: '700' },
   lessonInfo: { flex: 1 },
   lessonTitle: { color: colors.text, fontSize: fontSize.sm, fontWeight: '500' },
   lessonTitleCompleted: { color: colors.textMuted, textDecorationLine: 'line-through' },

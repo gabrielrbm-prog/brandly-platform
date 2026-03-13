@@ -12,7 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { onboardingApi } from '@/lib/api';
 import type { CreatorDiagnostic } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, layout, spacing } from '@/lib/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroEmoji: {
-    fontSize: 64,
+    fontSize: fontSize['6xl'],
     marginBottom: spacing.md,
   },
   heroTitle: {
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   cardEmoji: {
-    fontSize: 32,
+    fontSize: fontSize['3xl'],
     marginBottom: spacing.sm,
   },
   cardTitle: {
@@ -309,9 +309,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   strengthDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: layout.dotSm,
+    height: layout.dotSm,
+    borderRadius: borderRadius.xs,
   },
   strengthText: {
     flex: 1,
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   ctaBtn: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    height: 56,
+    height: layout.buttonHeightLg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryBtn: {
-    height: 48,
+    height: layout.buttonHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },

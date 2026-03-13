@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { networkApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, fontWeight as fw, levelColors, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, fontWeight as fw, layout, levelColors, spacing } from '@/lib/theme';
 
 interface NetworkStats {
   period: string;
@@ -293,8 +293,8 @@ const styles = StyleSheet.create({
   requirementRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
   reqLabel: { color: colors.textSecondary, fontSize: fontSize.sm },
   reqValue: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
-  progressTrack: { height: 6, backgroundColor: colors.surfaceLight, borderRadius: 3, marginTop: spacing.xs },
-  progressFill: { height: '100%', borderRadius: 3 },
+  progressTrack: { height: layout.progressBarMd, backgroundColor: colors.surfaceLight, borderRadius: layout.progressBarMd / 2, marginTop: spacing.xs },
+  progressFill: { height: '100%', borderRadius: layout.progressBarMd / 2 },
 
   // Stats row
   statsRow: {
@@ -309,12 +309,12 @@ const styles = StyleSheet.create({
   statItem: { flex: 1, alignItems: 'center' },
   statValue: { color: colors.text, fontSize: fontSize.md, fontWeight: '700' },
   statLabel: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs },
-  statDivider: { width: 1, height: 32, backgroundColor: colors.border },
+  statDivider: { width: layout.dividerHeight, height: layout.iconLg, backgroundColor: colors.border },
 
   // Bonuses
   bonusGrid: { gap: spacing.sm },
   bonusItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  bonusDot: { width: 10, height: 10, borderRadius: 5 },
+  bonusDot: { width: layout.dotMd, height: layout.dotMd, borderRadius: layout.dotMd / 2 },
   bonusLabel: { flex: 1, color: colors.textSecondary, fontSize: fontSize.sm },
   bonusValue: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
   bonusTotalRow: {
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   copyBtn: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.sm,
-    height: 40,
+    height: layout.iconXl,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -352,9 +352,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   memberAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: layout.iconXl,
+    height: layout.iconXl,
+    borderRadius: layout.iconXl / 2,
     borderWidth: 2,
     backgroundColor: colors.surfaceLight,
     alignItems: 'center',
@@ -364,5 +364,5 @@ const styles = StyleSheet.create({
   memberInfo: { flex: 1 },
   memberName: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   memberMeta: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusDot: { width: layout.dotSm, height: layout.dotSm, borderRadius: borderRadius.xs },
 });

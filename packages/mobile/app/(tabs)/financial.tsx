@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { financialApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface BalanceData {
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   withdrawButton: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    height: 48,
+    height: layout.buttonHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: fontSize.md,
     paddingHorizontal: spacing.md,
-    height: 48,
+    height: layout.buttonHeight,
   },
   validationError: {
     color: colors.danger,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    height: 48,
+    height: layout.buttonHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surfaceLight,
     borderRadius: borderRadius.md,
-    height: 48,
+    height: layout.buttonHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   txIcon: {
-    fontSize: 20,
+    fontSize: fontSize.lg,
     marginRight: spacing.sm,
   },
   txInfo: {

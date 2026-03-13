@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { socialApi, type SocialAccount, type ConnectResponse } from '@/lib/api';
-import { borderRadius, colors, fontSize, platformColors, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, layout, platformColors, spacing } from '@/lib/theme';
 
 const PLATFORM_CONFIG = {
   instagram: { label: 'Instagram', icon: '📸', color: platformColors.instagram },
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    height: 52,
+    height: layout.buttonHeightLg,
     gap: spacing.sm,
     marginBottom: spacing.lg,
   },
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
     gap: spacing.sm,
   },
-  emptyIcon: { fontSize: 48 },
+  emptyIcon: { fontSize: fontSize.emoji },
   emptyTitle: {
     color: colors.text,
     fontSize: fontSize.lg,
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  platformIcon: { fontSize: 28 },
+  platformIcon: { fontSize: fontSize['2xl'] },
   platformName: {
     color: colors.text,
     fontSize: fontSize.lg,
@@ -467,9 +467,9 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    backgroundColor: colors.primary + '22',
+    backgroundColor: colorAlpha.primary20,
     borderRadius: borderRadius.sm,
-    height: 40,
+    height: layout.iconXl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -482,9 +482,9 @@ const styles = StyleSheet.create({
   },
   disconnectButton: {
     flex: 1,
-    backgroundColor: colors.danger + '22',
+    backgroundColor: colorAlpha.danger20,
     borderRadius: borderRadius.sm,
-    height: 40,
+    height: layout.iconXl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: colors.overlayHeavy,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,

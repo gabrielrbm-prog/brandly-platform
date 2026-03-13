@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { brandsApi } from '@/lib/api';
-import { borderRadius, categoryColors, colors, fontSize, fontWeight as fw, spacing } from '@/lib/theme';
+import { borderRadius, categoryColors, colorAlpha, colors, fontSize, fontWeight as fw, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CATEGORIES = [
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionDivider: {
-    height: 1,
+    height: layout.dividerHeight,
     backgroundColor: colors.border,
     marginVertical: spacing.lg,
   },
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   myBrandCard: {
-    borderColor: colors.primary + '40',
+    borderColor: colorAlpha.primary25,
   },
   brandCardPressed: {
     opacity: 0.7,
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
   },
   slotsBarBg: {
-    height: 4,
+    height: layout.progressBarSm,
     backgroundColor: colors.border,
     borderRadius: borderRadius.full,
     overflow: 'hidden',

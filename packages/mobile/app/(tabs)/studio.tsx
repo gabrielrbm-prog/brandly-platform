@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { brandsApi, scriptsApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 // ─── Types ───
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
   },
   briefingCardActive: {
     borderColor: colors.primary,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: colorAlpha.primary10,
   },
   briefingTitle: {
     color: colors.text,
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
   toneBadge: {
     marginTop: spacing.sm,
     alignSelf: 'flex-start',
-    backgroundColor: colors.accent + '20',
+    backgroundColor: colorAlpha.accent20,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   generateButton: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    height: 52,
+    height: layout.buttonHeightLg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
 
   // Section
   sectionDivider: {
-    height: 1,
+    height: layout.dividerHeight,
     backgroundColor: colors.border,
     marginVertical: spacing.lg,
   },
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
   },
   scriptCardUsed: {
     opacity: 0.6,
-    borderColor: colors.textMuted + '40',
+    borderColor: colorAlpha.muted40,
   },
   scriptHeader: {
     flexDirection: 'row',
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   usedBadge: {
-    backgroundColor: colors.textMuted + '30',
+    backgroundColor: colorAlpha.muted30,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
@@ -765,10 +765,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   copyButton: {
-    backgroundColor: colors.primary + '20',
+    backgroundColor: colorAlpha.primary20,
   },
   useButton: {
-    backgroundColor: colors.success + '20',
+    backgroundColor: colorAlpha.success20,
   },
   actionButtonText: {
     color: colors.text,
@@ -802,8 +802,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   libraryStatDivider: {
-    width: 1,
-    height: 32,
+    width: layout.dividerHeight,
+    height: layout.avatarSm,
     backgroundColor: colors.border,
   },
 
@@ -867,7 +867,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   modalDivider: {
-    height: 1,
+    height: layout.dividerHeight,
     backgroundColor: colors.border,
     marginVertical: spacing.md,
   },
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxl,
   },
   modalActionButton: {
-    height: 48,
+    height: layout.buttonHeight,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',

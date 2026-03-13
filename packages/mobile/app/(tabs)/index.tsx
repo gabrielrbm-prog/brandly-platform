@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { dashboardApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DailyStats {
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   divider: {
-    height: 1,
+    height: layout.dividerHeight,
     backgroundColor: colors.border,
     marginVertical: spacing.md,
   },
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   progressBarBg: {
-    height: 8,
+    height: layout.progressBarLg,
     backgroundColor: colors.border,
     borderRadius: borderRadius.full,
     overflow: 'hidden',

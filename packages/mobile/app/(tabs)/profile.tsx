@@ -12,7 +12,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { networkApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ReferralData {
@@ -235,9 +235,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: layout.avatarLg,
+    height: layout.avatarLg,
+    borderRadius: layout.avatarLg / 2,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   levelBadge: {
     marginTop: spacing.sm,
-    backgroundColor: colors.primary + '33',
+    backgroundColor: colorAlpha.primary30,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -343,8 +343,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   statDivider: {
-    width: 1,
-    height: 32,
+    width: layout.dividerHeight,
+    height: layout.iconLg,
     backgroundColor: colors.border,
   },
 
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   menuIcon: {
-    fontSize: 20,
+    fontSize: fontSize.lg,
     marginRight: spacing.md,
   },
   menuLabel: {
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   logoutButton: {
     backgroundColor: colors.danger,
     borderRadius: borderRadius.md,
-    height: 48,
+    height: layout.buttonHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },

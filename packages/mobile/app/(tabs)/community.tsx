@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { communityApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, fontWeight as fw, medalColors, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, fontWeight as fw, layout, medalColors, spacing } from '@/lib/theme';
 
 interface RankingEntry {
   creatorId: string;
@@ -287,8 +287,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
   },
-  tabItemActive: { backgroundColor: colors.primary + '33' },
-  tabEmoji: { fontSize: 16 },
+  tabItemActive: { backgroundColor: colorAlpha.primary20 },
+  tabEmoji: { fontSize: fontSize.md },
   tabLabel: { color: colors.textMuted, fontSize: fontSize.sm, fontWeight: '600' },
   tabLabelActive: { color: colors.primaryLight },
 
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  filterBtnActive: { backgroundColor: colors.primary + '33', borderColor: colors.primary },
+  filterBtnActive: { backgroundColor: colorAlpha.primary20, borderColor: colors.primary },
   filterText: { color: colors.textMuted, fontSize: fontSize.xs, fontWeight: '600' },
   filterTextActive: { color: colors.primaryLight },
 
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     alignItems: 'center',
   },
-  emptyEmoji: { fontSize: 48, marginBottom: spacing.md },
+  emptyEmoji: { fontSize: fontSize.emoji, marginBottom: spacing.md },
   emptyText: { color: colors.text, fontSize: fontSize.md, fontWeight: '600', textAlign: 'center' },
   emptySubtext: { color: colors.textSecondary, fontSize: fontSize.sm, marginTop: spacing.xs, textAlign: 'center' },
 
@@ -336,11 +336,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   rankRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
-  rankPosition: { width: 32, alignItems: 'center' },
+  rankPosition: { width: layout.avatarSm, alignItems: 'center' },
   medal: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 28 / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   rankAvatar: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 36 / 2,
     backgroundColor: colors.surfaceLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  liveDot: { width: 10, height: 10, borderRadius: 5, marginTop: 5 },
+  liveDot: { width: layout.dotMd, height: layout.dotMd, borderRadius: layout.dotMd / 2, marginTop: 5 },
   liveInfo: { flex: 1 },
   liveTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
   liveInstructor: { color: colors.textSecondary, fontSize: fontSize.sm, marginTop: 2 },
@@ -383,10 +383,10 @@ const styles = StyleSheet.create({
   },
   caseHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
   caseAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary + '33',
+    width: layout.iconXl,
+    height: layout.iconXl,
+    borderRadius: layout.iconXl / 2,
+    backgroundColor: colorAlpha.primary20,
     alignItems: 'center',
     justifyContent: 'center',
   },

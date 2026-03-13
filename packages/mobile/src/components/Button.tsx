@@ -33,7 +33,7 @@ const variantMap: Record<Variant, { bg: string; text: string; border?: string }>
 const sizeMap: Record<Size, { height: number; px: number; fs: number }> = {
   sm: { height: layout.buttonHeightSm, px: spacing.md, fs: fontSize.sm },
   md: { height: layout.buttonHeight, px: spacing.lg, fs: fontSize.md },
-  lg: { height: 56, px: spacing.xl, fs: fontSize.lg },
+  lg: { height: layout.buttonHeightLg, px: spacing.xl, fs: fontSize.lg },
 };
 
 export default function Button({

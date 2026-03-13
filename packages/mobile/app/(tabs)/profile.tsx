@@ -21,6 +21,7 @@ import {
   layout,
   levelColors,
   spacing,
+  WHITE,
 } from '@/lib/theme';
 import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
@@ -167,7 +168,7 @@ export default function ProfileScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.avatar}
               >
-                <Text style={[styles.avatarText, { color: '#FFFFFF' }]}>{getInitials(userName)}</Text>
+                <Text style={[styles.avatarText, { color: WHITE }]}>{getInitials(userName)}</Text>
               </LinearGradient>
             </View>
           </View>
@@ -248,9 +249,9 @@ export default function ProfileScreen() {
                 <Feather
                   name={copied ? 'check' : 'copy'}
                   size={14}
-                  color={copied ? colors.success : '#FFFFFF'}
+                  color={copied ? colors.success : WHITE}
                 />
-                <Text style={[styles.copyButtonText, { color: copied ? colors.success : '#FFFFFF' }]}>
+                <Text style={[styles.copyButtonText, { color: copied ? colors.success : WHITE }]}>
                   {copied ? 'Copiado!' : 'Copiar'}
                 </Text>
               </Pressable>
@@ -284,8 +285,8 @@ export default function ProfileScreen() {
                       end={{ x: 1, y: 0 }}
                       style={styles.themeOption}
                     >
-                      <Feather name={opt.icon} size={14} color="#FFFFFF" />
-                      <Text style={[styles.themeOptionText, { color: '#FFFFFF', fontWeight: fontWeight.bold }]}>
+                      <Feather name={opt.icon} size={14} color={WHITE} />
+                      <Text style={[styles.themeOptionText, { color: WHITE, fontWeight: fontWeight.bold }]}>
                         {opt.label}
                       </Text>
                     </LinearGradient>

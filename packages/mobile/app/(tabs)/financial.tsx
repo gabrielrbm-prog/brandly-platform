@@ -19,6 +19,7 @@ import {
   fontWeight,
   layout,
   spacing,
+  gradients,
 } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -62,7 +63,7 @@ function formatDate(dateStr: string): string {
 
 export default function FinancialScreen() {
   const { user } = useAuth();
-  const { colors, colorAlpha, shadows } = useTheme();
+  const { colors, colorAlpha, shadows, isDark } = useTheme();
 
   const [balance, setBalance] = useState<BalanceData | null>(null);
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
@@ -202,7 +203,7 @@ export default function FinancialScreen() {
       {/* ─── Balance Hero Card ─── */}
       <AnimatedListItem index={0}>
         <LinearGradient
-          colors={['#1E1040', '#121212']}
+          colors={isDark ? gradients.dark.heroCard : gradients.light.heroCard}
           style={[
             styles.balanceCard,
             {
@@ -280,7 +281,7 @@ export default function FinancialScreen() {
               style={({ pressed }) => [pressed && { opacity: 0.85 }]}
             >
               <LinearGradient
-                colors={[colors.accent, '#D97706']}
+                colors={gradients.dark.accentWarm}
                 style={[styles.withdrawButton, shadows.md]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -346,7 +347,7 @@ export default function FinancialScreen() {
                   style={[styles.withdrawSubmitWrap, withdrawLoading && { opacity: 0.5 }]}
                 >
                   <LinearGradient
-                    colors={[colors.accent, '#D97706']}
+                    colors={gradients.dark.accentWarm}
                     style={styles.withdrawSubmitGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}

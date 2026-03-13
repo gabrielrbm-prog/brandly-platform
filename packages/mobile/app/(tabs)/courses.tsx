@@ -17,6 +17,7 @@ import {
   fontWeight as fw,
   layout,
   spacing,
+  gradients,
 } from '@/lib/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedListItem from '@/components/AnimatedList';
@@ -43,7 +44,7 @@ interface Lesson {
 }
 
 export default function CoursesScreen() {
-  const { colors, colorAlpha, shadows } = useTheme();
+  const { colors, colorAlpha, shadows, isDark } = useTheme();
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [totalProgress, setTotalProgress] = useState('0%');
@@ -137,7 +138,7 @@ export default function CoursesScreen() {
       {/* Hero Progress Card */}
       <AnimatedListItem index={0}>
       <LinearGradient
-        colors={['#1E1040', '#121212']}
+        colors={isDark ? gradients.dark.heroCard : gradients.light.heroCard}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.heroCard, { borderColor: colorAlpha.primary30, ...shadows.glowPrimarySubtle }]}

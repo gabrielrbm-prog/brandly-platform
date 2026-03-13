@@ -16,6 +16,7 @@ import {
   fontWeight as fw,
   layout,
   medalColors,
+  medalGradients,
   spacing,
 } from '@/lib/theme';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -51,15 +52,10 @@ type RankingPeriod = 'week' | 'month';
 
 const MEDAL_COLORS = medalColors;
 
-// Medal gradient pairs per position
-const MEDAL_GRADIENTS: [string, string][] = [
-  ['#FFD700', '#F59E0B'],
-  ['#C0C0C0', '#9CA3AF'],
-  ['#CD7F32', '#92400E'],
-];
+const MEDAL_GRADIENTS = medalGradients;
 
 // Avatar ring colors for top 3
-const RANK_RING_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
+const RANK_RING_COLORS = [...medalColors];
 
 function formatCurrency(value: string | number): string {
   return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;

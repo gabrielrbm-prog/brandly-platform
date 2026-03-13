@@ -21,6 +21,7 @@ import {
   layout,
   spacing,
   statusColors,
+  gradients,
 } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -56,7 +57,7 @@ const PLATFORMS: { value: Platform; label: string }[] = [
 
 export default function VideosScreen() {
   useAuth();
-  const { colors, colorAlpha, shadows } = useTheme();
+  const { colors, colorAlpha, shadows, isDark } = useTheme();
 
   const STATUS_CONFIG: Record<
     string,
@@ -267,7 +268,7 @@ export default function VideosScreen() {
           <View>
             {/* Daily Progress Hero */}
             <LinearGradient
-              colors={['#1E1040', '#1A1A1A']}
+              colors={isDark ? gradients.dark.heroCard : gradients.light.heroCard}
               style={[
                 styles.dailyHeroCard,
                 {

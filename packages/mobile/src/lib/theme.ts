@@ -182,6 +182,19 @@ export const lightColorAlpha: ColorAlpha = {
   white20: 'rgba(0, 0, 0, 0.08)',
 };
 
+// ─── Gradient Presets ───
+
+export const gradients = {
+  dark: {
+    heroCard: ['#1E1040', '#121212'] as [string, string],
+    accentWarm: [colors.accent, '#D97706'] as [string, string],
+  },
+  light: {
+    heroCard: ['#F3EEFC', '#FFFFFF'] as [string, string],
+    accentWarm: [colors.accent, '#D97706'] as [string, string],
+  },
+} as const;
+
 // ─── Glass / Surface Opacity Tokens ───
 
 export const glass = {
@@ -232,6 +245,14 @@ export const platformColors = {
 } as const;
 
 export const medalColors = ['#FFD700', '#C0C0C0', '#CD7F32'] as const;
+export const medalGradients: [string, string][] = [
+  ['#FFD700', '#F59E0B'],
+  ['#C0C0C0', '#9CA3AF'],
+  ['#CD7F32', '#92400E'],
+];
+
+/** Pure white — for text on gradient/brand-colored backgrounds */
+export const WHITE = '#FFFFFF';
 
 // ─── Spacing (base 4px) ───
 

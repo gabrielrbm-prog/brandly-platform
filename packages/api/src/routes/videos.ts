@@ -219,15 +219,11 @@ export async function videoRoutes(app: FastifyInstance) {
 
       // Push notification para o creator
       try {
-        const [creator] = await db.select({ pushToken: sql<string>`${users.id}` })
+        const [creator] = await db.select({ pushToken: users.pushToken })
           .from(users)
           .where(eq(users.id, video.creatorId))
           .limit(1);
-        // Buscar pushToken via raw query (campo pode nao existir no schema ainda)
-        const [tokenRow] = await db.execute(
-          sql`SELECT push_token FROM users WHERE id = ${video.creatorId} AND push_token IS NOT NULL LIMIT 1`
-        ) as any[];
-        const pushToken = tokenRow?.push_token;
+        const pushToken = creator?.pushToken;
         if (pushToken) {
           if (status === 'approved' && paymentResult?.shouldPay) {
             await sendPushNotification(videoApprovedNotification(pushToken, paymentResult.amount));

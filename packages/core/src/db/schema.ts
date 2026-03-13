@@ -48,6 +48,7 @@ export const users = pgTable('users', {
   status: userStatusEnum('status').notNull().default('pending'),
   instagramHandle: varchar('instagram_handle', { length: 100 }),
   tiktokHandle: varchar('tiktok_handle', { length: 100 }),
+  pushToken: text('push_token'),
   onboardingCompleted: boolean('onboarding_completed').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

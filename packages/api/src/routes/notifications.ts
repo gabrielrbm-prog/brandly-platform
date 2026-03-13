@@ -15,15 +15,9 @@ export async function notificationRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'pushToken invalido' });
     }
 
-    // Salvar no campo pushToken do user
-    // Nota: se o campo nao existir no schema, ignorar silently
-    try {
-      await db.update(users)
-        .set({ pushToken } as any)
-        .where(eq(users.id, userId));
-    } catch {
-      // Campo pode nao existir ainda — migration pendente
-    }
+    await db.update(users)
+      .set({ pushToken })
+      .where(eq(users.id, userId));
 
     return { message: 'Push token registrado', pushToken };
   });

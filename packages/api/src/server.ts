@@ -16,6 +16,7 @@ import { courseRoutes } from './routes/courses.js';
 import { communityRoutes } from './routes/community.js';
 import { socialRoutes } from './routes/social.js';
 import { adminPanelRoutes } from './routes/admin-panel.js';
+import { cronRoutes } from './routes/cron.js';
 
 const app = Fastify({
   logger: {
@@ -56,6 +57,9 @@ async function start() {
 
   // Admin Panel (HTML)
   await app.register(adminPanelRoutes, { prefix: '/admin' });
+
+  // Cron Jobs (admin triggers)
+  await app.register(cronRoutes, { prefix: '/api/cron' });
 
   const port = Number(process.env.PORT ?? 3000);
   const host = process.env.HOST ?? '0.0.0.0';

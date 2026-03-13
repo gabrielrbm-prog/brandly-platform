@@ -13,6 +13,8 @@ export default function RootLayout() {
       }}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="behavioral-onboarding" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="behavioral-result" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
       </Stack>
     </AuthProvider>
   );

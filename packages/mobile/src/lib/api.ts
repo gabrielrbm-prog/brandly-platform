@@ -141,10 +141,42 @@ export const communityApi = {
 };
 
 // Onboarding
+export interface OnboardingQuestion {
+  id: number;
+  category: string;
+  type: 'single' | 'multiple' | 'swipe' | 'slider' | 'grid';
+  question: string;
+  subtitle?: string;
+  options?: { value: string; label: string; emoji?: string }[];
+  sliderConfig?: { min: string; max: string; minLabel: string; maxLabel: string };
+  maxSelections?: number;
+}
+
+export interface CreatorDiagnostic {
+  archetype: string;
+  archetypeEmoji: string;
+  title: string;
+  shortDescription: string;
+  strengths: string[];
+  superpower: string;
+  contentStyle: string;
+  idealFormats: string[];
+  productMatch: string[];
+  motivationPhrase: string;
+  level: string;
+  readinessScore: number;
+}
+
 export const onboardingApi = {
   profile: (data: unknown) => api.post('/api/onboarding/profile', data),
   social: (data: unknown) => api.post('/api/onboarding/social', data),
   complete: () => api.post('/api/onboarding/complete'),
+  behavioralQuestions: () =>
+    api.get<{ questions: OnboardingQuestion[]; total: number }>('/api/onboarding/behavioral/questions'),
+  submitBehavioral: (answers: Record<number, string | string[] | number>) =>
+    api.post<{ message: string; creatorDiagnostic: CreatorDiagnostic }>('/api/onboarding/behavioral', { answers }),
+  behavioralResult: () =>
+    api.get<{ creatorDiagnostic: CreatorDiagnostic }>('/api/onboarding/behavioral/result'),
 };
 
 // Social — Integracao Phyllo (Instagram/TikTok)

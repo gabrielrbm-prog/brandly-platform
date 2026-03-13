@@ -1,6 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
 import { users, creatorProfiles } from '@brandly/core';
+import { ONBOARDING_QUESTIONS, analyzeBehavioralProfile } from '@brandly/core';
+import type { OnboardingAnswers } from '@brandly/core';
 import { eq } from 'drizzle-orm';
 
 interface ProfileBody {
@@ -91,6 +93,125 @@ export async function onboardingRoutes(app: FastifyInstance) {
     await db.update(users).set(field).where(eq(users.id, userId));
 
     return { message: `${platform} conectado com sucesso`, platform, handle };
+  });
+
+  // GET /api/onboarding/behavioral/questions — retorna as 20 perguntas
+  app.get('/behavioral/questions', {
+    preHandler: [app.authenticate],
+  }, async (_request, reply) => {
+    return {
+      questions: ONBOARDING_QUESTIONS,
+      total: ONBOARDING_QUESTIONS.length,
+      estimatedMinutes: 4,
+    };
+  });
+
+  // POST /api/onboarding/behavioral — envia respostas e recebe diagnostico IA
+  app.post<{ Body: { answers: OnboardingAnswers } }>('/behavioral', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const { answers } = request.body;
+
+    if (!answers || Object.keys(answers).length < 15) {
+      return reply.status(400).send({
+        error: 'Responda ao menos 15 das 20 perguntas para uma analise precisa',
+      });
+    }
+
+    // Buscar nome do usuario
+    const [user] = await db.select({ name: users.name })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      return reply.status(404).send({ error: 'Usuario nao encontrado' });
+    }
+
+    // Analisar com IA
+    const profile = await analyzeBehavioralProfile(answers, user.name);
+
+    // Salvar no creatorProfiles.behavioralProfile
+    const existing = await db.select({ id: creatorProfiles.id })
+      .from(creatorProfiles)
+      .where(eq(creatorProfiles.userId, userId))
+      .limit(1);
+
+    const profileData = {
+      ...profile,
+      answeredAt: new Date().toISOString(),
+      answersRaw: answers,
+    };
+
+    if (existing.length > 0) {
+      await db.update(creatorProfiles)
+        .set({ behavioralProfile: profileData })
+        .where(eq(creatorProfiles.userId, userId));
+    } else {
+      await db.insert(creatorProfiles).values({
+        userId,
+        behavioralProfile: profileData,
+      });
+    }
+
+    return {
+      message: 'Perfil comportamental analisado com sucesso!',
+      creatorDiagnostic: profile.creatorDiagnostic,
+    };
+  });
+
+  // GET /api/onboarding/behavioral/result — retorna diagnostico salvo
+  app.get('/behavioral/result', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+
+    const [profile] = await db.select({ behavioralProfile: creatorProfiles.behavioralProfile })
+      .from(creatorProfiles)
+      .where(eq(creatorProfiles.userId, userId))
+      .limit(1);
+
+    if (!profile?.behavioralProfile) {
+      return reply.status(404).send({ error: 'Perfil comportamental nao encontrado. Complete o onboarding.' });
+    }
+
+    const data = profile.behavioralProfile as Record<string, unknown>;
+    return {
+      creatorDiagnostic: data.creatorDiagnostic,
+    };
+  });
+
+  // GET /api/onboarding/behavioral/admin/:userId — diagnostico completo para admin
+  app.get<{ Params: { userId: string } }>('/behavioral/admin/:userId', {
+    preHandler: [app.requireAdmin],
+  }, async (request, reply) => {
+    const { userId } = request.params;
+
+    const [profile] = await db.select({
+      behavioralProfile: creatorProfiles.behavioralProfile,
+      userId: creatorProfiles.userId,
+    })
+      .from(creatorProfiles)
+      .where(eq(creatorProfiles.userId, userId))
+      .limit(1);
+
+    if (!profile?.behavioralProfile) {
+      return reply.status(404).send({ error: 'Perfil comportamental nao encontrado para este creator' });
+    }
+
+    const [user] = await db.select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const data = profile.behavioralProfile as Record<string, unknown>;
+    return {
+      user: { id: userId, name: user?.name, email: user?.email },
+      creatorDiagnostic: data.creatorDiagnostic,
+      adminDiagnostic: data.adminDiagnostic,
+      answeredAt: data.answeredAt,
+    };
   });
 
   // POST /api/onboarding/complete

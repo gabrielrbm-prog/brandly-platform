@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
-import { borderRadius, spacing } from '../lib/theme';
+import { borderRadius, spacing, glass } from '../lib/theme';
 import { springConfig } from '../lib/animations';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -123,16 +123,15 @@ export default function GlowCard({
   };
 
   // Variant styles
+  const g = isDark ? glass.dark : glass.light;
   const variantStyle: ViewStyle = variant === 'glass'
-    ? { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' }
+    ? { backgroundColor: g.surface }
     : variant === 'elevated'
     ? {
         backgroundColor: colors.surface,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: isDark ? 0.3 : 0.08,
-        shadowRadius: 12,
-        elevation: 8,
+        ...(isDark
+          ? { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 }
+          : { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 8 }),
       }
     : variant === 'spotlight'
     ? {

@@ -143,11 +143,11 @@ const styles = StyleSheet.create({
   valueCompact: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
-    marginBottom: 2,
+    marginBottom: spacing.xxs,
   },
   labelBottom: {
     fontSize: fontSize.xs,
-    marginTop: 2,
+    marginTop: spacing.xxs,
   },
   trend: {
     fontSize: fontSize.sm,

@@ -9,7 +9,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { borderRadius as br, spacing } from '../lib/theme';
+import { borderRadius as br, spacing, fontSize, glass } from '../lib/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface SkeletonProps {
@@ -53,7 +53,7 @@ export default function Skeleton({
           width,
           height,
           borderRadius,
-          backgroundColor: isDark ? colors.surfaceLight : '#E5E7EB',
+          backgroundColor: isDark ? colors.surfaceLight : colors.border,
           overflow: 'hidden',
         },
         baseOpacity,
@@ -71,7 +71,7 @@ export default function Skeleton({
         <LinearGradient
           colors={[
             'transparent',
-            isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.4)',
+            isDark ? glass.dark.shimmer : glass.light.shimmer,
             'transparent',
           ]}
           start={{ x: 0, y: 0 }}
@@ -91,9 +91,9 @@ export function SkeletonText({ width = 120, lines = 1 }: { width?: number | `${n
         <Skeleton
           key={i}
           width={i === lines - 1 && lines > 1 ? '60%' : width}
-          height={14}
+          height={fontSize.sm}
           borderRadius={br.xs}
-          style={i > 0 ? { marginTop: 8 } : undefined}
+          style={i > 0 ? { marginTop: spacing.sm } : undefined}
         />
       ))}
     </>
@@ -114,8 +114,8 @@ export function SkeletonCard() {
         borderRadius: br.lg,
         borderWidth: 1,
         borderColor: colors.border,
-        padding: 16,
-        gap: 12,
+        padding: spacing.md,
+        gap: spacing.sm + spacing.xs,
       }}
     >
       <Skeleton width="40%" height={16} borderRadius={br.xs} />

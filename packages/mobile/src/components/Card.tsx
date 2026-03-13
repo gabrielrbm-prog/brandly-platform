@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { borderRadius, fontSize, fontWeight, spacing } from '../lib/theme';
+import { borderRadius, fontSize, fontWeight, spacing, glass } from '../lib/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 
 type FeatherIconName = keyof typeof Feather.glyphMap;
@@ -39,10 +39,11 @@ export default function Card({
 }: CardProps) {
   const { colors, colorAlpha, shadows, isDark } = useTheme();
 
+  const g = isDark ? glass.dark : glass.light;
   const variantStyle: ViewStyle = variant === 'glass'
     ? {
-        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
-        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        backgroundColor: g.surface,
+        borderColor: g.surfaceHover,
       }
     : variant === 'elevated'
     ? {

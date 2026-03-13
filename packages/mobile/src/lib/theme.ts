@@ -182,6 +182,21 @@ export const lightColorAlpha: ColorAlpha = {
   white20: 'rgba(0, 0, 0, 0.08)',
 };
 
+// ─── Glass / Surface Opacity Tokens ───
+
+export const glass = {
+  dark: {
+    surface: 'rgba(255,255,255,0.04)',
+    surfaceHover: 'rgba(255,255,255,0.08)',
+    shimmer: 'rgba(255,255,255,0.06)',
+  },
+  light: {
+    surface: 'rgba(0,0,0,0.02)',
+    surfaceHover: 'rgba(0,0,0,0.06)',
+    shimmer: 'rgba(255,255,255,0.4)',
+  },
+} as const;
+
 // ─── Semantic Color Maps ───
 
 export const statusColors = {

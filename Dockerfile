@@ -14,13 +14,18 @@ RUN npm install --ignore-scripts
 
 COPY . .
 
-RUN npx turbo run build --filter=@brandly/api --filter=@brandly/web
+# Build em ordem de dependencia (sem turbo)
+RUN npm run build -w packages/shared && \
+    npm run build -w packages/core && \
+    npm run build -w packages/bonus-engine && \
+    npm run build -w packages/api && \
+    npm run build -w packages/web
 
-# Confirma que web dist existe
-RUN ls -la packages/web/dist/index.html && echo "✅ Web dist OK"
-RUN ls -la packages/api/dist/server.js && echo "✅ API dist OK"
+# Confirma que dist existe
+RUN ls packages/web/dist/index.html && echo "Web OK" && \
+    ls packages/api/dist/server.js && echo "API OK"
 
-# Remove devDependencies
+# Remove devDeps
 RUN npm prune --omit=dev
 
 ENV NODE_ENV=production

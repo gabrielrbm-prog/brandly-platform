@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { brandsApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, categoryColors, colors, fontSize, fontWeight as fw, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CATEGORIES = [
@@ -77,12 +77,12 @@ export default function BrandsScreen() {
 
   const getCategoryBadgeColor = (category: string): string => {
     const map: Record<string, string> = {
-      Beleza: '#EC4899',
-      Suplementos: '#10B981',
-      Casa: '#F59E0B',
-      Tech: '#3B82F6',
-      Moda: '#A78BFA',
-      Alimentos: '#EF4444',
+      Beleza: categoryColors.beauty,
+      Suplementos: categoryColors.supplements,
+      Casa: categoryColors.home,
+      Tech: categoryColors.tech,
+      Moda: categoryColors.fashion,
+      Alimentos: categoryColors.food,
     };
     return map[category] ?? colors.textMuted;
   };
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   categoryPillText: {
     color: colors.textSecondary,
     fontSize: fontSize.sm,
-    fontWeight: '500',
+    fontWeight: fw.medium,
   },
   categoryPillTextActive: {
     color: colors.text,
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: colors.text,
     fontSize: fontSize.lg,
-    fontWeight: '700',
+    fontWeight: fw.bold,
     marginBottom: spacing.md,
   },
   sectionDivider: {
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   brandName: {
     color: colors.text,
     fontSize: fontSize.lg,
-    fontWeight: '600',
+    fontWeight: fw.semibold,
     flex: 1,
     marginRight: spacing.sm,
   },
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   },
   categoryBadgeText: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
+    fontWeight: fw.semibold,
   },
   brandDescription: {
     color: colors.textSecondary,

@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { brandsApi, videosApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, spacing, statusColors } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DailySummary {
@@ -45,9 +45,9 @@ const PLATFORMS: { value: Platform; label: string }[] = [
 ];
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
-  pending: { color: '#F59E0B', label: 'Pendente' },
-  approved: { color: '#10B981', label: 'Aprovado' },
-  rejected: { color: '#EF4444', label: 'Rejeitado' },
+  pending: { color: statusColors.pending, label: 'Pendente' },
+  approved: { color: statusColors.approved, label: 'Aprovado' },
+  rejected: { color: statusColors.rejected, label: 'Rejeitado' },
 };
 
 export default function VideosScreen() {

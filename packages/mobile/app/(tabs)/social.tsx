@@ -11,11 +11,11 @@ import {
   View,
 } from 'react-native';
 import { socialApi, type SocialAccount, type ConnectResponse } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, platformColors, spacing } from '@/lib/theme';
 
 const PLATFORM_CONFIG = {
-  instagram: { label: 'Instagram', icon: '📸', color: '#E1306C' },
-  tiktok: { label: 'TikTok', icon: '🎵', color: '#00F2EA' },
+  instagram: { label: 'Instagram', icon: '📸', color: platformColors.instagram },
+  tiktok: { label: 'TikTok', icon: '🎵', color: platformColors.tiktok },
 } as const;
 
 function formatNumber(n: number): string {

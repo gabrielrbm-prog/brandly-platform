@@ -17,12 +17,12 @@ import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const ARCHETYPE_COLORS: Record<string, string> = {
-  Educador: '#3B82F6',
-  Entertainer: '#F59E0B',
-  Motivador: '#EF4444',
-  Conector: '#10B981',
-  Curador: '#8B5CF6',
-  Estrategista: '#06B6D4',
+  Educador: colors.info,
+  Entertainer: colors.warning,
+  Motivador: colors.danger,
+  Conector: colors.success,
+  Curador: colors.primaryLight,
+  Estrategista: colors.cyan,
 };
 
 export default function BehavioralResultScreen() {

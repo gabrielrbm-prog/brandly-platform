@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { colors, fontSize, fontWeight, spacing, borderRadius } from '@/lib/theme';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -63,7 +64,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Nome"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="words"
             value={name}
             onChangeText={setName}
@@ -72,7 +73,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={colors.textMuted}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -83,7 +84,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Senha"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={colors.textMuted}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -92,7 +93,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Codigo de indicacao (opcional)"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
             value={referralCode}
@@ -106,7 +107,7 @@ export default function RegisterScreen() {
             activeOpacity={0.8}
           >
             {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={colors.text} />
             ) : (
               <Text style={styles.buttonText}>Criar conta</Text>
             )}
@@ -128,73 +129,73 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: colors.background,
   },
   container: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 48,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xxl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: spacing.xl + spacing.sm,
   },
   logo: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 8,
+    fontSize: fontSize.hero,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    fontSize: fontSize.md,
+    color: colors.textSecondary,
   },
   error: {
-    color: '#EF4444',
-    fontSize: 14,
+    color: colors.danger,
+    fontSize: fontSize.sm,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   form: {
-    gap: 16,
+    gap: spacing.md,
   },
   input: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#FFFFFF',
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md - 2,
+    fontSize: fontSize.md,
+    color: colors.text,
   },
   button: {
-    backgroundColor: '#7C3AED',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
   },
   linkContainer: {
-    marginTop: 24,
+    marginTop: spacing.lg,
     alignItems: 'center',
   },
   linkText: {
-    color: '#9CA3AF',
-    fontSize: 14,
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
   },
   linkHighlight: {
-    color: '#7C3AED',
-    fontWeight: '600',
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
   },
 });

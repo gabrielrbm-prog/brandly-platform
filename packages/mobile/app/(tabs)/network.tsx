@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { networkApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, fontWeight as fw, levelColors, spacing } from '@/lib/theme';
 
 interface NetworkStats {
   period: string;
@@ -55,15 +55,7 @@ interface ReferralData {
   activeReferrals: number;
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-  Seed: '#6B7280',
-  Spark: '#F59E0B',
-  Flow: '#3B82F6',
-  Iconic: '#8B5CF6',
-  Vision: '#EC4899',
-  Empire: '#EF4444',
-  Infinity: '#10B981',
-};
+const LEVEL_COLORS: Record<string, string> = levelColors;
 
 function formatCurrency(value: string | number): string {
   return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
@@ -201,10 +193,10 @@ export default function NetworkScreen() {
           <Text style={styles.cardTitle}>Bonus do Mes</Text>
           <View style={styles.bonusGrid}>
             {[
-              { label: 'Direto', value: stats.bonuses.direct, color: '#3B82F6' },
-              { label: 'Infinito', value: stats.bonuses.infinite, color: '#8B5CF6' },
-              { label: 'Equiparacao', value: stats.bonuses.matching, color: '#F59E0B' },
-              { label: 'Global', value: stats.bonuses.global, color: '#10B981' },
+              { label: 'Direto', value: stats.bonuses.direct, color: colors.info },
+              { label: 'Infinito', value: stats.bonuses.infinite, color: colors.primaryLight },
+              { label: 'Equiparacao', value: stats.bonuses.matching, color: colors.warning },
+              { label: 'Global', value: stats.bonuses.global, color: colors.success },
             ].map(b => (
               <View key={b.label} style={styles.bonusItem}>
                 <View style={[styles.bonusDot, { backgroundColor: b.color }]} />

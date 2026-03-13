@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { communityApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, spacing } from '@/lib/theme';
+import { borderRadius, colors, fontSize, fontWeight as fw, medalColors, spacing } from '@/lib/theme';
 
 interface RankingEntry {
   creatorId: string;
@@ -38,7 +38,7 @@ type TabType = 'ranking' | 'lives' | 'cases';
 type RankingType = 'production' | 'earnings';
 type RankingPeriod = 'week' | 'month';
 
-const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
+const MEDAL_COLORS = medalColors;
 
 function formatCurrency(value: string | number): string {
   return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  medalText: { color: '#000', fontSize: fontSize.sm, fontWeight: '800' },
+  medalText: { color: colors.background, fontSize: fontSize.sm, fontWeight: fw.extrabold },
   rankNumber: { color: colors.textMuted, fontSize: fontSize.md, fontWeight: '600' },
   rankAvatar: {
     width: 36,

@@ -132,7 +132,7 @@ export default function Studio() {
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-300">Roteiros Gerados ({scripts.length})</h3>
                 {scripts.map((s, i) => (
-                  <Card key={s.id}>
+                  <Card glowing key={s.id}>
                     <div className="flex items-start justify-between mb-2">
                       <Badge variant="primary">#{i + 1}</Badge>
                       <button onClick={() => copyScript(s)} className="text-gray-400 hover:text-white transition-colors">

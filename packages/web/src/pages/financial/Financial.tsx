@@ -81,10 +81,10 @@ export default function Financial() {
       <div className="space-y-6">
         {/* Balance cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon={<DollarSign className="w-4 h-4" />} label="Disponivel" value={fmt(balance?.available ?? 0)} color="#10B981" />
-          <StatCard icon={<Clock className="w-4 h-4" />} label="Pendente" value={fmt(balance?.pending ?? 0)} color="#F59E0B" />
-          <StatCard icon={<ArrowDownCircle className="w-4 h-4" />} label="Sacado" value={fmt(balance?.withdrawn ?? 0)} color="#3B82F6" />
-          <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Total" value={fmt(balance?.total ?? 0)} color="#7C3AED" />
+          <StatCard glowing icon={<DollarSign className="w-4 h-4" />} label="Disponivel" value={fmt(balance?.available ?? 0)} color="#10B981" />
+          <StatCard glowing icon={<Clock className="w-4 h-4" />} label="Pendente" value={fmt(balance?.pending ?? 0)} color="#F59E0B" />
+          <StatCard glowing icon={<ArrowDownCircle className="w-4 h-4" />} label="Sacado" value={fmt(balance?.withdrawn ?? 0)} color="#3B82F6" />
+          <StatCard glowing icon={<TrendingUp className="w-4 h-4" />} label="Total" value={fmt(balance?.total ?? 0)} color="#7C3AED" />
         </div>
 
         {/* Withdraw CTA */}
@@ -94,7 +94,7 @@ export default function Financial() {
 
         {/* Earnings breakdown */}
         {earnings && (
-          <Card>
+          <Card glowing>
             <h3 className="text-sm font-semibold text-gray-300 mb-3">Ganhos do Mes</h3>
             <div className="space-y-3">
               {[

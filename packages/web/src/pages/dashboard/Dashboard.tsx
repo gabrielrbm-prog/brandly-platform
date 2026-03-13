@@ -109,7 +109,7 @@ export default function Dashboard() {
         </div>
 
         {/* Earnings hero */}
-        <Card glow className="relative overflow-hidden">
+        <Card glowing className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 pointer-events-none rounded-2xl" />
           <div className="relative flex items-center justify-between">
             <div>
@@ -144,10 +144,10 @@ export default function Dashboard() {
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Hoje</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard icon={<CheckCircle className="w-4 h-4" />} label="Aprovados" value={String(daily?.approved ?? 0)} color="#10B981" />
-            <StatCard icon={<Clock className="w-4 h-4" />} label="Pendentes" value={String(daily?.pending ?? 0)} color="#F59E0B" />
-            <StatCard icon={<XCircle className="w-4 h-4" />} label="Rejeitados" value={String(daily?.rejected ?? 0)} color="#EF4444" />
-            <StatCard icon={<Zap className="w-4 h-4" />} label="Restantes" value={String(daily?.remainingSlots ?? 10)} color="#A78BFA" />
+            <StatCard glowing icon={<CheckCircle className="w-4 h-4" />} label="Aprovados" value={String(daily?.approved ?? 0)} color="#10B981" />
+            <StatCard glowing icon={<Clock className="w-4 h-4" />} label="Pendentes" value={String(daily?.pending ?? 0)} color="#F59E0B" />
+            <StatCard glowing icon={<XCircle className="w-4 h-4" />} label="Rejeitados" value={String(daily?.rejected ?? 0)} color="#EF4444" />
+            <StatCard glowing icon={<Zap className="w-4 h-4" />} label="Restantes" value={String(daily?.remainingSlots ?? 10)} color="#A78BFA" />
           </div>
         </div>
 
@@ -157,7 +157,7 @@ export default function Dashboard() {
             <Calendar className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Este Mes</span>
           </div>
-          <Card>
+          <Card glowing>
             <div className="flex items-center gap-2 mb-4">
               <BarChart2 className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-semibold text-gray-300">Resumo Mensal</span>
@@ -206,7 +206,7 @@ export default function Dashboard() {
         </div>
 
         {/* Level */}
-        <Card accent={levelColor}>
+        <Card glowing accent={levelColor}>
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${levelColor}20` }}>
               <Star className="w-5 h-5" style={{ color: levelColor }} />

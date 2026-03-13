@@ -57,7 +57,7 @@ export default function Social() {
           accounts.map((acc) => {
             const color = PLATFORM_COLORS[acc.platform] ?? '#7C3AED';
             return (
-              <Card key={acc.id} accent={color}>
+              <Card glowing key={acc.id} accent={color}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>

@@ -114,7 +114,7 @@ export default function Brands() {
           {filtered.map((brand) => {
             const catColor = CATEGORY_COLORS[brand.category] ?? '#7C3AED';
             return (
-              <Card key={brand.id}>
+              <Card glowing key={brand.id}>
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${catColor}15` }}>

@@ -79,7 +79,7 @@ export default function Network() {
     <PageContainer title="Rede">
       <div className="space-y-6">
         {/* Level card */}
-        <Card accent={levelColor}>
+        <Card glowing accent={levelColor}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${levelColor}20` }}>
               <Star className="w-5 h-5" style={{ color: levelColor }} />
@@ -110,15 +110,15 @@ export default function Network() {
 
         {/* Network stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon={<Users className="w-4 h-4" />} label="Total Membros" value={String(stats?.network.totalMembers ?? 0)} color="#7C3AED" />
-          <StatCard icon={<Activity className="w-4 h-4" />} label="Ativos" value={String(stats?.network.activeMembers ?? 0)} color="#10B981" />
-          <StatCard icon={<UserPlus className="w-4 h-4" />} label="Diretos" value={String(stats?.network.directsActive ?? 0)} color="#3B82F6" />
-          <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Volume" value={`R$ ${stats?.network.totalVolume ?? '0'}`} color="#F59E0B" />
+          <StatCard glowing icon={<Users className="w-4 h-4" />} label="Total Membros" value={String(stats?.network.totalMembers ?? 0)} color="#7C3AED" />
+          <StatCard glowing icon={<Activity className="w-4 h-4" />} label="Ativos" value={String(stats?.network.activeMembers ?? 0)} color="#10B981" />
+          <StatCard glowing icon={<UserPlus className="w-4 h-4" />} label="Diretos" value={String(stats?.network.directsActive ?? 0)} color="#3B82F6" />
+          <StatCard glowing icon={<TrendingUp className="w-4 h-4" />} label="Volume" value={`R$ ${stats?.network.totalVolume ?? '0'}`} color="#F59E0B" />
         </div>
 
         {/* Bonuses */}
         {stats?.bonuses && (
-          <Card>
+          <Card glowing>
             <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
               <Award className="w-4 h-4 text-amber-400" /> Bonus do Periodo
             </h3>

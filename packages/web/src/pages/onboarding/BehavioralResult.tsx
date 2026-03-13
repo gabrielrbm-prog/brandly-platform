@@ -58,7 +58,7 @@ export default function BehavioralResult() {
         </div>
 
         {/* Readiness score */}
-        <Card>
+        <Card glowing>
           <div className="text-center">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Nivel de Prontidao</p>
             <div className="relative w-24 h-24 mx-auto mb-2">
@@ -96,7 +96,7 @@ export default function BehavioralResult() {
         </Card>
 
         {/* Superpower */}
-        <Card accent="#7C3AED">
+        <Card glowing accent="#7C3AED">
           <div className="flex items-center gap-2 mb-2">
             <Zap className="w-4 h-4 text-brand-primary-light" />
             <h3 className="text-sm font-semibold text-gray-300">Superpoder</h3>

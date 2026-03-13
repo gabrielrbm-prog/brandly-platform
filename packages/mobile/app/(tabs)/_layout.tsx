@@ -65,6 +65,7 @@ export default function TabLayout() {
       <Tabs.Screen name="social" options={{ href: null, title: 'Social' }} />
       <Tabs.Screen name="courses" options={{ href: null, title: 'Formacao' }} />
       <Tabs.Screen name="community" options={{ href: null, title: 'Comunidade' }} />
+      <Tabs.Screen name="studio" options={{ href: null, title: 'Studio IA' }} />
     </Tabs>
   );
 }

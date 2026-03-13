@@ -34,6 +34,7 @@ function formatCurrency(value: number): string {
 }
 
 const MENU_ITEMS = [
+  { label: 'Studio IA', icon: '✨', route: '/(tabs)/studio' },
   { label: 'Marcas', icon: '💼', route: '/(tabs)/brands' },
   { label: 'Social', icon: '📊', route: '/(tabs)/social' },
   { label: 'Formacao', icon: '🎓', route: '/(tabs)/courses' },

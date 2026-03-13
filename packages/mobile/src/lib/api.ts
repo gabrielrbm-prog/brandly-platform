@@ -85,9 +85,9 @@ export const brandsApi = {
 
 // Videos
 export const videosApi = {
-  submit: (data: unknown) => api.post('/api/videos/submit', data),
+  submit: (data: unknown) => api.post('/api/videos', data),
   list: () => api.get('/api/videos'),
-  dailySummary: () => api.get('/api/videos/daily-summary'),
+  dailySummary: () => api.get('/api/videos/daily'),
 };
 
 // Financial
@@ -102,7 +102,9 @@ export const financialApi = {
 // Scripts
 export const scriptsApi = {
   generate: (data: unknown) => api.post('/api/scripts/generate', data),
-  list: () => api.get('/api/scripts'),
+  list: (briefingId?: string) =>
+    api.get(`/api/scripts${briefingId ? `?briefingId=${briefingId}` : ''}`),
+  detail: (id: string) => api.get(`/api/scripts/${id}`),
   markUsed: (id: string) => api.patch(`/api/scripts/${id}/use`),
 };
 

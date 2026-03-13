@@ -33,12 +33,19 @@ export default function Sidebar() {
         ${collapsed ? 'w-16' : 'w-60'}
       `}
     >
-      <div className="flex items-center gap-2 px-4 h-16 border-b themed-border">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-light flex items-center justify-center shrink-0">
-          <Zap className="w-4 h-4 text-white" />
-        </div>
-        {!collapsed && (
-          <span className="text-xl font-extrabold themed-text tracking-tight">Brandly</span>
+      <div className="flex items-center justify-center px-3 h-16 border-b themed-border overflow-hidden">
+        {collapsed ? (
+          <img
+            src={isDark ? '/logos/symbol-white.png' : '/logos/symbol-blue.png'}
+            alt="Brandly"
+            className="h-8 w-8 object-contain"
+          />
+        ) : (
+          <img
+            src={isDark ? '/logos/logo-white.png' : '/logos/logo-dark.png'}
+            alt="Brandly"
+            className="h-8 object-contain"
+          />
         )}
       </div>
 

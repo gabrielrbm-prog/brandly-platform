@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Zap, User, Mail, Lock, Gift, ArrowRight, AlertCircle } from 'lucide-react';
+import { User, Mail, Lock, Gift, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -41,14 +41,18 @@ export default function Register() {
 
       <div className="w-full max-w-sm space-y-6">
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-primary to-brand-primary-light flex items-center justify-center shadow-lg shadow-brand-primary/25">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-4xl font-extrabold themed-text tracking-tight">Brandly</span>
-          </div>
-          <p className="text-sm font-semibold text-brand-primary-light uppercase tracking-[2px]">
+        <div className="text-center space-y-3">
+          <img
+            src="/logos/logo-complete-white.png"
+            alt="Brandly"
+            className="h-16 mx-auto dark:block hidden"
+          />
+          <img
+            src="/logos/logo-complete-dark.png"
+            alt="Brandly"
+            className="h-16 mx-auto dark:hidden block"
+          />
+          <p className="text-sm font-semibold text-brand-accent uppercase tracking-[2px]">
             Profissao Creator
           </p>
           <p className="themed-text-secondary">Crie sua conta gratuitamente</p>

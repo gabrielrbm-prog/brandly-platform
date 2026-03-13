@@ -3,834 +3,1488 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brandly App - Mockups Completos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Brandly - Transforme sua Criatividade em Profissao</title>
+    <meta name="description" content="Plataforma que conecta creators com marcas. Ganhe R$100/dia garantido produzindo conteudo com IA. Junte-se a mais de 2.500 creators.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0A0A0A',
+                            primary: '#667EEA',
+                            accent: '#764BA2',
+                            surface: '#111111',
+                            card: '#161616',
+                            border: '#1E1E1E',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        /* ========== BASE ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: auto; }
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0A0A0A;
+            color: #E5E5E5;
+            overflow-x: hidden;
         }
-        
-        .container {
-            max-width: 1400px;
-            width: 100%;
+        ::selection { background: rgba(102,126,234,0.3); color: #fff; }
+
+        /* ========== LOADING SCREEN ========== */
+        #loader {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #0A0A0A;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
         }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
+        #loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader-logo {
+            font-size: 3rem; font-weight: 900; letter-spacing: -2px;
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: loaderPulse 1.2s ease-in-out infinite;
         }
-        
-        .header h1 {
-            color: white;
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        @keyframes loaderPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.7; }
         }
-        
-        .header p {
-            color: rgba(255,255,255,0.9);
-            font-size: 1.2rem;
-            font-weight: 400;
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 1.25rem 0;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
         }
-        
-        .mockups-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+        .navbar.scrolled {
+            background: rgba(10,10,10,0.92);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 0.75rem 0;
         }
-        
-        .phone-mockup {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 40px;
-            padding: 20px;
-            width: 280px;
-            height: 560px;
-            margin: 0 auto;
+        .nav-link {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.875rem; font-weight: 500;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
+        .nav-link:hover { color: #fff; }
+
+        /* Mobile menu */
+        .mobile-menu {
+            position: fixed; inset: 0; z-index: 999;
+            background: rgba(10,10,10,0.98);
+            backdrop-filter: blur(30px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem;
+            opacity: 0; visibility: hidden;
+            transition: all 0.4s ease;
+        }
+        .mobile-menu.open { opacity: 1; visibility: visible; }
+        .mobile-menu a {
+            color: #fff; font-size: 1.5rem; font-weight: 600;
+            text-decoration: none; transition: color 0.3s;
+        }
+        .mobile-menu a:hover { color: #667EEA; }
+
+        /* ========== GRADIENT UTILITIES ========== */
+        .gradient-text {
+            background: linear-gradient(135deg, #667EEA 0%, #764BA2 50%, #667EEA 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+        }
+        .gradient-border {
             position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
         }
-        
-        .phone-mockup:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        .gradient-border::before {
+            content: ''; position: absolute; inset: 0;
+            border-radius: inherit; padding: 1px;
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
         }
-        
-        .screen {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 30px;
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-            color: white;
-            position: relative;
+
+        /* ========== HERO SECTION ========== */
+        .hero {
+            position: relative; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
-        
-        .screen::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            z-index: 0;
+        .hero-bg {
+            position: absolute; inset: 0; z-index: 0;
         }
-        
-        .screen-content {
+        .hero-gradient-orb {
+            position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.15;
+        }
+        .hero-gradient-orb.orb1 {
+            width: 600px; height: 600px; top: -200px; right: -100px;
+            background: #667EEA;
+            animation: orbFloat1 8s ease-in-out infinite;
+        }
+        .hero-gradient-orb.orb2 {
+            width: 500px; height: 500px; bottom: -150px; left: -100px;
+            background: #764BA2;
+            animation: orbFloat2 10s ease-in-out infinite;
+        }
+        .hero-gradient-orb.orb3 {
+            width: 300px; height: 300px; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            animation: orbFloat3 6s ease-in-out infinite;
+        }
+        @keyframes orbFloat1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,40px)} }
+        @keyframes orbFloat2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
+        @keyframes orbFloat3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.2)} }
+
+        /* Particles */
+        .particles {
+            position: absolute; inset: 0; overflow: hidden; z-index: 1;
+        }
+        .particle {
+            position: absolute; width: 2px; height: 2px;
+            background: rgba(102,126,234,0.4); border-radius: 50%;
+            animation: particleFloat linear infinite;
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* Grid overlay */
+        .hero-grid {
+            position: absolute; inset: 0; z-index: 1;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+        }
+
+        /* ========== BUTTONS ========== */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            color: #fff; font-weight: 600; font-size: 1rem;
+            border: none; border-radius: 14px; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            text-decoration: none;
+            position: relative; overflow: hidden;
+        }
+        .btn-primary::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, #764BA2, #667EEA);
+            opacity: 0; transition: opacity 0.4s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(102,126,234,0.3); }
+        .btn-primary:hover::before { opacity: 1; }
+        .btn-primary span { position: relative; z-index: 1; }
+
+        .btn-outline {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            background: transparent;
+            color: #fff; font-weight: 600; font-size: 1rem;
+            border: 1.5px solid rgba(255,255,255,0.2); border-radius: 14px; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            text-decoration: none;
+        }
+        .btn-outline:hover {
+            border-color: #667EEA; background: rgba(102,126,234,0.08);
+            transform: translateY(-2px);
+        }
+
+        /* ========== CARDS ========== */
+        .glass-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px; padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .glass-card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(102,126,234,0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        /* ========== SECTION STYLES ========== */
+        .section-label {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: rgba(102,126,234,0.08);
+            border: 1px solid rgba(102,126,234,0.15);
+            border-radius: 100px;
+            font-size: 0.8rem; font-weight: 600; color: #667EEA;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ========== SCALE TIMELINE ========== */
+        .scale-line {
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
+            background: linear-gradient(180deg, transparent, #667EEA 20%, #764BA2 80%, transparent);
+            transform: translateX(-50%);
+        }
+        @media (max-width: 768px) {
+            .scale-line { left: 1.5rem; }
+        }
+        .scale-dot {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.1rem; color: #fff;
+            position: relative; z-index: 2;
+            box-shadow: 0 0 30px rgba(102,126,234,0.3);
+        }
+
+        /* ========== CALCULATOR ========== */
+        .calc-slider {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 6px;
+            background: linear-gradient(90deg, #667EEA, #764BA2);
+            border-radius: 3px; outline: none;
+        }
+        .calc-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 24px; height: 24px; border-radius: 50%;
+            background: #fff; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .calc-slider::-moz-range-thumb {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: #fff; cursor: pointer; border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* ========== CAREER PATH ========== */
+        .career-level {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.75rem 1.25rem; border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .career-level:hover { background: rgba(102,126,234,0.08); }
+        .career-dot {
+            width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+        }
+
+        /* ========== AI MATRIX ========== */
+        .matrix-cell {
+            padding: 0.5rem; border-radius: 8px; font-size: 0.7rem;
+            background: rgba(102,126,234,0.06);
+            border: 1px solid rgba(102,126,234,0.1);
+            text-align: center; color: rgba(255,255,255,0.6);
+            transition: all 0.3s;
+        }
+        .matrix-cell:hover {
+            background: rgba(102,126,234,0.15);
+            border-color: rgba(102,126,234,0.3);
+            color: #fff;
+        }
+
+        /* ========== TESTIMONIAL ========== */
+        .testimonial-avatar {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+
+        /* ========== PRICING ========== */
+        .pricing-card {
             position: relative;
-            z-index: 1;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: rgba(255,255,255,0.8);
-        }
-        
-        .screen-title {
-            font-size: 14px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 15px;
-            color: rgba(255,255,255,0.6);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        /* Splash Screen */
-        .splash-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-        }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .app-name {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .tagline {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.7);
-            text-align: center;
-        }
-        
-        /* Onboarding */
-        .onboarding-content {
-            text-align: center;
-            padding: 20px 0;
-        }
-        
-        .onboarding-image {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 60px;
-            margin: 20px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-        }
-        
-        .onboarding-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-        
-        .onboarding-subtitle {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.7);
-            line-height: 1.5;
-            margin-bottom: 40px;
-        }
-        
-        .button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            padding: 15px 30px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            margin-top: auto;
-            transition: all 0.3s ease;
-        }
-        
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        /* Dashboard */
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        
-        .user-greeting {
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-        
-        .notification-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .stat-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #667eea;
-        }
-        
-        .stat-label {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.6);
-            margin-top: 5px;
-        }
-        
-        /* Quick Actions */
-        .quick-actions {
-            margin-bottom: 25px;
-        }
-        
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-        
-        .actions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        
-        .action-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .action-card:hover {
-            background: rgba(255,255,255,0.15);
-            transform: translateY(-2px);
-        }
-        
-        .action-icon {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-        
-        .action-title {
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        
-        /* Progress Bar */
-        .progress-section {
-            margin-bottom: 20px;
-        }
-        
-        .progress-bar {
-            background: rgba(255,255,255,0.1);
-            height: 8px;
-            border-radius: 4px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(102,126,234,0.2);
+            border-radius: 24px; padding: 3rem;
             overflow: hidden;
-            margin-top: 10px;
         }
-        
-        .progress-fill {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.3s ease;
+        .pricing-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #667EEA, #764BA2);
         }
-        
-        /* Forms */
-        .form-group {
-            margin-bottom: 20px;
+        .pricing-check {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(102,126,234,0.15);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        
-        .form-label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: rgba(255,255,255,0.8);
+        .btn-pulse {
+            animation: btnPulse 2s ease-in-out infinite;
         }
-        
-        .form-input {
-            width: 100%;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            font-size: 1rem;
+        @keyframes btnPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(102,126,234,0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(102,126,234,0); }
         }
-        
-        .form-input::placeholder {
+
+        /* ========== FAQ ========== */
+        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .faq-answer {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), padding 0.5s;
+            padding: 0 0;
+        }
+        .faq-item.open .faq-answer {
+            max-height: 300px;
+            padding: 0 0 1.5rem 0;
+        }
+        .faq-icon {
+            transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .faq-item.open .faq-icon { transform: rotate(45deg); }
+
+        /* ========== BRAND LOGOS ========== */
+        .brand-logo-placeholder {
+            height: 60px; border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.875rem; color: rgba(255,255,255,0.3);
+            transition: all 0.3s;
+        }
+        .brand-logo-placeholder:hover {
+            border-color: rgba(102,126,234,0.2);
             color: rgba(255,255,255,0.5);
         }
-        
-        /* Navigation */
-        .bottom-nav {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 20px;
-            padding: 12px;
-            display: flex;
-            justify-content: space-around;
-            backdrop-filter: blur(10px);
+
+        /* ========== DIVIDERS ========== */
+        .section-divider {
+            height: 1px; width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 50%, transparent);
         }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.7rem;
-            color: rgba(255,255,255,0.6);
-        }
-        
-        .nav-item.active {
-            color: #667eea;
-        }
-        
-        .nav-icon {
-            font-size: 1.2rem;
-            margin-bottom: 4px;
-        }
-        
-        /* Responsive */
+
+        /* ========== GSAP REVEAL DEFAULTS ========== */
+        .reveal { opacity: 0; transform: translateY(40px); }
+        .reveal-left { opacity: 0; transform: translateX(-40px); }
+        .reveal-right { opacity: 0; transform: translateX(40px); }
+        .reveal-scale { opacity: 0; transform: scale(0.9); }
+
+        /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
-            .mockups-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
+            .hero h1 { font-size: 2.5rem !important; }
         }
-        
-        .github-link {
-            text-align: center;
-            margin-top: 40px;
-        }
-        
-        .github-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .github-button:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 2rem !important; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Brandly App</h1>
-            <p>Design completo do aplicativo - 9 telas principais</p>
+
+<!-- ==================== LOADER ==================== -->
+<div id="loader">
+    <div class="loader-logo">Brandly</div>
+</div>
+
+<!-- ==================== MOBILE MENU ==================== -->
+<div class="mobile-menu" id="mobileMenu">
+    <a href="#hero" onclick="closeMobile()">Inicio</a>
+    <a href="#problema" onclick="closeMobile()">Problema</a>
+    <a href="#scale" onclick="closeMobile()">Sistema SCALE</a>
+    <a href="#creators" onclick="closeMobile()">Para Creators</a>
+    <a href="#marcas" onclick="closeMobile()">Para Marcas</a>
+    <a href="#ia" onclick="closeMobile()">IA Tools</a>
+    <a href="#preco" onclick="closeMobile()">Precos</a>
+    <a href="#faq" onclick="closeMobile()">FAQ</a>
+</div>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" id="navbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <a href="#hero" class="text-2xl font-bold tracking-tight text-white no-underline" style="text-decoration:none;">
+            <span class="gradient-text">Brandly</span>
+        </a>
+        <div class="hidden lg:flex items-center gap-8">
+            <a href="#problema" class="nav-link">Problema</a>
+            <a href="#scale" class="nav-link">Sistema SCALE</a>
+            <a href="#creators" class="nav-link">Creators</a>
+            <a href="#marcas" class="nav-link">Marcas</a>
+            <a href="#ia" class="nav-link">IA Tools</a>
+            <a href="#preco" class="nav-link">Precos</a>
+            <a href="#faq" class="nav-link">FAQ</a>
         </div>
-        
-        <div class="mockups-grid">
-            <!-- Splash Screen -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content splash-content">
-                        <div class="logo">B</div>
-                        <div class="app-name">Brandly</div>
-                        <div class="tagline">Onde a influência vira marca</div>
+        <div class="hidden lg:flex items-center gap-4">
+            <a href="#preco" class="btn-primary" style="padding:0.7rem 1.5rem; font-size:0.875rem;">
+                <span>Comecar Agora</span>
+            </a>
+        </div>
+        <!-- Hamburger -->
+        <button class="lg:hidden flex flex-col gap-1.5 p-2 bg-transparent border-none cursor-pointer" id="hamburger" onclick="toggleMobile()">
+            <span class="block w-6 h-0.5 bg-white transition-all" id="hb1"></span>
+            <span class="block w-6 h-0.5 bg-white transition-all" id="hb2"></span>
+            <span class="block w-4 h-0.5 bg-white transition-all" id="hb3"></span>
+        </button>
+    </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="hero">
+    <div class="hero-bg">
+        <div class="hero-gradient-orb orb1"></div>
+        <div class="hero-gradient-orb orb2"></div>
+        <div class="hero-gradient-orb orb3"></div>
+        <div class="hero-grid"></div>
+    </div>
+    <div class="particles" id="particles"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-6 text-center pt-32 pb-20">
+        <div class="section-label reveal" style="margin:0 auto 1.5rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Plataforma #1 para Creators no Brasil
+        </div>
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.1] mb-6 reveal" style="max-width:900px; margin-left:auto; margin-right:auto;">
+            Transforme sua Criatividade em <span class="gradient-text">Profissao</span>
+        </h1>
+        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed reveal">
+            Ganhe <strong class="text-white">R$100/dia garantido</strong> produzindo videos para grandes marcas.
+            Nossa IA gera roteiros e edita em <strong class="text-white">30 segundos</strong>.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 reveal">
+            <a href="#preco" class="btn-primary text-lg" style="padding:1.1rem 3rem;">
+                <span>Quero Ser Creator</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;z-index:1"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <a href="#marcas" class="btn-outline text-lg" style="padding:1.1rem 3rem;">
+                Sou uma Marca
+            </a>
+        </div>
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-6 max-w-lg mx-auto reveal">
+            <div class="text-center">
+                <div class="text-2xl md:text-3xl font-bold text-white" data-count="2500">0</div>
+                <div class="text-xs md:text-sm text-gray-500 mt-1">Creators</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl md:text-3xl font-bold text-white" data-count="150">0</div>
+                <div class="text-xs md:text-sm text-gray-500 mt-1">Marcas</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl md:text-3xl font-bold text-white" data-count="2500000" data-prefix="R$" data-suffix="">0</div>
+                <div class="text-xs md:text-sm text-gray-500 mt-1">Pagos</div>
+            </div>
+        </div>
+    </div>
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
+        <span class="text-xs tracking-widest uppercase">Scroll</span>
+        <div class="w-5 h-8 border border-white/30 rounded-full flex justify-center pt-1.5">
+            <div class="w-1 h-2 bg-white/60 rounded-full" style="animation: scrollBounce 1.5s ease-in-out infinite"></div>
+        </div>
+    </div>
+</section>
+<style>
+@keyframes scrollBounce {
+    0%,100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(6px); opacity: 0.3; }
+}
+</style>
+
+<!-- ==================== PROBLEM / SOLUTION ==================== -->
+<section id="problema" class="py-28 relative">
+    <div class="max-w-7xl mx-auto px-6">
+        <!-- Problem -->
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">O Problema</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                O mercado de creators esta <span class="gradient-text">quebrado</span>
+            </h2>
+            <p class="text-gray-400 max-w-xl mx-auto reveal">A maioria dos creators trabalha sem previsibilidade, sem estrutura e sem retorno justo.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6 mb-24">
+            <div class="glass-card text-center reveal">
+                <div class="text-5xl font-black gradient-text mb-3">87%</div>
+                <h3 class="text-white font-semibold text-lg mb-2">Ganham menos de R$500/mes</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Dados Hotmart 2024 mostram que a vasta maioria dos creators nao consegue viver de conteudo.</p>
+            </div>
+            <div class="glass-card text-center reveal">
+                <div class="text-5xl font-black gradient-text mb-3">91%</div>
+                <h3 class="text-white font-semibold text-lg mb-2">Desistem no 1o ano</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Sem orientacao, ferramentas e renda previsivel, quase todos abandonam antes de decolar.</p>
+            </div>
+            <div class="glass-card text-center reveal">
+                <div class="text-5xl font-black gradient-text mb-3">0%</div>
+                <h3 class="text-white font-semibold text-lg mb-2">Previsibilidade</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Renda 100% dependente de algoritmo, parcerias pontuais e audiencia volatil.</p>
+            </div>
+        </div>
+        <!-- Solution -->
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">A Solucao</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Brandly muda <span class="gradient-text">tudo</span>
+            </h2>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="glass-card reveal">
+                <div class="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center mb-5">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <h3 class="text-white font-semibold text-lg mb-2">Renda Diaria Garantida</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">R$100/dia por 10 videos aprovados. Voce produz, nos pagamos. Sem depender de algoritmo.</p>
+            </div>
+            <div class="glass-card reveal">
+                <div class="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center mb-5">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="m2 14 6-6 6 6 6-6"/></svg>
+                </div>
+                <h3 class="text-white font-semibold text-lg mb-2">Automacao com IA</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">27 combinacoes de roteiros geradas por IA. Edicao automatica de video em 30 segundos.</p>
+            </div>
+            <div class="glass-card reveal">
+                <div class="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center mb-5">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+                </div>
+                <h3 class="text-white font-semibold text-lg mb-2">Plano de Carreira</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">7 niveis de Seed a Infinity, com bonus crescentes e equipe propria. Crescimento real.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ==================== SISTEMA SCALE ==================== -->
+<section id="scale" class="py-28 relative">
+    <div class="max-w-5xl mx-auto px-6">
+        <div class="text-center mb-20">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">Metodologia</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Sistema <span class="gradient-text">SCALE</span>
+            </h2>
+            <p class="text-gray-400 max-w-xl mx-auto reveal">Nossa metodologia proprietaria em 5 etapas que transforma qualquer pessoa em um creator profissional.</p>
+        </div>
+        <div class="relative">
+            <div class="scale-line hidden md:block"></div>
+            <div class="space-y-16 md:space-y-20">
+                <!-- S -->
+                <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-12 reveal">
+                    <div class="md:w-5/12 md:text-right order-2 md:order-1">
+                        <h3 class="text-xl font-bold text-white mb-2">Selecao de Marcas</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Conectamos voce com marcas premium que pagam por producao. Sem precisar buscar clientes.</p>
+                    </div>
+                    <div class="order-1 md:order-2 flex-shrink-0">
+                        <div class="scale-dot">S</div>
+                    </div>
+                    <div class="md:w-5/12 order-3"></div>
+                </div>
+                <!-- C -->
+                <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-12 reveal">
+                    <div class="md:w-5/12 order-2 md:order-1"></div>
+                    <div class="order-1 md:order-2 flex-shrink-0">
+                        <div class="scale-dot">C</div>
+                    </div>
+                    <div class="md:w-5/12 md:text-left order-3">
+                        <h3 class="text-xl font-bold text-white mb-2">Capacitacao Completa</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Formacao de A a Z para se tornar um Creator Profissional com certificacao Brandly.</p>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Onboarding 1 -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="screen-title">Onboarding 1/3</div>
-                        <div class="onboarding-content">
-                            <div class="onboarding-image">🎯</div>
-                            <div class="onboarding-title">Renda Garantida</div>
-                            <div class="onboarding-subtitle">R$100/dia por 10 vídeos<br>Sem depender do algoritmo</div>
-                        </div>
-                        <button class="button">Continuar</button>
+                <!-- A -->
+                <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-12 reveal">
+                    <div class="md:w-5/12 md:text-right order-2 md:order-1">
+                        <h3 class="text-xl font-bold text-white mb-2">Automacao com IA</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">IA gera roteiros (3 ganchos x 3 corpos x 3 CTAs = 27 combinacoes) e edita videos em 30s.</p>
+                    </div>
+                    <div class="order-1 md:order-2 flex-shrink-0">
+                        <div class="scale-dot">A</div>
+                    </div>
+                    <div class="md:w-5/12 order-3"></div>
+                </div>
+                <!-- L -->
+                <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-12 reveal">
+                    <div class="md:w-5/12 order-2 md:order-1"></div>
+                    <div class="order-1 md:order-2 flex-shrink-0">
+                        <div class="scale-dot">L</div>
+                    </div>
+                    <div class="md:w-5/12 md:text-left order-3">
+                        <h3 class="text-xl font-bold text-white mb-2">Lives de Acompanhamento</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Mentorias ao vivo semanais com nossa equipe. Voce nunca esta sozinho nessa jornada.</p>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Onboarding 2 -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="screen-title">Onboarding 2/3</div>
-                        <div class="onboarding-content">
-                            <div class="onboarding-image">🤖</div>
-                            <div class="onboarding-title">IA de Roteiros</div>
-                            <div class="onboarding-subtitle">27 combinações automáticas<br>Edição em 30 segundos</div>
-                        </div>
-                        <button class="button">Continuar</button>
+                <!-- E -->
+                <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-12 reveal">
+                    <div class="md:w-5/12 md:text-right order-2 md:order-1">
+                        <h3 class="text-xl font-bold text-white mb-2">Estrutura de Performance</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Dashboard completo, metricas em tempo real, plano de carreira com 7 niveis de crescimento.</p>
                     </div>
+                    <div class="order-1 md:order-2 flex-shrink-0">
+                        <div class="scale-dot">E</div>
+                    </div>
+                    <div class="md:w-5/12 order-3"></div>
                 </div>
             </div>
-            
-            <!-- Onboarding 3 -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="screen-title">Onboarding 3/3</div>
-                        <div class="onboarding-content">
-                            <div class="onboarding-image">🏢</div>
-                            <div class="onboarding-title">+100 Marcas</div>
-                            <div class="onboarding-subtitle">Conecte-se diretamente<br>com marcas parceiras</div>
-                        </div>
-                        <button class="button">Começar</button>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ==================== FOR CREATORS ==================== -->
+<section id="creators" class="py-28 relative">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">Para Creators</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Tudo que voce precisa para <span class="gradient-text">viver de conteudo</span>
+            </h2>
+        </div>
+        <!-- Benefits Grid -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+            <div class="glass-card text-center reveal">
+                <div class="w-12 h-12 rounded-xl gradient-bg flex items-center justify-center mx-auto mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <h3 class="text-white font-semibold mb-2">R$100/dia Garantido</h3>
+                <p class="text-gray-500 text-sm">10 videos aprovados = R$100. Simples assim. Todo dia.</p>
+            </div>
+            <div class="glass-card text-center reveal">
+                <div class="w-12 h-12 rounded-xl gradient-bg flex items-center justify-center mx-auto mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <h3 class="text-white font-semibold mb-2">IA Gera Roteiros</h3>
+                <p class="text-gray-500 text-sm">27 combinacoes unicas geradas automaticamente por IA.</p>
+            </div>
+            <div class="glass-card text-center reveal">
+                <div class="w-12 h-12 rounded-xl gradient-bg flex items-center justify-center mx-auto mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Edicao em 30s</h3>
+                <p class="text-gray-500 text-sm">IA edita seus videos automaticamente. Foque em criar.</p>
+            </div>
+            <div class="glass-card text-center reveal">
+                <div class="w-12 h-12 rounded-xl gradient-bg flex items-center justify-center mx-auto mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+                </div>
+                <h3 class="text-white font-semibold mb-2">Plano de Carreira</h3>
+                <p class="text-gray-500 text-sm">7 niveis com bonus crescentes. De Seed a Infinity.</p>
+            </div>
+        </div>
+
+        <!-- Earnings Calculator -->
+        <div class="grid lg:grid-cols-2 gap-12 items-start">
+            <div class="reveal">
+                <h3 class="text-2xl font-bold text-white mb-6">Calculadora de Ganhos</h3>
+                <div class="glass-card">
+                    <label class="block text-sm text-gray-400 mb-3">Videos por dia</label>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-gray-500 text-sm">1</span>
+                        <span class="text-2xl font-bold text-white" id="calcVideos">10</span>
+                        <span class="text-gray-500 text-sm">30</span>
                     </div>
+                    <input type="range" min="1" max="30" value="10" class="calc-slider mb-8" id="calcSlider" oninput="updateCalc()">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white/5 rounded-xl p-4 text-center">
+                            <div class="text-sm text-gray-400 mb-1">Ganho Diario</div>
+                            <div class="text-2xl font-bold text-white" id="calcDaily">R$100</div>
+                        </div>
+                        <div class="bg-white/5 rounded-xl p-4 text-center">
+                            <div class="text-sm text-gray-400 mb-1">Ganho Mensal</div>
+                            <div class="text-2xl font-bold gradient-text" id="calcMonthly">R$3.000</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-4">* Estimativa baseada em R$10/video aprovado, 30 dias uteis. Comissoes de vendas nao incluidas.</p>
                 </div>
             </div>
-            
-            <!-- Login -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="screen-title">Login</div>
-                        <div style="margin-top: 60px;">
-                            <div class="logo" style="margin: 0 auto 40px;">B</div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Email</label>
-                                <input class="form-input" type="email" placeholder="seu@email.com">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Senha</label>
-                                <input class="form-input" type="password" placeholder="********">
-                            </div>
-                            
-                            <button class="button" style="margin-top: 30px;">Entrar</button>
-                            
-                            <div style="text-align: center; margin-top: 20px; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
-                                Não tem conta? <span style="color: #667eea; cursor: pointer;">Cadastre-se</span>
-                            </div>
-                        </div>
+            <!-- Career Path -->
+            <div class="reveal">
+                <h3 class="text-2xl font-bold text-white mb-6">Plano de Carreira</h3>
+                <div class="glass-card space-y-1">
+                    <div class="career-level">
+                        <div class="career-dot" style="background:#4B5563"></div>
+                        <div class="flex-1"><span class="text-white font-medium">Seed</span></div>
+                        <span class="text-xs text-gray-500">Inicio</span>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Dashboard -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="status-bar">
-                            <span>9:41</span>
-                            <span>100% 🔋</span>
-                        </div>
-                        
-                        <div class="dashboard-header">
-                            <div class="user-greeting">Olá, Carolina! 👋</div>
-                            <div class="notification-icon">🔔</div>
-                        </div>
-                        
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-value">R$ 1.240</div>
-                                <div class="stat-label">Este mês</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">37</div>
-                                <div class="stat-label">Vídeos aprovados</div>
-                            </div>
-                        </div>
-                        
-                        <div class="progress-section">
-                            <div class="section-title">Meta diária (7/10 vídeos)</div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 70%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="quick-actions">
-                            <div class="section-title">Ações rápidas</div>
-                            <div class="actions-grid">
-                                <div class="action-card">
-                                    <div class="action-icon">📱</div>
-                                    <div class="action-title">Novo Vídeo</div>
-                                </div>
-                                <div class="action-card">
-                                    <div class="action-icon">🏢</div>
-                                    <div class="action-title">Marcas</div>
-                                </div>
-                                <div class="action-card">
-                                    <div class="action-icon">🤖</div>
-                                    <div class="action-title">IA Roteiros</div>
-                                </div>
-                                <div class="action-card">
-                                    <div class="action-icon">💰</div>
-                                    <div class="action-title">Financeiro</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="career-level">
+                        <div class="career-dot" style="background:#667EEA"></div>
+                        <div class="flex-1"><span class="text-white font-medium">Spark</span></div>
+                        <span class="text-xs text-gray-500">100 QV</span>
                     </div>
-                    
-                    <div class="bottom-nav">
-                        <div class="nav-item active">
-                            <div class="nav-icon">🏠</div>
-                            <div>Home</div>
-                        </div>
-                        <div class="nav-item">
-                            <div class="nav-icon">🏢</div>
-                            <div>Marcas</div>
-                        </div>
-                        <div class="nav-item">
-                            <div class="nav-icon">📱</div>
-                            <div>Vídeos</div>
-                        </div>
-                        <div class="nav-item">
-                            <div class="nav-icon">👤</div>
-                            <div>Perfil</div>
-                        </div>
+                    <div class="career-level">
+                        <div class="career-dot" style="background:#7C6FEA"></div>
+                        <div class="flex-1"><span class="text-white font-medium">Flow</span></div>
+                        <span class="text-xs text-gray-500">500 QV</span>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Catálogo de Marcas -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="status-bar">
-                            <span>9:41</span>
-                            <span>100% 🔋</span>
-                        </div>
-                        
-                        <div style="text-align: center; margin-bottom: 25px;">
-                            <div class="section-title">Catálogo de Marcas</div>
-                            <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Escolha uma marca para começar</div>
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <input class="form-input" placeholder="🔍 Buscar marcas..." style="margin-bottom: 0;">
-                        </div>
-                        
-                        <!-- Marca 1 -->
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px;">
-                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700;">YH</div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; margin-bottom: 4px;">YAV Health</div>
-                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Suplementos • R$15-30/vídeo</div>
-                            </div>
-                            <div style="color: #667eea; font-size: 1.2rem;">→</div>
-                        </div>
-                        
-                        <!-- Marca 2 -->
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px;">
-                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f093fb, #f5576c); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">NT</div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; margin-bottom: 4px;">Native</div>
-                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Beleza • R$20-40/vídeo</div>
-                            </div>
-                            <div style="color: #667eea; font-size: 1.2rem;">→</div>
-                        </div>
-                        
-                        <!-- Marca 3 -->
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px;">
-                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #4facfe, #00f2fe); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">FK</div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; margin-bottom: 4px;">Foka</div>
-                                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Tecnologia • R$25-50/vídeo</div>
-                            </div>
-                            <div style="color: #667eea; font-size: 1.2rem;">→</div>
-                        </div>
+                    <div class="career-level">
+                        <div class="career-dot" style="background:#8B5CF6"></div>
+                        <div class="flex-1"><span class="text-white font-medium">Iconic</span></div>
+                        <span class="text-xs text-gray-500">1.500 QV</span>
                     </div>
-                    
-                    <div class="bottom-nav">
-                        <div class="nav-item">
-                            <div class="nav-icon">🏠</div>
-                            <div>Home</div>
-                        </div>
-                        <div class="nav-item active">
-                            <div class="nav-icon">🏢</div>
-                            <div>Marcas</div>
-                        </div>
-                        <div class="nav-item">
-                            <div class="nav-icon">📱</div>
-                            <div>Vídeos</div>
-                        </div>
-                        <div class="nav-item">
-                            <div class="nav-icon">👤</div>
-                            <div>Perfil</div>
-                        </div>
+                    <div class="career-level">
+                        <div class="career-dot" style="background:#A855F7"></div>
+                        <div class="flex-1"><span class="text-white font-medium">Vision</span></div>
+                        <span class="text-xs text-gray-500">5.000 QV</span>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Geração de Roteiros IA -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="status-bar">
-                            <span>9:41</span>
-                            <span>100% 🔋</span>
-                        </div>
-                        
-                        <div style="text-align: center; margin-bottom: 25px;">
-                            <div class="section-title">Roteiros IA 🤖</div>
-                            <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Gere roteiros personalizados</div>
-                        </div>
-                        
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 20px;">
-                            <div style="font-weight: 600; margin-bottom: 10px;">Marca selecionada: YAV Health</div>
-                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Produto: Whey Protein Premium</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Estilo do vídeo</label>
-                            <select class="form-input">
-                                <option>Educativo</option>
-                                <option>Demonstração</option>
-                                <option>Storytelling</option>
-                                <option>Before/After</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Tom de voz</label>
-                            <select class="form-input">
-                                <option>Casual e amigável</option>
-                                <option>Profissional</option>
-                                <option>Enérgico</option>
-                                <option>Inspirador</option>
-                            </select>
-                        </div>
-                        
-                        <div style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.8);">
-                                <strong>IA gerará:</strong><br>
-                                • 3 ganchos diferentes<br>
-                                • 3 desenvolvimentos<br>
-                                • 3 call-to-actions<br>
-                                = <strong>27 combinações únicas!</strong>
-                            </div>
-                        </div>
-                        
-                        <button class="button">🤖 Gerar Roteiros</button>
+                    <div class="career-level">
+                        <div class="career-dot" style="background:#C026D3"></div>
+                        <div class="flex-1"><span class="text-white font-medium">Empire</span></div>
+                        <span class="text-xs text-gray-500">15.000 QV</span>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Upload de Vídeos -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="status-bar">
-                            <span>9:41</span>
-                            <span>100% 🔋</span>
-                        </div>
-                        
-                        <div style="text-align: center; margin-bottom: 25px;">
-                            <div class="section-title">Upload de Vídeo 📱</div>
-                            <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Grave ou selecione seu vídeo</div>
-                        </div>
-                        
-                        <div style="background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.3); border-radius: 15px; padding: 40px 20px; text-align: center; margin-bottom: 25px;">
-                            <div style="font-size: 3rem; margin-bottom: 15px;">📹</div>
-                            <div style="font-weight: 600; margin-bottom: 8px;">Adicione seu vídeo</div>
-                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Toque para gravar ou selecionar</div>
-                        </div>
-                        
-                        <div class="actions-grid" style="margin-bottom: 25px;">
-                            <div class="action-card">
-                                <div class="action-icon">🎥</div>
-                                <div class="action-title">Gravar Agora</div>
-                            </div>
-                            <div class="action-card">
-                                <div class="action-icon">📂</div>
-                                <div class="action-title">Galeria</div>
-                            </div>
-                        </div>
-                        
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 20px;">
-                            <div style="font-weight: 600; margin-bottom: 10px;">Checklist pré-upload ✅</div>
-                            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); line-height: 1.5;">
-                                • Vertical (9:16)<br>
-                                • Boa iluminação<br>
-                                • Áudio claro<br>
-                                • 15-60 segundos<br>
-                                • Seguiu o roteiro
-                            </div>
-                        </div>
-                        
-                        <button class="button" style="opacity: 0.5;">Enviar para Análise</button>
+                    <div class="career-level">
+                        <div class="career-dot" style="background: linear-gradient(135deg, #667EEA, #764BA2)"></div>
+                        <div class="flex-1"><span class="text-white font-bold">Infinity</span></div>
+                        <span class="text-xs gradient-text font-semibold">Topo</span>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Financeiro -->
-            <div class="phone-mockup">
-                <div class="screen">
-                    <div class="screen-content">
-                        <div class="status-bar">
-                            <span>9:41</span>
-                            <span>100% 🔋</span>
-                        </div>
-                        
-                        <div style="text-align: center; margin-bottom: 25px;">
-                            <div class="section-title">Financeiro 💰</div>
-                            <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Seus ganhos e pagamentos</div>
-                        </div>
-                        
-                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 25px;">
-                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Saldo disponível</div>
-                            <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 10px;">R$ 1.240,50</div>
-                            <button class="button" style="background: rgba(255,255,255,0.2); margin-top: 10px;">Sacar</button>
-                        </div>
-                        
-                        <div class="stats-grid" style="margin-bottom: 25px;">
-                            <div class="stat-card">
-                                <div class="stat-value">R$ 3.120</div>
-                                <div class="stat-label">Total ganho</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">R$ 420</div>
-                                <div class="stat-label">Esta semana</div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <div class="section-title">Últimos pagamentos</div>
-                            
-                            <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-size: 0.9rem; font-weight: 600;">10 vídeos aprovados</div>
-                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">Hoje</div>
-                                </div>
-                                <div style="font-weight: 700; color: #4ade80;">+R$ 100,00</div>
-                            </div>
-                            
-                            <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-size: 0.9rem; font-weight: 600;">Comissão YAV Health</div>
-                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">Ontem</div>
-                                </div>
-                                <div style="font-weight: 700; color: #4ade80;">+R$ 45,00</div>
-                            </div>
-                            
-                            <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-size: 0.9rem; font-weight: 600;">Bônus de rede</div>
-                                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">2 dias atrás</div>
-                                </div>
-                                <div style="font-weight: 700; color: #4ade80;">+R$ 25,00</div>
-                            </div>
-                        </div>
+                    <div class="mt-4 pt-4 border-t border-white/5">
+                        <p class="text-xs text-gray-500">Cada nivel desbloqueia bonus maiores, acesso a marcas premium e ferramentas exclusivas.</p>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="github-link">
-            <a href="https://github.com/gabrielrbm-prog/brandly-platform" class="github-button" target="_blank">
-                🔗 Ver no GitHub
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ==================== FOR BRANDS ==================== -->
+<section id="marcas" class="py-28 relative">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">Para Marcas</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Um exercito de creators <span class="gradient-text">trabalhando por voce</span>
+            </h2>
+            <p class="text-gray-400 max-w-xl mx-auto reveal">Conteudo UGC autentico, distribuicao por performance e zero risco. Pague apenas por resultado.</p>
+        </div>
+        <!-- Value Props -->
+        <div class="grid md:grid-cols-3 gap-6 mb-16">
+            <div class="glass-card text-center reveal">
+                <div class="text-4xl font-black gradient-text mb-3">10x</div>
+                <h3 class="text-white font-semibold text-lg mb-2">ROI Medio</h3>
+                <p class="text-gray-500 text-sm">Retorno sobre investimento 10 vezes maior que marketing tradicional.</p>
+            </div>
+            <div class="glass-card text-center reveal">
+                <div class="text-4xl font-black gradient-text mb-3">500+</div>
+                <h3 class="text-white font-semibold text-lg mb-2">Videos/Mes</h3>
+                <p class="text-gray-500 text-sm">Centenas de videos UGC autenticos produzidos mensalmente para sua marca.</p>
+            </div>
+            <div class="glass-card text-center reveal">
+                <div class="text-4xl font-black gradient-text mb-3">23%</div>
+                <h3 class="text-white font-semibold text-lg mb-2">Custo vs Agencia</h3>
+                <p class="text-gray-500 text-sm">Fracao do custo de uma agencia tradicional com resultados superiores.</p>
+            </div>
+        </div>
+        <!-- Brand Logos -->
+        <div class="text-center mb-8 reveal">
+            <p class="text-sm text-gray-500 uppercase tracking-widest">Marcas que confiam na Brandly</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12 reveal">
+            <div class="brand-logo-placeholder">YAV Health</div>
+            <div class="brand-logo-placeholder">Native</div>
+            <div class="brand-logo-placeholder">Foka</div>
+            <div class="brand-logo-placeholder">ETF</div>
+            <div class="brand-logo-placeholder">Conectar</div>
+            <div class="brand-logo-placeholder">Vyva</div>
+        </div>
+        <div class="text-center reveal">
+            <a href="#preco" class="btn-outline">
+                Quero levar minha marca para a Brandly
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
         </div>
     </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ==================== AI TOOLS ==================== -->
+<section id="ia" class="py-28 relative">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">Ferramentas IA</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Tecnologia que <span class="gradient-text">multiplica</span> sua producao
+            </h2>
+            <p class="text-gray-400 max-w-xl mx-auto reveal">Roteiros gerados por IA, edicao automatica e calendario inteligente. Tudo para voce produzir mais em menos tempo.</p>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- Script Generator Preview -->
+            <div class="glass-card reveal">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-semibold">Gerador de Roteiros</h3>
+                        <p class="text-xs text-gray-500">27 combinacoes unicas</p>
+                    </div>
+                </div>
+                <!-- Matrix -->
+                <div class="mb-4">
+                    <div class="grid grid-cols-4 gap-2 text-xs">
+                        <div></div>
+                        <div class="text-center text-gray-500 font-semibold pb-2">CTA 1</div>
+                        <div class="text-center text-gray-500 font-semibold pb-2">CTA 2</div>
+                        <div class="text-center text-gray-500 font-semibold pb-2">CTA 3</div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs text-gray-400 mb-2 font-medium">Gancho 1 - Problema</p>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 1</div>
+                                <div class="matrix-cell">G1+C1+A1</div>
+                                <div class="matrix-cell">G1+C1+A2</div>
+                                <div class="matrix-cell">G1+C1+A3</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 mt-1">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 2</div>
+                                <div class="matrix-cell">G1+C2+A1</div>
+                                <div class="matrix-cell">G1+C2+A2</div>
+                                <div class="matrix-cell">G1+C2+A3</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 mt-1">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 3</div>
+                                <div class="matrix-cell">G1+C3+A1</div>
+                                <div class="matrix-cell">G1+C3+A2</div>
+                                <div class="matrix-cell">G1+C3+A3</div>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 mb-2 font-medium">Gancho 2 - Curiosidade</p>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 1</div>
+                                <div class="matrix-cell">G2+C1+A1</div>
+                                <div class="matrix-cell">G2+C1+A2</div>
+                                <div class="matrix-cell">G2+C1+A3</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 mt-1">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 2</div>
+                                <div class="matrix-cell">G2+C2+A1</div>
+                                <div class="matrix-cell">G2+C2+A2</div>
+                                <div class="matrix-cell">G2+C2+A3</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 mt-1">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 3</div>
+                                <div class="matrix-cell">G2+C3+A1</div>
+                                <div class="matrix-cell">G2+C3+A2</div>
+                                <div class="matrix-cell">G2+C3+A3</div>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 mb-2 font-medium">Gancho 3 - Beneficio</p>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 1</div>
+                                <div class="matrix-cell">G3+C1+A1</div>
+                                <div class="matrix-cell">G3+C1+A2</div>
+                                <div class="matrix-cell">G3+C1+A3</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 mt-1">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 2</div>
+                                <div class="matrix-cell">G3+C2+A1</div>
+                                <div class="matrix-cell">G3+C2+A2</div>
+                                <div class="matrix-cell">G3+C2+A3</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 mt-1">
+                                <div class="text-xs text-gray-500 flex items-center">Corpo 3</div>
+                                <div class="matrix-cell">G3+C3+A1</div>
+                                <div class="matrix-cell">G3+C3+A2</div>
+                                <div class="matrix-cell">G3+C3+A3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right column: Auto editing + Calendar -->
+            <div class="space-y-8">
+                <!-- Auto Video Editing -->
+                <div class="glass-card reveal">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold">Edicao Automatica</h3>
+                            <p class="text-xs text-gray-500">Video pronto em 30 segundos</p>
+                        </div>
+                    </div>
+                    <div class="relative bg-white/5 rounded-xl p-6 overflow-hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">brandly-editor.ai</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                <div class="h-2 rounded-full bg-green-400/20 flex-1">
+                                    <div class="h-full rounded-full bg-green-400" style="width:100%"></div>
+                                </div>
+                                <span class="text-xs text-green-400">Upload</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                <div class="h-2 rounded-full bg-green-400/20 flex-1">
+                                    <div class="h-full rounded-full bg-green-400" style="width:100%"></div>
+                                </div>
+                                <span class="text-xs text-green-400">Analise IA</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full" style="background:#667EEA"></div>
+                                <div class="h-2 rounded-full flex-1" style="background:rgba(102,126,234,0.2)">
+                                    <div class="h-full rounded-full" style="width:65%;background:#667EEA;animation:editProgress 2s ease-in-out infinite"></div>
+                                </div>
+                                <span class="text-xs" style="color:#667EEA">Editando...</span>
+                            </div>
+                            <div class="flex items-center gap-3 opacity-40">
+                                <div class="w-2 h-2 rounded-full bg-gray-500"></div>
+                                <div class="h-2 rounded-full bg-white/5 flex-1"></div>
+                                <span class="text-xs text-gray-500">Exportar</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                @keyframes editProgress {
+                    0%,100% { width: 55%; }
+                    50% { width: 85%; }
+                }
+                </style>
+                <!-- Content Calendar -->
+                <div class="glass-card reveal">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold">Calendario Inteligente</h3>
+                            <p class="text-xs text-gray-500">Organize sua producao</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                        <div class="text-gray-500 py-1">S</div><div class="text-gray-500 py-1">T</div><div class="text-gray-500 py-1">Q</div><div class="text-gray-500 py-1">Q</div><div class="text-gray-500 py-1">S</div><div class="text-gray-500 py-1">S</div><div class="text-gray-500 py-1">D</div>
+                        <div class="py-2 text-gray-600">1</div><div class="py-2 text-gray-600">2</div><div class="py-2 rounded-lg text-white" style="background:rgba(102,126,234,0.2)">3</div><div class="py-2 rounded-lg text-white" style="background:rgba(102,126,234,0.2)">4</div><div class="py-2 rounded-lg text-white" style="background:rgba(102,126,234,0.3)">5</div><div class="py-2 text-gray-600">6</div><div class="py-2 text-gray-600">7</div>
+                        <div class="py-2 rounded-lg text-white" style="background:rgba(102,126,234,0.2)">8</div><div class="py-2 rounded-lg text-white" style="background:rgba(102,126,234,0.2)">9</div><div class="py-2 rounded-lg text-white" style="background:rgba(118,75,162,0.3)">10</div><div class="py-2 rounded-lg text-white" style="background:rgba(118,75,162,0.3)">11</div><div class="py-2 rounded-lg font-bold" style="background:linear-gradient(135deg,#667EEA,#764BA2);color:#fff">12</div><div class="py-2 text-gray-600">13</div><div class="py-2 text-gray-600">14</div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-3 text-xs text-gray-500">
+                        <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded" style="background:rgba(102,126,234,0.3)"></div> Videos</div>
+                        <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded" style="background:rgba(118,75,162,0.3)"></div> Lives</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-12 reveal">
+            <a href="packages/web-dashboard/tools.html" class="btn-primary">
+                <span>Veja nossas ferramentas</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;z-index:1"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ==================== SOCIAL PROOF ==================== -->
+<section id="prova" class="py-28 relative">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">Depoimentos</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Quem ja <span class="gradient-text">transforma</span> sua vida
+            </h2>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6 mb-16">
+            <div class="glass-card reveal">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="testimonial-avatar">C</div>
+                    <div>
+                        <div class="text-white font-semibold">Carolina Silva</div>
+                        <div class="text-xs text-gray-500">Nivel: Flow</div>
+                    </div>
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed mb-4">"Saia de R$800 irregulares para R$4.200 fixos por mes. A IA de roteiros mudou completamente minha producao. Hoje consigo fazer 15 videos por dia com qualidade."</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:rgba(74,222,128,0.1); color:#4ade80;">+425% de renda</span>
+                </div>
+            </div>
+            <div class="glass-card reveal">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="testimonial-avatar">M</div>
+                    <div>
+                        <div class="text-white font-semibold">Marina Costa</div>
+                        <div class="text-xs text-gray-500">Nivel: Spark</div>
+                    </div>
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed mb-4">"Larguei meu emprego CLT depois de 3 meses na Brandly. Os R$100/dia garantidos me deram seguranca para dar o salto. Hoje ganho mais que o dobro do meu antigo salario."</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:rgba(74,222,128,0.1); color:#4ade80;">R$5.100/mes</span>
+                </div>
+            </div>
+            <div class="glass-card reveal">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="testimonial-avatar">J</div>
+                    <div>
+                        <div class="text-white font-semibold">Juliana Santos</div>
+                        <div class="text-xs text-gray-500">Nivel: Iconic</div>
+                    </div>
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed mb-4">"Comecei como renda extra enquanto estava no CLT. Hoje minha equipe tem 12 creators e meus bonus de rede superaram meu salario. A Brandly e o futuro."</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:rgba(74,222,128,0.1); color:#4ade80;">R$8.700/mes</span>
+                </div>
+            </div>
+        </div>
+        <!-- Success Metrics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 reveal">
+            <div class="text-center">
+                <div class="text-3xl md:text-4xl font-bold text-white" data-count="2500">0</div>
+                <div class="text-sm text-gray-500 mt-1">Creators Ativos</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl md:text-4xl font-bold text-white" data-count="45000">0</div>
+                <div class="text-sm text-gray-500 mt-1">Videos Produzidos</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl md:text-4xl font-bold text-white" data-count="150">0</div>
+                <div class="text-sm text-gray-500 mt-1">Marcas Parceiras</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl md:text-4xl font-bold text-white" data-count="96" data-suffix="%">0</div>
+                <div class="text-sm text-gray-500 mt-1">Satisfacao</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ==================== PRICING ==================== -->
+<section id="preco" class="py-28 relative">
+    <div class="max-w-3xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">Investimento</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Comece sua <span class="gradient-text">nova carreira</span>
+            </h2>
+        </div>
+        <div class="pricing-card reveal">
+            <!-- Badge -->
+            <div class="absolute top-6 right-6">
+                <span class="text-xs font-bold px-3 py-1.5 rounded-full" style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.2);">
+                    Vagas Limitadas
+                </span>
+            </div>
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-white mb-2">Profissao Creator Brandly</h3>
+                <p class="text-gray-500 text-sm">Formacao completa + infraestrutura + IA + acompanhamento</p>
+            </div>
+            <div class="flex items-baseline gap-2 mb-2">
+                <span class="text-5xl font-black text-white">12x</span>
+                <span class="text-5xl font-black gradient-text">R$49,90</span>
+            </div>
+            <p class="text-gray-500 text-sm mb-8">ou R$497 a vista | Garantia de 30 dias</p>
+            <!-- Features -->
+            <div class="space-y-3 mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">Formacao Creator Profissional completa</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">Acesso ao Sistema SCALE completo</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">IA de roteiros (27 combinacoes por briefing)</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">Edicao automatica de video em 30s</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">R$100/dia garantido (10 videos/dia)</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">Comissoes por vendas + bonus de rede</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">Lives semanais de mentoria e acompanhamento</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pricing-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-300">Dashboard de performance em tempo real</span>
+                </div>
+            </div>
+            <!-- Bonus Stack -->
+            <div class="bg-white/5 rounded-xl p-5 mb-8 border border-white/5">
+                <h4 class="text-white font-semibold mb-4 flex items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#667EEA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
+                    Bonus Exclusivos
+                </h4>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-400">Kit Creator Fisico (10 primeiros)</span>
+                        <span class="text-xs font-semibold gradient-text">GRATIS</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-400">Pagamento Dobrado 3 dias (20 primeiros)</span>
+                        <span class="text-xs font-semibold gradient-text">2x</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-400">Meta Reduzida 1a semana (50 primeiros)</span>
+                        <span class="text-xs font-semibold gradient-text">50%</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-400">Marcas Premium (100 primeiros)</span>
+                        <span class="text-xs font-semibold gradient-text">VIP</span>
+                    </div>
+                </div>
+            </div>
+            <!-- CTA -->
+            <a href="#" class="btn-primary btn-pulse w-full text-lg" style="padding:1.25rem; display:flex;">
+                <span>Quero Comecar Agora</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;z-index:1"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <p class="text-xs text-gray-600 text-center mt-4">Pagamento seguro. Garantia incondicional de 30 dias.</p>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ==================== FAQ ==================== -->
+<section id="faq" class="py-28 relative">
+    <div class="max-w-3xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <div class="section-label reveal" style="margin:0 auto 1.5rem;">Duvidas</div>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 reveal">
+                Perguntas <span class="gradient-text">frequentes</span>
+            </h2>
+        </div>
+        <div class="reveal">
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <button class="w-full flex items-center justify-between py-5 text-left bg-transparent border-none cursor-pointer">
+                    <span class="text-white font-medium pr-4">Preciso ter experiencia como creator?</span>
+                    <span class="faq-icon text-gray-400 text-xl flex-shrink-0">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p class="text-gray-400 text-sm leading-relaxed">Nao! O Sistema SCALE foi desenhado para levar voce do zero ao profissional. Nossa formacao cobre tudo: gravacao, edicao, roteiro e estrategia. A IA faz a parte mais dificil por voce.</p>
+                </div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <button class="w-full flex items-center justify-between py-5 text-left bg-transparent border-none cursor-pointer">
+                    <span class="text-white font-medium pr-4">Como funciona o pagamento de R$100/dia?</span>
+                    <span class="faq-icon text-gray-400 text-xl flex-shrink-0">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p class="text-gray-400 text-sm leading-relaxed">Voce produz 10 videos por dia seguindo os briefings das marcas parceiras. Cada video aprovado pela nossa equipe de qualidade gera R$10. 10 videos aprovados = R$100. O pagamento e processado diariamente.</p>
+                </div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <button class="w-full flex items-center justify-between py-5 text-left bg-transparent border-none cursor-pointer">
+                    <span class="text-white font-medium pr-4">Quanto tempo preciso dedicar por dia?</span>
+                    <span class="faq-icon text-gray-400 text-xl flex-shrink-0">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p class="text-gray-400 text-sm leading-relaxed">Com nossa IA gerando roteiros e editando videos, a maioria dos creators consegue produzir 10 videos em 2-3 horas por dia. A automacao reduz drasticamente o tempo de producao.</p>
+                </div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <button class="w-full flex items-center justify-between py-5 text-left bg-transparent border-none cursor-pointer">
+                    <span class="text-white font-medium pr-4">Preciso aparecer nos videos?</span>
+                    <span class="faq-icon text-gray-400 text-xl flex-shrink-0">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p class="text-gray-400 text-sm leading-relaxed">Depende do briefing da marca. Alguns pedem UGC com rosto, outros aceitam apenas maos, voz-off ou demonstracao de produto. Voce escolhe as marcas que combinam com seu estilo.</p>
+                </div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <button class="w-full flex items-center justify-between py-5 text-left bg-transparent border-none cursor-pointer">
+                    <span class="text-white font-medium pr-4">E se meu video nao for aprovado?</span>
+                    <span class="faq-icon text-gray-400 text-xl flex-shrink-0">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p class="text-gray-400 text-sm leading-relaxed">Voce recebe feedback detalhado e pode reenviar. Nosso checklist pre-upload e a IA de roteiros garantem que a maioria dos videos passa na primeira tentativa. A taxa media de aprovacao e de 92%.</p>
+                </div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <button class="w-full flex items-center justify-between py-5 text-left bg-transparent border-none cursor-pointer">
+                    <span class="text-white font-medium pr-4">Posso cancelar? Tem garantia?</span>
+                    <span class="faq-icon text-gray-400 text-xl flex-shrink-0">+</span>
+                </button>
+                <div class="faq-answer">
+                    <p class="text-gray-400 text-sm leading-relaxed">Sim! Oferecemos garantia incondicional de 30 dias. Se dentro desse periodo voce sentir que a Brandly nao e para voce, devolvemos 100% do seu investimento. Sem perguntas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="border-t border-white/5 pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid md:grid-cols-4 gap-12 mb-12">
+            <div class="md:col-span-1">
+                <a href="#hero" class="text-2xl font-bold gradient-text no-underline" style="text-decoration:none;">Brandly</a>
+                <p class="text-gray-500 text-sm mt-4 leading-relaxed">Transformando criatividade em profissao. A plataforma #1 para creators no Brasil.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Plataforma</h4>
+                <ul class="space-y-2 list-none p-0">
+                    <li><a href="#creators" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Para Creators</a></li>
+                    <li><a href="#marcas" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Para Marcas</a></li>
+                    <li><a href="#ia" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">IA Tools</a></li>
+                    <li><a href="#preco" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Precos</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Recursos</h4>
+                <ul class="space-y-2 list-none p-0">
+                    <li><a href="#faq" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">FAQ</a></li>
+                    <li><a href="#" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Blog</a></li>
+                    <li><a href="#" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Suporte</a></li>
+                    <li><a href="#" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">API</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Legal</h4>
+                <ul class="space-y-2 list-none p-0">
+                    <li><a href="#" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Termos de Uso</a></li>
+                    <li><a href="#" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Politica de Privacidade</a></li>
+                    <li><a href="#" class="text-gray-500 text-sm hover:text-white transition-colors no-underline" style="text-decoration:none;">Cookies</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- Social + Copyright -->
+        <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-gray-600 text-sm">&copy; 2024 Brandly. Todos os direitos reservados.</p>
+            <div class="flex items-center gap-4">
+                <a href="#" class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="Instagram">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                </a>
+                <a href="#" class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="TikTok">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.88-2.88 2.89 2.89 0 0 1 2.88-2.88c.28 0 .56.04.82.11v-3.5a6.37 6.37 0 0 0-.82-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.79a8.28 8.28 0 0 0 3.76.91V6.25c0 .15 0 .3-.01.44z"/></svg>
+                </a>
+                <a href="#" class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="YouTube">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.43z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+                </a>
+                <a href="#" class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="LinkedIn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- ==================== SCRIPTS ==================== -->
+<!-- Lenis Smooth Scroll -->
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+// ========== LOADER ==========
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.getElementById('loader').classList.add('hidden');
+    }, 800);
+});
+
+// ========== LENIS SMOOTH SCROLL ==========
+const lenis = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+});
+function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+// Integrate Lenis with GSAP ScrollTrigger
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+gsap.ticker.lagSmoothing(0);
+
+// Handle anchor clicks
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) lenis.scrollTo(target, { offset: -80 });
+    });
+});
+
+// ========== NAVBAR SCROLL ==========
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ========== MOBILE MENU ==========
+let mobileOpen = false;
+function toggleMobile() {
+    mobileOpen = !mobileOpen;
+    document.getElementById('mobileMenu').classList.toggle('open', mobileOpen);
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+}
+function closeMobile() {
+    mobileOpen = false;
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// ========== PARTICLES ==========
+(function() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 30; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (8 + Math.random() * 12) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+        p.style.opacity = 0.2 + Math.random() * 0.3;
+        container.appendChild(p);
+    }
+})();
+
+// ========== GSAP ANIMATIONS ==========
+gsap.registerPlugin(ScrollTrigger);
+
+// Reveal animations
+gsap.utils.toArray('.reveal').forEach(el => {
+    gsap.fromTo(el,
+        { opacity: 0, y: 40 },
+        {
+            opacity: 1, y: 0, duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: el,
+                start: 'top 85%',
+                toggleActions: 'play none none none',
+            }
+        }
+    );
+});
+gsap.utils.toArray('.reveal-left').forEach(el => {
+    gsap.fromTo(el,
+        { opacity: 0, x: -40 },
+        {
+            opacity: 1, x: 0, duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+        }
+    );
+});
+gsap.utils.toArray('.reveal-right').forEach(el => {
+    gsap.fromTo(el,
+        { opacity: 0, x: 40 },
+        {
+            opacity: 1, x: 0, duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
+        }
+    );
+});
+
+// ========== COUNTER ANIMATION ==========
+const counters = document.querySelectorAll('[data-count]');
+const observerOptions = { threshold: 0.5 };
+const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const el = entry.target;
+            const target = parseInt(el.dataset.count);
+            const prefix = el.dataset.prefix || '';
+            const suffix = el.dataset.suffix || '';
+            const duration = 2000;
+            const start = Date.now();
+            const animate = () => {
+                const elapsed = Date.now() - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(eased * target);
+                if (target >= 1000000) {
+                    el.textContent = prefix + (current / 1000000).toFixed(1) + 'M' + suffix;
+                } else if (target >= 1000) {
+                    el.textContent = prefix + (current / 1000).toFixed(current >= 10000 ? 0 : 1) + 'k' + suffix;
+                } else {
+                    el.textContent = prefix + current.toLocaleString('pt-BR') + suffix;
+                }
+                if (progress < 1) requestAnimationFrame(animate);
+            };
+            animate();
+            counterObserver.unobserve(el);
+        }
+    });
+}, observerOptions);
+counters.forEach(c => counterObserver.observe(c));
+
+// ========== CALCULATOR ==========
+function updateCalc() {
+    const slider = document.getElementById('calcSlider');
+    const videos = parseInt(slider.value);
+    const daily = videos * 10;
+    const monthly = daily * 30;
+    document.getElementById('calcVideos').textContent = videos;
+    document.getElementById('calcDaily').textContent = 'R$' + daily.toLocaleString('pt-BR');
+    document.getElementById('calcMonthly').textContent = 'R$' + monthly.toLocaleString('pt-BR');
+}
+
+// ========== FAQ ==========
+function toggleFaq(item) {
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+}
+
+// ========== STAGGER ANIMATIONS FOR CARDS ==========
+gsap.utils.toArray('.grid').forEach(grid => {
+    const cards = grid.querySelectorAll('.glass-card, .brand-logo-placeholder');
+    if (cards.length > 1) {
+        gsap.fromTo(cards,
+            { opacity: 0, y: 30 },
+            {
+                opacity: 1, y: 0, duration: 0.6,
+                stagger: 0.1, ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: grid,
+                    start: 'top 85%',
+                    toggleActions: 'play none none none',
+                }
+            }
+        );
+    }
+});
+</script>
 </body>
 </html>

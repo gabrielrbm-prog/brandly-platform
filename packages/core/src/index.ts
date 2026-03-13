@@ -7,3 +7,4 @@ export * from './services/phyllo-client.js';
 export * from './services/bonus-processor.js';
 export * from './services/behavioral-profile.js';
 export * from './services/cron-jobs.js';
+export * from './services/push-notifications.js';

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
-import { videos, payments, calculateVideoPayment, getVideoPaymentConstants } from '@brandly/core';
+import { videos, payments, users, calculateVideoPayment, getVideoPaymentConstants } from '@brandly/core';
+import { sendPushNotification, videoApprovedNotification, videoRejectedNotification } from '@brandly/core';
 import { eq, and, sql, gte, lte, desc, count } from 'drizzle-orm';
 
 const { perVideo: PAYMENT_PER_VIDEO, maxPerDay: MAX_PAID_PER_DAY } = getVideoPaymentConstants();
@@ -215,6 +216,28 @@ export async function videoRoutes(app: FastifyInstance) {
         .set(updateData)
         .where(eq(videos.id, id))
         .returning();
+
+      // Push notification para o creator
+      try {
+        const [creator] = await db.select({ pushToken: sql<string>`${users.id}` })
+          .from(users)
+          .where(eq(users.id, video.creatorId))
+          .limit(1);
+        // Buscar pushToken via raw query (campo pode nao existir no schema ainda)
+        const [tokenRow] = await db.execute(
+          sql`SELECT push_token FROM users WHERE id = ${video.creatorId} AND push_token IS NOT NULL LIMIT 1`
+        ) as any[];
+        const pushToken = tokenRow?.push_token;
+        if (pushToken) {
+          if (status === 'approved' && paymentResult?.shouldPay) {
+            await sendPushNotification(videoApprovedNotification(pushToken, paymentResult.amount));
+          } else if (status === 'rejected' && rejectionReason) {
+            await sendPushNotification(videoRejectedNotification(pushToken, rejectionReason));
+          }
+        }
+      } catch {
+        // Push e best-effort, nao bloqueia o fluxo
+      }
 
       return {
         video: updated,

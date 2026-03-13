@@ -12,8 +12,10 @@ import {
   View,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { brandsApi, scriptsApi } from '@/lib/api';
-import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, layout, shadows, spacing } from '@/lib/theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 // ─── Types ───
@@ -182,13 +184,22 @@ export default function StudioScreen() {
 
       return (
         <View key={script.id} style={[styles.scriptCard, script.isUsed && styles.scriptCardUsed]}>
-          <Pressable onPress={() => handleOpenScript(script)}>
+          {/* Colored left accent border */}
+          <View style={styles.scriptCardAccent} />
+
+          <Pressable onPress={() => handleOpenScript(script)} style={styles.scriptCardInner}>
             <View style={styles.scriptHeader}>
-              <Text style={styles.hookText} numberOfLines={isExpanded ? undefined : 2}>
-                {script.hook}
-              </Text>
+              <View style={styles.scriptHookRow}>
+                <View style={styles.scriptHookIcon}>
+                  <Feather name="zap" size={12} color={colors.primary} />
+                </View>
+                <Text style={styles.hookText} numberOfLines={isExpanded ? undefined : 2}>
+                  {script.hook}
+                </Text>
+              </View>
               {script.isUsed && (
                 <View style={styles.usedBadge}>
+                  <Feather name="check" size={10} color={colors.textMuted} />
                   <Text style={styles.usedBadgeText}>Usado</Text>
                 </View>
               )}
@@ -198,18 +209,22 @@ export default function StudioScreen() {
               {script.body}
             </Text>
 
-            <Text style={styles.ctaText} numberOfLines={1}>
-              {script.cta}
-            </Text>
+            <View style={styles.ctaRow}>
+              <Feather name="arrow-right-circle" size={12} color={colors.accent} />
+              <Text style={styles.ctaText} numberOfLines={1}>
+                {script.cta}
+              </Text>
+            </View>
           </Pressable>
 
           <View style={styles.scriptActions}>
             <Pressable
-              style={[styles.actionButton, styles.copyButton]}
+              style={[styles.actionButton, styles.copyButton, isCopied && styles.copyButtonDone]}
               onPress={() => handleCopy(script)}
             >
-              <Text style={styles.actionButtonText}>
-                {isCopied ? '✓ Copiado' : 'Copiar'}
+              <Feather name={isCopied ? 'check' : 'copy'} size={13} color={isCopied ? colors.success : colors.primary} />
+              <Text style={[styles.actionButtonText, isCopied && { color: colors.success }]}>
+                {isCopied ? 'Copiado' : 'Copiar'}
               </Text>
             </Pressable>
             {!script.isUsed && (
@@ -217,7 +232,8 @@ export default function StudioScreen() {
                 style={[styles.actionButton, styles.useButton]}
                 onPress={() => handleMarkUsed(script)}
               >
-                <Text style={styles.actionButtonText}>Marcar Usado</Text>
+                <Feather name="check-circle" size={13} color={colors.success} />
+                <Text style={[styles.actionButtonText, { color: colors.success }]}>Marcar Usado</Text>
               </Pressable>
             )}
           </View>
@@ -232,9 +248,17 @@ export default function StudioScreen() {
   const renderGenerateTab = () => (
     <ScrollView contentContainerStyle={styles.tabContent}>
       {/* Step 1: Selecionar marca */}
-      <Text style={styles.stepLabel}>1. Selecione a marca</Text>
+      <View style={styles.stepLabelRow}>
+        <View style={styles.stepIconBadge}>
+          <Feather name="briefcase" size={12} color={colors.primary} />
+        </View>
+        <Text style={styles.stepLabel}>1. Selecione a marca</Text>
+      </View>
       {myBrands.length === 0 ? (
         <View style={styles.emptyState}>
+          <View style={styles.emptyIconCircle}>
+            <Feather name="briefcase" size={28} color={colors.textMuted} />
+          </View>
           <Text style={styles.emptyText}>
             Voce ainda nao esta conectado a nenhuma marca.
           </Text>
@@ -248,59 +272,85 @@ export default function StudioScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.brandChips}
         >
-          {myBrands.map((brand) => (
-            <Pressable
-              key={brand.id}
-              style={[
-                styles.brandChip,
-                selectedBrand?.id === brand.id && styles.brandChipActive,
-              ]}
-              onPress={() => handleSelectBrand(brand)}
-            >
-              <Text
-                style={[
-                  styles.brandChipText,
-                  selectedBrand?.id === brand.id && styles.brandChipTextActive,
-                ]}
+          {myBrands.map((brand) => {
+            const isActive = selectedBrand?.id === brand.id;
+            return (
+              <Pressable
+                key={brand.id}
+                onPress={() => handleSelectBrand(brand)}
               >
-                {brand.name}
-              </Text>
-            </Pressable>
-          ))}
+                {isActive ? (
+                  <LinearGradient
+                    colors={[colors.primary, colors.primaryDark]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={[styles.brandChip, styles.brandChipActive]}
+                  >
+                    <Text style={[styles.brandChipText, styles.brandChipTextActive]}>
+                      {brand.name}
+                    </Text>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.brandChip}>
+                    <Text style={styles.brandChipText}>{brand.name}</Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
         </ScrollView>
       )}
 
       {/* Step 2: Selecionar briefing */}
       {selectedBrand && (
         <>
-          <Text style={styles.stepLabel}>2. Selecione o briefing</Text>
+          <View style={styles.stepLabelRow}>
+            <View style={styles.stepIconBadge}>
+              <Feather name="file-text" size={12} color={colors.primary} />
+            </View>
+            <Text style={styles.stepLabel}>2. Selecione o briefing</Text>
+          </View>
           {briefings.length === 0 ? (
             <View style={styles.emptyState}>
+              <View style={styles.emptyIconCircle}>
+                <Feather name="file-text" size={28} color={colors.textMuted} />
+              </View>
               <Text style={styles.emptyText}>
                 Nenhum briefing ativo para {selectedBrand.name}.
               </Text>
             </View>
           ) : (
-            briefings.map((briefing) => (
-              <Pressable
-                key={briefing.id}
-                style={[
-                  styles.briefingCard,
-                  selectedBriefing?.id === briefing.id && styles.briefingCardActive,
-                ]}
-                onPress={() => setSelectedBriefing(briefing)}
-              >
-                <Text style={styles.briefingTitle}>{briefing.title}</Text>
-                <Text style={styles.briefingDesc} numberOfLines={2}>
-                  {briefing.description}
-                </Text>
-                {briefing.tone && (
-                  <View style={styles.toneBadge}>
-                    <Text style={styles.toneBadgeText}>Tom: {briefing.tone}</Text>
+            briefings.map((briefing) => {
+              const isActive = selectedBriefing?.id === briefing.id;
+              return (
+                <Pressable
+                  key={briefing.id}
+                  style={[
+                    styles.briefingCard,
+                    isActive && styles.briefingCardActive,
+                  ]}
+                  onPress={() => setSelectedBriefing(briefing)}
+                >
+                  {isActive && <View style={styles.briefingAccentBorder} />}
+                  <View style={styles.briefingCardInner}>
+                    <View style={styles.briefingTitleRow}>
+                      <Text style={styles.briefingTitle}>{briefing.title}</Text>
+                      {isActive && (
+                        <Feather name="check-circle" size={18} color={colors.primary} />
+                      )}
+                    </View>
+                    <Text style={styles.briefingDesc} numberOfLines={2}>
+                      {briefing.description}
+                    </Text>
+                    {briefing.tone && (
+                      <View style={styles.toneBadge}>
+                        <Text style={styles.toneBadgeText}>Tom: {briefing.tone}</Text>
+                      </View>
+                    )}
                   </View>
-                )}
-              </Pressable>
-            ))
+                </Pressable>
+              );
+            })
           )}
         </>
       )}
@@ -308,22 +358,37 @@ export default function StudioScreen() {
       {/* Step 3: Gerar */}
       {selectedBriefing && (
         <>
-          <Text style={styles.stepLabel}>3. Gerar roteiros com IA</Text>
+          <View style={styles.stepLabelRow}>
+            <View style={styles.stepIconBadge}>
+              <Feather name="cpu" size={12} color={colors.primary} />
+            </View>
+            <Text style={styles.stepLabel}>3. Gerar roteiros com IA</Text>
+          </View>
           <Pressable
-            style={[styles.generateButton, generating && styles.generateButtonDisabled]}
             onPress={handleGenerate}
             disabled={generating}
+            style={generating ? { opacity: 0.7 } : undefined}
           >
-            {generating ? (
-              <View style={styles.generatingRow}>
-                <ActivityIndicator size="small" color={colors.text} />
-                <Text style={styles.generateButtonText}>Gerando roteiros...</Text>
-              </View>
-            ) : (
-              <Text style={styles.generateButtonText}>
-                Gerar Roteiros (3x3x2)
-              </Text>
-            )}
+            <LinearGradient
+              colors={[colors.primary, colors.primaryDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.generateButton, shadows.glowPrimary]}
+            >
+              {generating ? (
+                <View style={styles.generatingRow}>
+                  <ActivityIndicator size="small" color={colors.text} />
+                  <Text style={styles.generateButtonText}>Gerando roteiros...</Text>
+                </View>
+              ) : (
+                <View style={styles.generatingRow}>
+                  <Feather name="zap" size={20} color={colors.text} />
+                  <Text style={styles.generateButtonText}>
+                    Gerar Roteiros (3x3x2)
+                  </Text>
+                </View>
+              )}
+            </LinearGradient>
           </Pressable>
           <Text style={styles.generateHint}>
             A IA gera 3 ganchos × 3 corpos × 2 CTAs = ate 18 combinacoes unicas
@@ -354,6 +419,9 @@ export default function StudioScreen() {
       <ScrollView contentContainerStyle={styles.tabContent}>
         {libraryScripts.length === 0 ? (
           <View style={styles.emptyState}>
+            <View style={styles.emptyIconCircle}>
+              <Feather name="layers" size={32} color={colors.textMuted} />
+            </View>
             <Text style={styles.emptyText}>
               Sua biblioteca esta vazia.
             </Text>
@@ -363,13 +431,20 @@ export default function StudioScreen() {
           </View>
         ) : (
           <>
+            {/* Stats Row */}
             <View style={styles.libraryStats}>
               <View style={styles.libraryStat}>
+                <View style={[styles.libraryStatIcon, { backgroundColor: colorAlpha.primary20 }]}>
+                  <Feather name="layers" size={16} color={colors.primary} />
+                </View>
                 <Text style={styles.libraryStatValue}>{libraryScripts.length}</Text>
                 <Text style={styles.libraryStatLabel}>Total</Text>
               </View>
               <View style={styles.libraryStatDivider} />
               <View style={styles.libraryStat}>
+                <View style={[styles.libraryStatIcon, { backgroundColor: colorAlpha.success20 }]}>
+                  <Feather name="check-circle" size={16} color={colors.success} />
+                </View>
                 <Text style={[styles.libraryStatValue, { color: colors.success }]}>
                   {unused.length}
                 </Text>
@@ -377,6 +452,9 @@ export default function StudioScreen() {
               </View>
               <View style={styles.libraryStatDivider} />
               <View style={styles.libraryStat}>
+                <View style={[styles.libraryStatIcon, { backgroundColor: colorAlpha.muted20 }]}>
+                  <Feather name="archive" size={16} color={colors.textMuted} />
+                </View>
                 <Text style={[styles.libraryStatValue, { color: colors.textMuted }]}>
                   {used.length}
                 </Text>
@@ -416,55 +494,99 @@ export default function StudioScreen() {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>Roteiro Completo</Text>
-          <Pressable onPress={() => setScriptModalVisible(false)}>
-            <Text style={styles.modalClose}>Fechar</Text>
+          <View style={styles.modalTitleRow}>
+            <Feather name="file-text" size={18} color={colors.primary} />
+            <Text style={styles.modalTitle}>Roteiro Completo</Text>
+          </View>
+          <Pressable style={styles.modalCloseBtn} onPress={() => setScriptModalVisible(false)}>
+            <Feather name="x" size={18} color={colors.textSecondary} />
           </Pressable>
         </View>
 
         {selectedFullScript && (
           <ScrollView style={styles.modalBody}>
+            {/* Gancho */}
             <View style={styles.modalSection}>
-              <Text style={styles.modalSectionLabel}>GANCHO</Text>
-              <Text style={styles.modalSectionText}>{selectedFullScript.hook}</Text>
+              <View style={styles.modalSectionHeader}>
+                <View style={[styles.modalSectionIconBadge, { backgroundColor: colorAlpha.primary20 }]}>
+                  <Feather name="zap" size={12} color={colors.primary} />
+                </View>
+                <Text style={[styles.modalSectionLabel, { color: colors.primary }]}>GANCHO</Text>
+              </View>
+              <View style={[styles.modalSectionBody, { borderLeftColor: colors.primary }]}>
+                <Text style={styles.modalSectionText}>{selectedFullScript.hook}</Text>
+              </View>
             </View>
 
+            {/* Corpo */}
             <View style={styles.modalSection}>
-              <Text style={styles.modalSectionLabel}>CORPO</Text>
-              <Text style={styles.modalSectionText}>{selectedFullScript.body}</Text>
+              <View style={styles.modalSectionHeader}>
+                <View style={[styles.modalSectionIconBadge, { backgroundColor: colorAlpha.info20 }]}>
+                  <Feather name="align-left" size={12} color={colors.info} />
+                </View>
+                <Text style={[styles.modalSectionLabel, { color: colors.info }]}>CORPO</Text>
+              </View>
+              <View style={[styles.modalSectionBody, { borderLeftColor: colors.info }]}>
+                <Text style={styles.modalSectionText}>{selectedFullScript.body}</Text>
+              </View>
             </View>
 
+            {/* CTA */}
             <View style={styles.modalSection}>
-              <Text style={styles.modalSectionLabel}>CTA</Text>
-              <Text style={styles.modalSectionText}>{selectedFullScript.cta}</Text>
+              <View style={styles.modalSectionHeader}>
+                <View style={[styles.modalSectionIconBadge, { backgroundColor: colorAlpha.accent20 }]}>
+                  <Feather name="arrow-right-circle" size={12} color={colors.accent} />
+                </View>
+                <Text style={[styles.modalSectionLabel, { color: colors.accent }]}>CTA</Text>
+              </View>
+              <View style={[styles.modalSectionBody, { borderLeftColor: colors.accent }]}>
+                <Text style={styles.modalSectionText}>{selectedFullScript.cta}</Text>
+              </View>
             </View>
 
             <View style={styles.modalDivider} />
 
+            {/* Roteiro completo */}
             <View style={styles.modalSection}>
-              <Text style={styles.modalSectionLabel}>ROTEIRO COMPLETO</Text>
-              <Text style={styles.modalFullScript}>{selectedFullScript.fullScript}</Text>
+              <View style={styles.modalSectionHeader}>
+                <View style={[styles.modalSectionIconBadge, { backgroundColor: colorAlpha.muted20 }]}>
+                  <Feather name="code" size={12} color={colors.textSecondary} />
+                </View>
+                <Text style={styles.modalSectionLabel}>ROTEIRO COMPLETO</Text>
+              </View>
+              <View style={styles.modalFullScriptBlock}>
+                <Text style={styles.modalFullScript}>{selectedFullScript.fullScript}</Text>
+              </View>
             </View>
 
+            {/* Actions */}
             <View style={styles.modalActions}>
               <Pressable
-                style={[styles.modalActionButton, { backgroundColor: colors.primary }]}
                 onPress={() => {
                   handleCopy(selectedFullScript);
                   Alert.alert('Copiado!', 'Roteiro copiado para a area de transferencia.');
                 }}
               >
-                <Text style={styles.modalActionText}>Copiar Roteiro</Text>
+                <LinearGradient
+                  colors={[colors.primary, colors.primaryDark]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.modalActionButton}
+                >
+                  <Feather name="copy" size={16} color={colors.text} />
+                  <Text style={styles.modalActionText}>Copiar Roteiro</Text>
+                </LinearGradient>
               </Pressable>
               {!selectedFullScript.isUsed && (
                 <Pressable
-                  style={[styles.modalActionButton, { backgroundColor: colors.success }]}
+                  style={[styles.modalActionButton, { backgroundColor: colorAlpha.success20, borderWidth: 1, borderColor: colors.success }]}
                   onPress={() => {
                     handleMarkUsed(selectedFullScript);
                     setSelectedFullScript({ ...selectedFullScript, isUsed: true });
                   }}
                 >
-                  <Text style={styles.modalActionText}>Marcar como Usado</Text>
+                  <Feather name="check-circle" size={16} color={colors.success} />
+                  <Text style={[styles.modalActionText, { color: colors.success }]}>Marcar como Usado</Text>
                 </Pressable>
               )}
             </View>
@@ -499,24 +621,47 @@ export default function StudioScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Tab Switcher */}
-      <View style={styles.tabBar}>
-        <Pressable
-          style={[styles.tabItem, tab === 'generate' && styles.tabItemActive]}
-          onPress={() => setTab('generate')}
-        >
-          <Text style={[styles.tabText, tab === 'generate' && styles.tabTextActive]}>
-            Gerar
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.tabItem, tab === 'library' && styles.tabItemActive]}
-          onPress={() => setTab('library')}
-        >
-          <Text style={[styles.tabText, tab === 'library' && styles.tabTextActive]}>
-            Biblioteca
-          </Text>
-        </Pressable>
+      {/* Tab Switcher — pill segmented control */}
+      <View style={styles.tabBarWrapper}>
+        <View style={styles.tabBar}>
+          <Pressable style={styles.tabItemWrapper} onPress={() => setTab('generate')}>
+            {tab === 'generate' ? (
+              <LinearGradient
+                colors={[colors.primary, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.tabItemActive}
+              >
+                <Feather name="cpu" size={14} color={colors.text} />
+                <Text style={styles.tabTextActive}>Gerar</Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.tabItemInactive}>
+                <Feather name="cpu" size={14} color={colors.textMuted} />
+                <Text style={styles.tabText}>Gerar</Text>
+              </View>
+            )}
+          </Pressable>
+
+          <Pressable style={styles.tabItemWrapper} onPress={() => setTab('library')}>
+            {tab === 'library' ? (
+              <LinearGradient
+                colors={[colors.primary, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.tabItemActive}
+              >
+                <Feather name="layers" size={14} color={colors.text} />
+                <Text style={styles.tabTextActive}>Biblioteca</Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.tabItemInactive}>
+                <Feather name="layers" size={14} color={colors.textMuted} />
+                <Text style={styles.tabText}>Biblioteca</Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
       </View>
 
       {tab === 'generate' ? renderGenerateTab() : renderLibraryTab()}
@@ -558,28 +703,48 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Tab Bar
-  tabBar: {
-    flexDirection: 'row',
+  // Tab Bar — segmented control
+  tabBarWrapper: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  tabItem: {
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    padding: 4,
+    gap: 4,
+  },
+  tabItemWrapper: {
     flex: 1,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
   },
   tabItemActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+  },
+  tabItemInactive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
   },
   tabText: {
     color: colors.textMuted,
-    fontSize: fontSize.md,
+    fontSize: fontSize.sm,
     fontWeight: '500',
   },
   tabTextActive: {
-    color: colors.primary,
+    color: colors.text,
+    fontSize: fontSize.sm,
     fontWeight: '700',
   },
 
@@ -590,14 +755,27 @@ const styles = StyleSheet.create({
   },
 
   // Step Labels
+  stepLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  stepIconBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: borderRadius.xs,
+    backgroundColor: colorAlpha.primary20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   stepLabel: {
     color: colors.textSecondary,
     fontSize: fontSize.sm,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: spacing.sm,
-    marginTop: spacing.lg,
   },
 
   // Brand Chips
@@ -614,8 +792,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   brandChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    borderWidth: 0,
   },
   brandChipText: {
     color: colors.textSecondary,
@@ -633,18 +810,36 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
     marginBottom: spacing.sm,
+    overflow: 'hidden',
+    flexDirection: 'row',
   },
   briefingCardActive: {
     borderColor: colors.primary,
     backgroundColor: colorAlpha.primary10,
   },
+  briefingAccentBorder: {
+    width: 3,
+    backgroundColor: colors.primary,
+    borderTopLeftRadius: borderRadius.md,
+    borderBottomLeftRadius: borderRadius.md,
+  },
+  briefingCardInner: {
+    flex: 1,
+    padding: spacing.md,
+  },
+  briefingTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
   briefingTitle: {
     color: colors.text,
     fontSize: fontSize.md,
     fontWeight: '600',
-    marginBottom: spacing.xs,
+    flex: 1,
+    marginRight: spacing.sm,
   },
   briefingDesc: {
     color: colors.textSecondary,
@@ -667,14 +862,10 @@ const styles = StyleSheet.create({
 
   // Generate Button
   generateButton: {
-    backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
     height: layout.buttonHeightLg,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  generateButtonDisabled: {
-    opacity: 0.7,
   },
   generateButtonText: {
     color: colors.text,
@@ -712,11 +903,21 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
     marginBottom: spacing.sm,
+    overflow: 'hidden',
+    flexDirection: 'row',
+  },
+  scriptCardAccent: {
+    width: 3,
+    backgroundColor: colors.primary,
+  },
+  scriptCardInner: {
+    flex: 1,
+    padding: spacing.md,
+    paddingBottom: spacing.sm,
   },
   scriptCardUsed: {
-    opacity: 0.6,
+    opacity: 0.5,
     borderColor: colorAlpha.muted40,
   },
   scriptHeader: {
@@ -725,14 +926,26 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: spacing.xs,
   },
+  scriptHookRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flex: 1,
+    gap: spacing.xs,
+    marginRight: spacing.sm,
+  },
+  scriptHookIcon: {
+    marginTop: 2,
+  },
   hookText: {
-    color: colors.primary,
+    color: colors.primaryLight,
     fontSize: fontSize.md,
     fontWeight: '700',
     flex: 1,
-    marginRight: spacing.sm,
   },
   usedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
     backgroundColor: colorAlpha.muted30,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
@@ -749,17 +962,28 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: spacing.xs,
   },
+  ctaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+  },
   ctaText: {
     color: colors.accent,
     fontSize: fontSize.sm,
     fontWeight: '600',
-    marginBottom: spacing.sm,
+    flex: 1,
   },
   scriptActions: {
     flexDirection: 'row',
     gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
   },
   actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
@@ -767,11 +991,14 @@ const styles = StyleSheet.create({
   copyButton: {
     backgroundColor: colorAlpha.primary20,
   },
+  copyButtonDone: {
+    backgroundColor: colorAlpha.success20,
+  },
   useButton: {
     backgroundColor: colorAlpha.success20,
   },
   actionButtonText: {
-    color: colors.text,
+    color: colors.primary,
     fontSize: fontSize.xs,
     fontWeight: '600',
   },
@@ -790,6 +1017,15 @@ const styles = StyleSheet.create({
   libraryStat: {
     flex: 1,
     alignItems: 'center',
+    gap: spacing.xs,
+  },
+  libraryStatIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
   },
   libraryStatValue: {
     color: colors.text,
@@ -799,7 +1035,6 @@ const styles = StyleSheet.create({
   libraryStatLabel: {
     color: colors.textSecondary,
     fontSize: fontSize.xs,
-    marginTop: spacing.xs,
   },
   libraryStatDivider: {
     width: layout.dividerHeight,
@@ -811,17 +1046,29 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   emptyText: {
     color: colors.textSecondary,
     fontSize: fontSize.md,
     textAlign: 'center',
+    fontWeight: '500',
   },
   emptySubtext: {
     color: colors.textMuted,
     fontSize: fontSize.sm,
     textAlign: 'center',
-    marginTop: spacing.xs,
   },
 
   // Modal
@@ -837,15 +1084,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  modalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   modalTitle: {
     color: colors.text,
     fontSize: fontSize.lg,
     fontWeight: '700',
   },
-  modalClose: {
-    color: colors.primary,
-    fontSize: fontSize.md,
-    fontWeight: '600',
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalBody: {
     flex: 1,
@@ -854,12 +1109,29 @@ const styles = StyleSheet.create({
   modalSection: {
     marginBottom: spacing.lg,
   },
+  modalSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  modalSectionIconBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: borderRadius.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   modalSectionLabel: {
     color: colors.textMuted,
     fontSize: fontSize.xs,
     fontWeight: '700',
     letterSpacing: 1,
-    marginBottom: spacing.xs,
+  },
+  modalSectionBody: {
+    borderLeftWidth: 2,
+    paddingLeft: spacing.md,
+    paddingVertical: spacing.xs,
   },
   modalSectionText: {
     color: colors.text,
@@ -871,14 +1143,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginVertical: spacing.md,
   },
+  modalFullScriptBlock: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    overflow: 'hidden',
+  },
   modalFullScript: {
     color: colors.text,
     fontSize: fontSize.md,
     lineHeight: 26,
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
+    fontFamily: 'monospace',
   },
   modalActions: {
     gap: spacing.sm,
@@ -890,6 +1167,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   modalActionText: {
     color: colors.text,

@@ -8,9 +8,21 @@ import {
   View,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { networkApi } from '@/lib/api';
-import { borderRadius, colors, fontSize, fontWeight as fw, layout, levelColors, spacing } from '@/lib/theme';
-import AnimatedListItem from '@/components/AnimatedList';
+import {
+  borderRadius,
+  colorAlpha,
+  colors,
+  fontSize,
+  fontWeight,
+  layout,
+  levelColors,
+  shadows,
+  spacing,
+} from '@/lib/theme';
+import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 
 interface NetworkStats {
@@ -56,19 +68,35 @@ interface ReferralData {
   activeReferrals: number;
 }
 
+type FeatherIconName = keyof typeof Feather.glyphMap;
+
 const LEVEL_COLORS: Record<string, string> = levelColors;
+
+const BONUS_CONFIG: Array<{
+  key: keyof NetworkStats['bonuses'];
+  label: string;
+  icon: FeatherIconName;
+  color: string;
+  bg: string;
+}> = [
+  { key: 'direct', label: 'Direto', icon: 'arrow-right', color: colors.info, bg: colorAlpha.info10 },
+  { key: 'infinite', label: 'Infinito', icon: 'repeat', color: colors.primaryLight, bg: colorAlpha.primary10 },
+  { key: 'matching', label: 'Equiparacao', icon: 'git-merge', color: colors.warning, bg: colorAlpha.warning10 },
+  { key: 'global', label: 'Global', icon: 'globe', color: colors.success, bg: colorAlpha.success10 },
+];
+
+const REQ_CONFIG: Array<{
+  key: 'qv' | 'directs' | 'pml';
+  label: string;
+  icon: FeatherIconName;
+}> = [
+  { key: 'qv', label: 'Volume Qualificado', icon: 'bar-chart-2' },
+  { key: 'directs', label: 'Diretos Ativos', icon: 'users' },
+  { key: 'pml', label: 'PML', icon: 'layers' },
+];
 
 function formatCurrency(value: string | number): string {
   return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
-}
-
-function ProgressBar({ current, required, color }: { current: number; required: number; color: string }) {
-  const pct = required > 0 ? Math.min((current / required) * 100, 100) : 0;
-  return (
-    <View style={styles.progressTrack}>
-      <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: color }]} />
-    </View>
-  );
 }
 
 export default function NetworkScreen() {
@@ -122,150 +150,278 @@ export default function NetworkScreen() {
   }
 
   const levelColor = LEVEL_COLORS[stats?.level.current ?? 'Seed'] ?? colors.primary;
+  const bonusTotal = stats ? Number(stats.bonuses.total) : 0;
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
-      {/* Level Card */}
+      {/* ─── Level Hero Card ─── */}
       {stats && (
         <AnimatedListItem index={0}>
-        <View style={[styles.card, { borderColor: levelColor, borderWidth: 2 }]}>
-          <View style={styles.levelHeader}>
-            <View style={[styles.levelBadge, { backgroundColor: levelColor + '33', borderColor: levelColor }]}>
-              <Text style={[styles.levelBadgeText, { color: levelColor }]}>{stats.level.current}</Text>
+          <LinearGradient
+            colors={[`${levelColor}20`, colors.surface]}
+            style={styles.levelCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            {/* Decorative glow blob */}
+            <View style={[styles.levelGlowBlob, { backgroundColor: `${levelColor}15` }]} />
+
+            <View style={styles.levelTopRow}>
+              <View style={styles.levelLeft}>
+                <View style={[styles.levelIconWrap, { backgroundColor: `${levelColor}25` }]}>
+                  <Feather name="award" size={24} color={levelColor} />
+                </View>
+                <View>
+                  <Text style={styles.levelLabel}>Nivel Atual</Text>
+                  <Text style={[styles.levelName, { color: levelColor }]}>{stats.level.current}</Text>
+                </View>
+              </View>
+              {stats.level.nextLevel && (
+                <View style={styles.nextLevelWrap}>
+                  <Feather name="arrow-up" size={12} color={colors.textMuted} />
+                  <Text style={styles.nextLevelText}>{stats.level.nextLevel}</Text>
+                </View>
+              )}
             </View>
+
+            {/* Requirements */}
             {stats.level.nextLevel && (
-              <Text style={styles.nextLevelText}>Proximo: {stats.level.nextLevel}</Text>
+              <View style={styles.requirementsSection}>
+                {REQ_CONFIG.map((req) => {
+                  const data = stats.level.requirements[req.key];
+                  const pct = data.required > 0 ? Math.min((data.current / data.required) * 100, 100) : 0;
+                  return (
+                    <View key={req.key} style={styles.requirementItem}>
+                      <View style={styles.requirementTop}>
+                        <View style={styles.reqLabelRow}>
+                          <Feather name={req.icon} size={12} color={colors.textMuted} />
+                          <Text style={styles.reqLabel}>{req.label}</Text>
+                        </View>
+                        <Text style={styles.reqValue}>
+                          <Text style={[styles.reqCurrent, { color: levelColor }]}>{data.current}</Text>
+                          <Text style={styles.reqSeparator}> / {data.required}</Text>
+                        </Text>
+                      </View>
+                      <View style={styles.progressTrack}>
+                        <LinearGradient
+                          colors={[levelColor, `${levelColor}80`]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={[styles.progressFill, { width: `${pct}%` as any }]}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
             )}
-          </View>
-
-          {stats.level.nextLevel && (
-            <View style={styles.requirementsSection}>
-              <View style={styles.requirementRow}>
-                <Text style={styles.reqLabel}>QV</Text>
-                <Text style={styles.reqValue}>{stats.level.requirements.qv.current} / {stats.level.requirements.qv.required}</Text>
-              </View>
-              <ProgressBar current={stats.level.requirements.qv.current} required={stats.level.requirements.qv.required} color={levelColor} />
-
-              <View style={styles.requirementRow}>
-                <Text style={styles.reqLabel}>Diretos Ativos</Text>
-                <Text style={styles.reqValue}>{stats.level.requirements.directs.current} / {stats.level.requirements.directs.required}</Text>
-              </View>
-              <ProgressBar current={stats.level.requirements.directs.current} required={stats.level.requirements.directs.required} color={levelColor} />
-
-              <View style={styles.requirementRow}>
-                <Text style={styles.reqLabel}>PML</Text>
-                <Text style={styles.reqValue}>{stats.level.requirements.pml.current} / {stats.level.requirements.pml.required}</Text>
-              </View>
-              <ProgressBar current={stats.level.requirements.pml.current} required={stats.level.requirements.pml.required} color={levelColor} />
-            </View>
-          )}
-        </View>
+          </LinearGradient>
         </AnimatedListItem>
       )}
 
-      {/* Network Stats */}
+      {/* ─── Network Stats Grid ─── */}
       {stats && (
         <AnimatedListItem index={1}>
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.network.totalMembers}</Text>
-            <Text style={styles.statLabel}>Rede Total</Text>
+          <View style={styles.sectionHeader}>
+            <Feather name="users" size={14} color={colors.textMuted} />
+            <Text style={styles.sectionTitle}>Minha Rede</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.network.activeMembers}</Text>
-            <Text style={styles.statLabel}>Ativos</Text>
+          <View style={styles.statsGrid}>
+            <View style={[styles.statCard, { backgroundColor: colorAlpha.info10, borderColor: colorAlpha.info20 }]}>
+              <View style={[styles.statIcon, { backgroundColor: colorAlpha.info20 }]}>
+                <Feather name="users" size={16} color={colors.info} />
+              </View>
+              <Text style={[styles.statGridValue, { color: colors.info }]}>{stats.network.totalMembers}</Text>
+              <Text style={styles.statGridLabel}>Rede Total</Text>
+            </View>
+
+            <View style={[styles.statCard, { backgroundColor: colorAlpha.success10, borderColor: colorAlpha.success20 }]}>
+              <View style={[styles.statIcon, { backgroundColor: colorAlpha.success20 }]}>
+                <Feather name="check-circle" size={16} color={colors.success} />
+              </View>
+              <Text style={[styles.statGridValue, { color: colors.success }]}>{stats.network.activeMembers}</Text>
+              <Text style={styles.statGridLabel}>Ativos</Text>
+            </View>
+
+            <View style={[styles.statCard, { backgroundColor: colorAlpha.primary10, borderColor: colorAlpha.primary20 }]}>
+              <View style={[styles.statIcon, { backgroundColor: colorAlpha.primary20 }]}>
+                <Feather name="user-plus" size={16} color={colors.primaryLight} />
+              </View>
+              <Text style={[styles.statGridValue, { color: colors.primaryLight }]}>{stats.network.directsActive}</Text>
+              <Text style={styles.statGridLabel}>Diretos</Text>
+            </View>
+
+            <View style={[styles.statCard, { backgroundColor: colorAlpha.accent10, borderColor: colorAlpha.accent20 }]}>
+              <View style={[styles.statIcon, { backgroundColor: colorAlpha.accent20 }]}>
+                <Feather name="trending-up" size={16} color={colors.accent} />
+              </View>
+              <Text style={[styles.statGridValue, { color: colors.accent, fontSize: fontSize.sm }]}>
+                {formatCurrency(stats.network.totalVolume)}
+              </Text>
+              <Text style={styles.statGridLabel}>Volume</Text>
+            </View>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{stats.network.directsActive}</Text>
-            <Text style={styles.statLabel}>Diretos</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { fontSize: fontSize.sm }]}>{formatCurrency(stats.network.totalVolume)}</Text>
-            <Text style={styles.statLabel}>Volume</Text>
-          </View>
-        </View>
         </AnimatedListItem>
       )}
 
-      {/* Bonuses */}
+      {/* ─── Bonuses Card ─── */}
       {stats && (
         <AnimatedListItem index={2}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Bonus do Mes</Text>
-          <View style={styles.bonusGrid}>
-            {[
-              { label: 'Direto', value: stats.bonuses.direct, color: colors.info },
-              { label: 'Infinito', value: stats.bonuses.infinite, color: colors.primaryLight },
-              { label: 'Equiparacao', value: stats.bonuses.matching, color: colors.warning },
-              { label: 'Global', value: stats.bonuses.global, color: colors.success },
-            ].map(b => (
-              <View key={b.label} style={styles.bonusItem}>
-                <View style={[styles.bonusDot, { backgroundColor: b.color }]} />
-                <Text style={styles.bonusLabel}>{b.label}</Text>
-                <Text style={styles.bonusValue}>{formatCurrency(b.value)}</Text>
+          <View style={styles.card}>
+            <View style={styles.cardTitleRow}>
+              <Feather name="gift" size={16} color={colors.primary} />
+              <Text style={styles.cardTitle}>Bonus do Mes</Text>
+            </View>
+
+            {BONUS_CONFIG.map((cfg) => {
+              const value = stats.bonuses[cfg.key];
+              const numValue = Number(value);
+              const pct = bonusTotal > 0 ? Math.min((numValue / bonusTotal) * 100, 100) : 0;
+
+              return (
+                <View key={cfg.key} style={styles.bonusItem}>
+                  <View style={[styles.bonusIconCircle, { backgroundColor: cfg.bg }]}>
+                    <Feather name={cfg.icon} size={14} color={cfg.color} />
+                  </View>
+                  <View style={styles.bonusItemContent}>
+                    <View style={styles.bonusItemTop}>
+                      <Text style={styles.bonusLabel}>{cfg.label}</Text>
+                      <Text style={styles.bonusValue}>{formatCurrency(value)}</Text>
+                    </View>
+                    <View style={styles.bonusMiniBarBg}>
+                      <View
+                        style={[
+                          styles.bonusMiniBarFill,
+                          { width: `${pct}%` as any, backgroundColor: cfg.color },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+
+            <View style={styles.bonusTotalRow}>
+              <View style={styles.bonusTotalLeft}>
+                <Feather name="trending-up" size={16} color={colors.success} />
+                <Text style={styles.bonusTotalLabel}>Total do mes</Text>
               </View>
-            ))}
+              <Text style={styles.bonusTotalValue}>{formatCurrency(stats.bonuses.total)}</Text>
+            </View>
           </View>
-          <View style={styles.bonusTotalRow}>
-            <Text style={styles.bonusTotalLabel}>Total</Text>
-            <Text style={styles.bonusTotalValue}>{formatCurrency(stats.bonuses.total)}</Text>
-          </View>
-        </View>
         </AnimatedListItem>
       )}
 
-      {/* Referral Link */}
+      {/* ─── Referral Link Card ─── */}
       {referral && (
         <AnimatedListItem index={3}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Link de Indicacao</Text>
-          <Text style={styles.referralUrl} numberOfLines={1}>{referral.referralUrl}</Text>
-          <Pressable style={styles.copyBtn} onPress={handleCopy}>
-            <Text style={styles.copyBtnText}>{copied ? 'Copiado!' : 'Copiar Link'}</Text>
-          </Pressable>
-          <View style={styles.referralStats}>
-            <Text style={styles.referralStatText}>{referral.totalReferrals} indicados | {referral.activeReferrals} ativos</Text>
+          <View style={styles.referralCard}>
+            <LinearGradient
+              colors={[colorAlpha.primary15, colorAlpha.accent10]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.cardTitleRow}>
+              <Feather name="share-2" size={16} color={colors.primaryLight} />
+              <Text style={styles.cardTitle}>Link de Indicacao</Text>
+            </View>
+            <Text style={styles.referralSubtitle}>
+              Compartilhe e ganhe bonus em cada venda da sua rede
+            </Text>
+
+            <View style={styles.referralUrlBox}>
+              <Feather name="link" size={14} color={colors.textMuted} />
+              <Text style={styles.referralUrl} numberOfLines={1}>{referral.referralUrl}</Text>
+            </View>
+
+            <Pressable
+              style={[styles.copyBtn, copied && styles.copyBtnSuccess]}
+              onPress={handleCopy}
+            >
+              <Feather
+                name={copied ? 'check' : 'copy'}
+                size={14}
+                color={copied ? colors.success : colors.text}
+              />
+              <Text style={[styles.copyBtnText, copied && styles.copyBtnTextSuccess]}>
+                {copied ? 'Copiado!' : 'Copiar Link'}
+              </Text>
+            </Pressable>
+
+            <View style={styles.referralStatsRow}>
+              <View style={styles.referralStatItem}>
+                <Feather name="user-plus" size={12} color={colors.textMuted} />
+                <Text style={styles.referralStatValue}>{referral.totalReferrals}</Text>
+                <Text style={styles.referralStatLabel}>indicados</Text>
+              </View>
+              <View style={styles.referralStatDivider} />
+              <View style={styles.referralStatItem}>
+                <Feather name="activity" size={12} color={colors.success} />
+                <Text style={[styles.referralStatValue, { color: colors.success }]}>{referral.activeReferrals}</Text>
+                <Text style={styles.referralStatLabel}>ativos</Text>
+              </View>
+            </View>
           </View>
-        </View>
         </AnimatedListItem>
       )}
 
-      {/* Direct Members */}
+      {/* ─── Direct Members ─── */}
       <AnimatedListItem index={4}>
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Meus Diretos ({directs.length})</Text>
-        {directs.length === 0 ? (
-          <Text style={styles.emptyText}>Nenhum membro direto ainda. Compartilhe seu link!</Text>
-        ) : (
-          directs.map(member => {
-            const memberColor = LEVEL_COLORS[member.level] ?? colors.textMuted;
-            return (
-              <View key={member.id} style={styles.memberRow}>
-                <View style={[styles.memberAvatar, { borderColor: memberColor }]}>
-                  <Text style={styles.memberInitial}>{member.name.charAt(0).toUpperCase()}</Text>
+        <View style={styles.card}>
+          <View style={styles.cardTitleRow}>
+            <Feather name="user-check" size={16} color={colors.primary} />
+            <Text style={styles.cardTitle}>Meus Diretos</Text>
+            <View style={styles.memberCountBadge}>
+              <Text style={styles.memberCountText}>{directs.length}</Text>
+            </View>
+          </View>
+
+          {directs.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Feather name="users" size={28} color={colors.textMuted} />
+              <Text style={styles.emptyText}>Nenhum membro direto ainda</Text>
+              <Text style={styles.emptySubtext}>Compartilhe seu link de indicacao!</Text>
+            </View>
+          ) : (
+            directs.map((member, index) => {
+              const memberColor = LEVEL_COLORS[member.level] ?? colors.textMuted;
+              const isLast = index === directs.length - 1;
+              return (
+                <View key={member.id} style={[styles.memberRow, !isLast && styles.memberRowBorder]}>
+                  <View style={[styles.memberAvatar, { borderColor: memberColor }]}>
+                    <Text style={styles.memberInitial}>{member.name.charAt(0).toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.memberInfo}>
+                    <Text style={styles.memberName}>{member.name}</Text>
+                    <View style={styles.memberMetaRow}>
+                      <View style={[styles.memberLevelBadge, { backgroundColor: `${memberColor}20` }]}>
+                        <Text style={[styles.memberLevelText, { color: memberColor }]}>{member.level}</Text>
+                      </View>
+                      {member.directCount > 0 && (
+                        <View style={styles.memberDirectsTag}>
+                          <Feather name="users" size={10} color={colors.textMuted} />
+                          <Text style={styles.memberDirectsText}>{member.directCount}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  <View style={styles.memberRight}>
+                    <View style={[styles.statusDot, { backgroundColor: member.status === 'active' ? colors.success : colors.textMuted }]} />
+                    <Text style={[styles.statusText, { color: member.status === 'active' ? colors.success : colors.textMuted }]}>
+                      {member.status === 'active' ? 'Ativo' : 'Inativo'}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.memberInfo}>
-                  <Text style={styles.memberName}>{member.name}</Text>
-                  <Text style={styles.memberMeta}>
-                    <Text style={{ color: memberColor }}>{member.level}</Text>
-                    {' · '}
-                    {member.status === 'active' ? 'Ativo' : 'Inativo'}
-                    {member.directCount > 0 ? ` · ${member.directCount} diretos` : ''}
-                  </Text>
-                </View>
-                <View style={[styles.statusDot, { backgroundColor: member.status === 'active' ? colors.success : colors.textMuted }]} />
-              </View>
-            );
-          })
-        )}
-      </View>
+              );
+            })
+          )}
+        </View>
       </AnimatedListItem>
     </ScrollView>
   );
@@ -274,108 +430,410 @@ export default function NetworkScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xxl, gap: spacing.md },
-  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
 
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
+  // ─── Level Hero Card ───
+  levelCard: {
+    borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
+    borderColor: colorAlpha.primary20,
+    padding: spacing.lg,
+    overflow: 'hidden',
   },
-  cardTitle: {
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    marginBottom: spacing.md,
+  levelGlowBlob: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
   },
-
-  // Level
-  levelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
-  levelBadge: {
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-  },
-  levelBadgeText: { fontSize: fontSize.lg, fontWeight: '800', letterSpacing: 1 },
-  nextLevelText: { color: colors.textSecondary, fontSize: fontSize.sm },
-
-  // Requirements
-  requirementsSection: { gap: spacing.xs },
-  requirementRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
-  reqLabel: { color: colors.textSecondary, fontSize: fontSize.sm },
-  reqValue: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
-  progressTrack: { height: layout.progressBarMd, backgroundColor: colors.surfaceLight, borderRadius: layout.progressBarMd / 2, marginTop: spacing.xs },
-  progressFill: { height: '100%', borderRadius: layout.progressBarMd / 2 },
-
-  // Stats row
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    alignItems: 'center',
-  },
-  statItem: { flex: 1, alignItems: 'center' },
-  statValue: { color: colors.text, fontSize: fontSize.md, fontWeight: '700' },
-  statLabel: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: spacing.xs },
-  statDivider: { width: layout.dividerHeight, height: layout.iconLg, backgroundColor: colors.border },
-
-  // Bonuses
-  bonusGrid: { gap: spacing.sm },
-  bonusItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  bonusDot: { width: layout.dotMd, height: layout.dotMd, borderRadius: layout.dotMd / 2 },
-  bonusLabel: { flex: 1, color: colors.textSecondary, fontSize: fontSize.sm },
-  bonusValue: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
-  bonusTotalRow: {
+  levelTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    alignItems: 'flex-start',
+    marginBottom: spacing.lg,
   },
-  bonusTotalLabel: { color: colors.text, fontSize: fontSize.md, fontWeight: '700' },
-  bonusTotalValue: { color: colors.primary, fontSize: fontSize.md, fontWeight: '700' },
-
-  // Referral
-  referralUrl: { color: colors.textSecondary, fontSize: fontSize.sm, marginBottom: spacing.sm },
-  copyBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.sm,
-    height: layout.iconXl,
+  levelLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  levelIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  copyBtnText: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
-  referralStats: { marginTop: spacing.sm, alignItems: 'center' },
-  referralStatText: { color: colors.textMuted, fontSize: fontSize.xs },
+  levelLabel: {
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  levelName: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.extrabold,
+    letterSpacing: 0.5,
+  },
+  nextLevelWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    backgroundColor: colorAlpha.muted20,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+  },
+  nextLevelText: {
+    color: colors.textSecondary,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+  },
 
-  // Members
-  emptyText: { color: colors.textMuted, fontSize: fontSize.sm, textAlign: 'center', paddingVertical: spacing.lg },
+  // Requirements
+  requirementsSection: { gap: spacing.md },
+  requirementItem: { gap: spacing.xs },
+  requirementTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  reqLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  reqLabel: { color: colors.textSecondary, fontSize: fontSize.sm },
+  reqValue: { fontSize: fontSize.sm },
+  reqCurrent: { fontWeight: fontWeight.bold },
+  reqSeparator: { color: colors.textMuted, fontWeight: fontWeight.normal },
+  progressTrack: {
+    height: 5,
+    backgroundColor: colorAlpha.muted20,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: borderRadius.full,
+  },
+
+  // ─── Section header ───
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  sectionTitle: {
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginLeft: spacing.xs,
+  },
+
+  // ─── Stats grid 2x2 ───
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  statCard: {
+    flex: 1,
+    minWidth: '45%',
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    padding: spacing.sm,
+    alignItems: 'flex-start',
+  },
+  statIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  statGridValue: {
+    color: colors.text,
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    marginBottom: 2,
+  },
+  statGridLabel: {
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+  },
+
+  // ─── Generic Card ───
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    ...shadows.sm,
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  cardTitle: {
+    flex: 1,
+    color: colors.text,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
+  },
+
+  // ─── Bonuses ───
+  bonusItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  bonusIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  bonusItemContent: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  bonusItemTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bonusLabel: {
+    color: colors.textSecondary,
+    fontSize: fontSize.md,
+  },
+  bonusValue: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+  },
+  bonusMiniBarBg: {
+    height: 3,
+    backgroundColor: colorAlpha.muted20,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  bonusMiniBarFill: {
+    height: '100%',
+    borderRadius: borderRadius.full,
+    opacity: 0.8,
+  },
+  bonusTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  bonusTotalLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  bonusTotalLabel: {
+    color: colors.text,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+  },
+  bonusTotalValue: {
+    color: colors.success,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+  },
+
+  // ─── Referral Card ───
+  referralCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    padding: spacing.md,
+    overflow: 'hidden',
+    ...shadows.glowPrimarySubtle,
+  },
+  referralSubtitle: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    marginTop: -spacing.sm,
+    marginBottom: spacing.md,
+    lineHeight: 20,
+  },
+  referralUrlBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colorAlpha.white10,
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  referralUrl: {
+    flex: 1,
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+  },
+  copyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    height: layout.buttonHeight,
+    marginBottom: spacing.md,
+    ...shadows.glowPrimarySubtle,
+  },
+  copyBtnSuccess: {
+    backgroundColor: colorAlpha.success20,
+    borderWidth: 1,
+    borderColor: colors.success,
+  },
+  copyBtnText: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+  },
+  copyBtnTextSuccess: {
+    color: colors.success,
+  },
+  referralStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colorAlpha.white10,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
+  },
+  referralStatItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xxs,
+  },
+  referralStatValue: {
+    color: colors.text,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold,
+  },
+  referralStatLabel: {
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+  },
+  referralStatDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: colors.border,
+  },
+
+  // ─── Members ───
+  memberCountBadge: {
+    backgroundColor: colorAlpha.primary20,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  memberCountText: {
+    color: colors.primaryLight,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    gap: spacing.sm,
+  },
+  emptyText: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.medium,
+  },
+  emptySubtext: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+  },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     gap: spacing.sm,
   },
+  memberRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
   memberAvatar: {
-    width: layout.iconXl,
-    height: layout.iconXl,
-    borderRadius: layout.iconXl / 2,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 2,
     backgroundColor: colors.surfaceLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  memberInitial: { color: colors.text, fontSize: fontSize.md, fontWeight: '700' },
-  memberInfo: { flex: 1 },
-  memberName: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
-  memberMeta: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
-  statusDot: { width: layout.dotSm, height: layout.dotSm, borderRadius: borderRadius.xs },
+  memberInitial: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.bold,
+  },
+  memberInfo: { flex: 1, gap: spacing.xxs },
+  memberName: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+  },
+  memberMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  memberLevelBadge: {
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+  },
+  memberLevelText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+  },
+  memberDirectsTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  memberDirectsText: {
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+  },
+  memberRight: {
+    alignItems: 'center',
+    gap: 2,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+  },
 });

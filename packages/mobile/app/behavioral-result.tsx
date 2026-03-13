@@ -8,9 +8,11 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { onboardingApi } from '@/lib/api';
 import type { CreatorDiagnostic } from '@/lib/api';
-import { borderRadius, colors, fontSize, layout, spacing } from '@/lib/theme';
+import { borderRadius, colorAlpha, colors, fontSize, fontWeight, layout, shadows, spacing } from '@/lib/theme';
 import ScoreRing from '@/components/ScoreRing';
 import AnimatedListItem from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
@@ -81,8 +83,13 @@ export default function BehavioralResultScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.emptyText}>Perfil nao encontrado</Text>
-        <Pressable style={styles.ctaBtn} onPress={() => router.replace('/behavioral-onboarding')}>
-          <Text style={styles.ctaBtnText}>Fazer analise</Text>
+        <Pressable style={styles.ctaBtnWrap} onPress={() => router.replace('/behavioral-onboarding')}>
+          <LinearGradient
+            colors={[colors.primary, colors.primaryDark]}
+            style={styles.ctaBtnGradient}
+          >
+            <Text style={styles.ctaBtnText}>Fazer analise</Text>
+          </LinearGradient>
         </Pressable>
       </View>
     );
@@ -96,18 +103,33 @@ export default function BehavioralResultScreen() {
       <Animated.View
         style={[
           styles.heroCard,
-          { backgroundColor: accentColor + '1A', borderColor: accentColor },
+          { borderColor: accentColor + '60' },
           { opacity: fadeIn, transform: [{ translateY: slideUp }, { scale: scaleAnim }] },
         ]}
       >
-        <Text style={styles.heroEmoji}>{diagnostic.archetypeEmoji}</Text>
+        {/* Gradient background fills based on accent */}
+        <LinearGradient
+          colors={[accentColor + '2A', accentColor + '08', colors.surface]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius.xl }]}
+        />
+
+        {/* Decorative glow blob */}
+        <View style={[styles.heroGlowBlob, { backgroundColor: accentColor + '20' }]} />
+
+        <View style={[styles.heroEmojiWrap, { backgroundColor: accentColor + '1A', borderColor: accentColor + '40' }]}>
+          <Text style={styles.heroEmoji}>{diagnostic.archetypeEmoji}</Text>
+        </View>
+
         <Text style={[styles.heroTitle, { color: accentColor }]}>{diagnostic.title}</Text>
         <Text style={styles.heroDescription}>{diagnostic.shortDescription}</Text>
 
         {/* Readiness Score Ring */}
         <ScoreRing score={diagnostic.readinessScore} color={accentColor} label="Prontidao" />
 
-        <View style={[styles.levelBadge, { backgroundColor: accentColor + '33', borderColor: accentColor }]}>
+        <View style={[styles.levelBadge, { backgroundColor: accentColor + '20', borderColor: accentColor + '50' }]}>
+          <Feather name="award" size={12} color={accentColor} style={{ marginRight: 5 }} />
           <Text style={[styles.levelText, { color: accentColor }]}>
             {diagnostic.level.charAt(0).toUpperCase() + diagnostic.level.slice(1)}
           </Text>
@@ -116,69 +138,116 @@ export default function BehavioralResultScreen() {
 
       {/* Superpower */}
       <AnimatedListItem index={0}>
-      <Animated.View style={[styles.card, { opacity: fadeIn }]}>
-        <Text style={styles.cardEmoji}>{'⚡'}</Text>
-        <Text style={styles.cardTitle}>Seu Superpoder</Text>
-        <Text style={styles.superpowerText}>{diagnostic.superpower}</Text>
-      </Animated.View>
+        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
+              <Feather name="zap" size={16} color={accentColor} />
+            </View>
+            <Text style={styles.cardTitle}>Seu Superpoder</Text>
+          </View>
+          <Text style={styles.superpowerText}>{diagnostic.superpower}</Text>
+        </Animated.View>
       </AnimatedListItem>
 
       {/* Strengths */}
       <AnimatedListItem index={1}>
-      <Animated.View style={[styles.card, { opacity: fadeIn }]}>
-        <Text style={styles.cardTitle}>{'💪'} Seus Pontos Fortes</Text>
-        {diagnostic.strengths.map((s, i) => (
-          <View key={i} style={styles.strengthRow}>
-            <View style={[styles.strengthDot, { backgroundColor: accentColor }]} />
-            <Text style={styles.strengthText}>{s}</Text>
+        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
+              <Feather name="target" size={16} color={accentColor} />
+            </View>
+            <Text style={styles.cardTitle}>Seus Pontos Fortes</Text>
           </View>
-        ))}
-      </Animated.View>
+          {diagnostic.strengths.map((s, i) => (
+            <View key={i} style={styles.strengthRow}>
+              <Feather name="check-circle" size={16} color={accentColor} />
+              <Text style={styles.strengthText}>{s}</Text>
+            </View>
+          ))}
+        </Animated.View>
       </AnimatedListItem>
 
       {/* Content Style */}
       <AnimatedListItem index={2}>
-      <Animated.View style={[styles.card, { opacity: fadeIn }]}>
-        <Text style={styles.cardTitle}>{'🎬'} Estilo de Conteudo</Text>
-        <Text style={styles.cardDescription}>{diagnostic.contentStyle}</Text>
-        <View style={styles.tagsRow}>
-          {diagnostic.idealFormats.map((f, i) => (
-            <View key={i} style={[styles.tag, { borderColor: accentColor }]}>
-              <Text style={[styles.tagText, { color: accentColor }]}>{f}</Text>
+        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
+              <Feather name="film" size={16} color={accentColor} />
             </View>
-          ))}
-        </View>
-      </Animated.View>
+            <Text style={styles.cardTitle}>Estilo de Conteudo</Text>
+          </View>
+          <Text style={styles.cardDescription}>{diagnostic.contentStyle}</Text>
+          <View style={styles.tagsRow}>
+            {diagnostic.idealFormats.map((f, i) => (
+              <LinearGradient
+                key={i}
+                colors={[accentColor + '25', accentColor + '10']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.tagGradient, { borderColor: accentColor + '50' }]}
+              >
+                <Text style={[styles.tagText, { color: accentColor }]}>{f}</Text>
+              </LinearGradient>
+            ))}
+          </View>
+        </Animated.View>
       </AnimatedListItem>
 
       {/* Product Match */}
       <AnimatedListItem index={3}>
-      <Animated.View style={[styles.card, { opacity: fadeIn }]}>
-        <Text style={styles.cardTitle}>{'🏷️'} Segmentos que Combinam</Text>
-        <View style={styles.tagsRow}>
-          {diagnostic.productMatch.map((p, i) => (
-            <View key={i} style={[styles.tagFilled, { backgroundColor: accentColor + '33' }]}>
-              <Text style={[styles.tagFilledText, { color: accentColor }]}>{p}</Text>
+        <Animated.View style={[styles.card, { opacity: fadeIn }]}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardIconCircle, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}>
+              <Feather name="tag" size={16} color={accentColor} />
             </View>
-          ))}
-        </View>
-      </Animated.View>
+            <Text style={styles.cardTitle}>Segmentos que Combinam</Text>
+          </View>
+          <View style={styles.tagsRow}>
+            {diagnostic.productMatch.map((p, i) => (
+              <LinearGradient
+                key={i}
+                colors={[accentColor + '30', accentColor + '15']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.tagFilledGradient, { borderColor: accentColor + '40' }]}
+              >
+                <Text style={[styles.tagFilledText, { color: accentColor }]}>{p}</Text>
+              </LinearGradient>
+            ))}
+          </View>
+        </Animated.View>
       </AnimatedListItem>
 
       {/* Motivation */}
-      <Animated.View style={[styles.motivationCard, { borderColor: accentColor, opacity: fadeIn }]}>
-        <Text style={styles.motivationQuote}>"{diagnostic.motivationPhrase}"</Text>
+      <Animated.View style={[styles.motivationCard, { borderColor: accentColor + '50', borderLeftColor: accentColor, opacity: fadeIn }]}>
+        <View style={styles.motivationIconRow}>
+          <View style={[styles.motivationIconCircle, { backgroundColor: accentColor + '20' }]}>
+            <Feather name="message-circle" size={18} color={accentColor} />
+          </View>
+        </View>
+        <Text style={[styles.motivationQuote, { color: colors.text }]}>
+          "{diagnostic.motivationPhrase}"
+        </Text>
       </Animated.View>
 
-      {/* CTA */}
+      {/* CTA primary */}
       <Pressable
-        style={[styles.ctaBtn, { backgroundColor: accentColor }]}
+        style={[styles.ctaBtnWrap, shadows.glowPrimary]}
         onPress={() => router.replace('/(tabs)')}
       >
-        <Text style={styles.ctaBtnText}>Comecar minha jornada</Text>
+        <LinearGradient
+          colors={[accentColor, accentColor + 'CC']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.ctaBtnGradient}
+        >
+          <Feather name="arrow-right" size={20} color={colors.text} style={{ marginRight: spacing.sm }} />
+          <Text style={styles.ctaBtnText}>Comecar minha jornada</Text>
+        </LinearGradient>
       </Pressable>
 
       <Pressable style={styles.secondaryBtn} onPress={() => router.replace('/behavioral-onboarding')}>
+        <Feather name="refresh-cw" size={14} color={colors.textSecondary} style={{ marginRight: spacing.xs }} />
         <Text style={styles.secondaryBtnText}>Refazer analise</Text>
       </Pressable>
     </ScrollView>
@@ -194,7 +263,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingTop: 70,
     paddingBottom: spacing.xxl,
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   center: {
     flex: 1,
@@ -212,40 +281,64 @@ const styles = StyleSheet.create({
   // Hero Card
   heroCard: {
     borderRadius: borderRadius.xl,
-    borderWidth: 2,
+    borderWidth: 1.5,
     padding: spacing.xl,
     alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+    ...shadows.lg,
   },
-  heroEmoji: {
-    fontSize: fontSize['6xl'],
+  heroGlowBlob: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+  },
+  heroEmojiWrap: {
+    width: 96,
+    height: 96,
+    borderRadius: borderRadius.xl,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.md,
   },
+  heroEmoji: {
+    fontSize: fontSize['4xl'],
+  },
   heroTitle: {
-    fontSize: fontSize.xxl,
-    fontWeight: '800',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.extrabold,
     textAlign: 'center',
     marginBottom: spacing.sm,
+    letterSpacing: -0.5,
   },
   heroDescription: {
-    color: colors.text,
+    color: colors.textSecondary,
     fontSize: fontSize.md,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: spacing.lg,
+    paddingHorizontal: spacing.sm,
   },
 
   // Level
   levelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     borderWidth: 1,
+    marginTop: spacing.md,
   },
   levelText: {
     fontSize: fontSize.sm,
-    fontWeight: '700',
+    fontWeight: fontWeight.bold,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
 
   // Card
@@ -256,15 +349,24 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.lg,
   },
-  cardEmoji: {
-    fontSize: fontSize['3xl'],
-    marginBottom: spacing.sm,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  cardIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardTitle: {
     color: colors.text,
     fontSize: fontSize.lg,
-    fontWeight: '700',
-    marginBottom: spacing.md,
+    fontWeight: fontWeight.bold,
   },
   cardDescription: {
     color: colors.textSecondary,
@@ -277,36 +379,32 @@ const styles = StyleSheet.create({
   superpowerText: {
     color: colors.text,
     fontSize: fontSize.md,
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
     fontStyle: 'italic',
-    lineHeight: 24,
+    lineHeight: 26,
   },
 
   // Strengths
   strengthRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.sm,
     marginBottom: spacing.sm,
-  },
-  strengthDot: {
-    width: layout.dotSm,
-    height: layout.dotSm,
-    borderRadius: borderRadius.xs,
   },
   strengthText: {
     flex: 1,
     color: colors.text,
     fontSize: fontSize.md,
+    lineHeight: 22,
   },
 
-  // Tags
+  // Tags — gradient variants
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  tag: {
+  tagGradient: {
     borderRadius: borderRadius.full,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
@@ -314,16 +412,17 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: fontSize.sm,
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
   },
-  tagFilled: {
+  tagFilledGradient: {
     borderRadius: borderRadius.full,
+    borderWidth: 1,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   tagFilledText: {
     fontSize: fontSize.sm,
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
   },
 
   // Motivation
@@ -332,38 +431,53 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderLeftWidth: 4,
     padding: spacing.lg,
+    paddingLeft: spacing.xl,
     backgroundColor: colors.surface,
   },
+  motivationIconRow: {
+    marginBottom: spacing.md,
+  },
+  motivationIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   motivationQuote: {
-    color: colors.text,
     fontSize: fontSize.lg,
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
     fontStyle: 'italic',
-    lineHeight: 28,
-    textAlign: 'center',
+    lineHeight: 30,
   },
 
   // CTA
-  ctaBtn: {
-    backgroundColor: colors.primary,
+  ctaBtnWrap: {
     borderRadius: borderRadius.md,
     height: layout.buttonHeightLg,
+    overflow: 'hidden',
+  },
+  ctaBtnGradient: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   ctaBtnText: {
     color: colors.text,
     fontSize: fontSize.lg,
-    fontWeight: '700',
+    fontWeight: fontWeight.bold,
+    letterSpacing: 0.2,
   },
   secondaryBtn: {
     height: layout.buttonHeight,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   secondaryBtnText: {
     color: colors.textSecondary,
     fontSize: fontSize.md,
-    fontWeight: '500',
+    fontWeight: fontWeight.medium,
   },
 });

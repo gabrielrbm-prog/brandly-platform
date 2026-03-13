@@ -8,8 +8,19 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { coursesApi } from '@/lib/api';
-import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
+import {
+  borderRadius,
+  colorAlpha,
+  colors,
+  fontSize,
+  fontWeight as fw,
+  layout,
+  shadows,
+  spacing,
+} from '@/lib/theme';
 import AnimatedListItem from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 
@@ -88,9 +99,7 @@ export default function CoursesScreen() {
     setCompleting(lessonId);
     try {
       await coursesApi.completeLesson(lessonId);
-      // Atualizar estado local
       setLessons(prev => prev.map(l => l.id === lessonId ? { ...l, completed: true } : l));
-      // Atualizar progresso dos cursos
       fetchCourses();
     } catch {
       // silently fail
@@ -116,6 +125,8 @@ export default function CoursesScreen() {
   }
 
   const progressNum = parseInt(totalProgress);
+  const totalLessons = courses.reduce((s, c) => s + c.totalLessons, 0);
+  const completedLessons = courses.reduce((s, c) => s + c.completedLessons, 0);
 
   return (
     <ScrollView
@@ -123,28 +134,76 @@ export default function CoursesScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
-      {/* Overall Progress */}
+      {/* Hero Progress Card */}
       <AnimatedListItem index={0}>
-      <View style={styles.progressCard}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressTitle}>Formacao Creator</Text>
-          <Text style={styles.progressPercent}>{totalProgress}</Text>
+      <LinearGradient
+        colors={['#1E1040', '#121212']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.heroCard}
+      >
+        {/* Glow blob */}
+        <View style={styles.heroGlow} />
+
+        <View style={styles.heroTop}>
+          <View style={styles.heroIconWrap}>
+            <Feather name="book-open" size={22} color={colors.primaryLight} />
+          </View>
+          <Text style={styles.heroLabel}>FORMACAO CREATOR</Text>
         </View>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: totalProgress }]} />
+
+        {/* Big percentage */}
+        <Text style={styles.heroPercent}>{totalProgress}</Text>
+
+        {/* Progress bar with gradient fill */}
+        <View style={styles.heroTrack}>
+          <LinearGradient
+            colors={[colors.primary, colors.primaryLight]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.heroFill, { width: totalProgress as any }]}
+          />
         </View>
+
+        {/* Stats row */}
+        <View style={styles.heroStats}>
+          <View style={styles.heroStat}>
+            <Feather name="layers" size={14} color={colors.textSecondary} />
+            <Text style={styles.heroStatValue}>{courses.length}</Text>
+            <Text style={styles.heroStatLabel}>modulos</Text>
+          </View>
+          <View style={styles.heroStatDivider} />
+          <View style={styles.heroStat}>
+            <Feather name="play-circle" size={14} color={colors.textSecondary} />
+            <Text style={styles.heroStatValue}>{completedLessons}/{totalLessons}</Text>
+            <Text style={styles.heroStatLabel}>aulas</Text>
+          </View>
+          {progressNum === 100 && (
+            <>
+              <View style={styles.heroStatDivider} />
+              <View style={styles.heroStat}>
+                <Feather name="award" size={14} color={colors.accent} />
+                <Text style={[styles.heroStatValue, { color: colors.accent }]}>Completo</Text>
+              </View>
+            </>
+          )}
+        </View>
+
         {progressNum === 100 && (
           <View style={styles.certificateBanner}>
-            <Text style={styles.certificateText}>{'🎉'} Certificado disponivel!</Text>
+            <Feather name="award" size={16} color={colors.accent} />
+            <Text style={styles.certificateText}>Certificado disponivel!</Text>
           </View>
         )}
-      </View>
+      </LinearGradient>
       </AnimatedListItem>
 
       {/* Courses List */}
       {courses.length === 0 ? (
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyEmoji}>{'📚'}</Text>
+          <View style={styles.emptyIconWrap}>
+            <Feather name="book" size={28} color={colors.primary} />
+          </View>
           <Text style={styles.emptyText}>Nenhum modulo disponivel ainda</Text>
           <Text style={styles.emptySubtext}>Em breve novos conteudos serao publicados</Text>
         </View>
@@ -152,37 +211,70 @@ export default function CoursesScreen() {
         courses.map((course, index) => {
           const isOpen = selectedCourse === course.id;
           const coursePct = parseInt(course.progress);
+          const isComplete = coursePct === 100;
           return (
             <AnimatedListItem key={course.id} index={index + 1}>
             <View>
-              <Pressable style={styles.courseCard} onPress={() => loadLessons(course.id)}>
+              <Pressable
+                style={({ pressed }) => [styles.courseCard, pressed && styles.courseCardPressed]}
+                onPress={() => loadLessons(course.id)}
+              >
                 <View style={styles.courseHeader}>
-                  <View style={styles.courseOrderBadge}>
-                    <Text style={styles.courseOrderText}>{index + 1}</Text>
-                  </View>
+                  {/* Module number badge */}
+                  {isComplete ? (
+                    <LinearGradient
+                      colors={[colors.success, colors.successLight]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.courseOrderBadge}
+                    >
+                      <Feather name="check" size={14} color={colors.background} />
+                    </LinearGradient>
+                  ) : (
+                    <LinearGradient
+                      colors={[colors.primary, colors.primaryDark]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.courseOrderBadge}
+                    >
+                      <Text style={styles.courseOrderText}>{index + 1}</Text>
+                    </LinearGradient>
+                  )}
+
                   <View style={styles.courseInfo}>
                     <Text style={styles.courseTitle}>{course.title}</Text>
                     {course.description && (
                       <Text style={styles.courseDescription} numberOfLines={2}>{course.description}</Text>
                     )}
                     <View style={styles.courseMeta}>
-                      <Text style={styles.courseMetaText}>
-                        {course.completedLessons}/{course.totalLessons} aulas
-                      </Text>
+                      <View style={styles.courseMetaItem}>
+                        <Feather name="play-circle" size={11} color={colors.textMuted} />
+                        <Text style={styles.courseMetaText}>
+                          {course.completedLessons}/{course.totalLessons} aulas
+                        </Text>
+                      </View>
                       <Text style={[
-                        styles.courseProgress,
-                        coursePct === 100 && { color: colors.success },
+                        styles.courseProgressLabel,
+                        isComplete && { color: colors.success },
                       ]}>{course.progress}</Text>
                     </View>
                   </View>
-                  <Text style={styles.courseArrow}>{isOpen ? '▼' : '▶'}</Text>
+
+                  <Feather
+                    name={isOpen ? 'chevron-down' : 'chevron-right'}
+                    size={18}
+                    color={colors.textMuted}
+                  />
                 </View>
+
+                {/* Mini progress bar */}
                 <View style={styles.courseProgressTrack}>
-                  <View style={[
-                    styles.courseProgressFill,
-                    { width: course.progress },
-                    coursePct === 100 && { backgroundColor: colors.success },
-                  ]} />
+                  <LinearGradient
+                    colors={isComplete ? [colors.success, colors.successLight] : [colors.primary, colors.primaryLight]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={[styles.courseProgressFill, { width: course.progress as any }]}
+                  />
                 </View>
               </Pressable>
 
@@ -194,27 +286,43 @@ export default function CoursesScreen() {
                   ) : (
                     lessons.map((lesson, li) => (
                       <View key={lesson.id} style={[styles.lessonRow, li < lessons.length - 1 && styles.lessonBorder]}>
-                        <View style={[styles.lessonCheck, lesson.completed && styles.lessonCheckCompleted]}>
-                          {lesson.completed && <Text style={styles.lessonCheckMark}>{'✓'}</Text>}
+                        {/* Check circle */}
+                        <View style={[
+                          styles.lessonCheck,
+                          lesson.completed && styles.lessonCheckCompleted,
+                        ]}>
+                          {lesson.completed ? (
+                            <Feather name="check" size={12} color={colors.background} />
+                          ) : (
+                            <Text style={styles.lessonNumber}>{li + 1}</Text>
+                          )}
                         </View>
+
                         <View style={styles.lessonInfo}>
                           <Text style={[styles.lessonTitle, lesson.completed && styles.lessonTitleCompleted]}>
                             {lesson.title}
                           </Text>
                           {lesson.duration && (
-                            <Text style={styles.lessonDuration}>{formatDuration(lesson.duration)}</Text>
+                            <View style={styles.lessonDurationRow}>
+                              <Feather name="clock" size={10} color={colors.textMuted} />
+                              <Text style={styles.lessonDuration}>{formatDuration(lesson.duration)}</Text>
+                            </View>
                           )}
                         </View>
+
                         {!lesson.completed && (
                           <Pressable
-                            style={styles.completeBtn}
+                            style={({ pressed }) => [styles.completeBtn, pressed && styles.completeBtnPressed]}
                             onPress={() => handleComplete(lesson.id)}
                             disabled={completing === lesson.id}
                           >
                             {completing === lesson.id ? (
                               <ActivityIndicator size="small" color={colors.text} />
                             ) : (
-                              <Text style={styles.completeBtnText}>Concluir</Text>
+                              <>
+                                <Feather name="check-circle" size={12} color={colors.text} />
+                                <Text style={styles.completeBtnText}>Concluir</Text>
+                              </>
                             )}
                           </Pressable>
                         )}
@@ -235,34 +343,126 @@ export default function CoursesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.md, paddingBottom: spacing.xxl, gap: spacing.md },
-  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
 
-  // Progress Card
-  progressCard: {
-    backgroundColor: colorAlpha.primary10,
+  // Hero Progress Card
+  heroCard: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colorAlpha.primary30,
     padding: spacing.lg,
+    overflow: 'hidden',
+    ...shadows.glowPrimarySubtle,
   },
-  progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  progressTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
-  progressPercent: { color: colors.primaryLight, fontSize: fontSize.xl, fontWeight: '800' },
-  progressTrack: { height: layout.progressBarLg, backgroundColor: colors.surface, borderRadius: borderRadius.xs, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: borderRadius.xs },
-  certificateBanner: { marginTop: spacing.sm, alignItems: 'center' },
-  certificateText: { color: colors.success, fontSize: fontSize.sm, fontWeight: '700' },
+  heroGlow: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colorAlpha.primary25,
+  },
+  heroTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  heroIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colorAlpha.primary20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroLabel: {
+    color: colors.textSecondary,
+    fontSize: fontSize.xs,
+    fontWeight: fw.bold,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  heroPercent: {
+    color: colors.text,
+    fontSize: fontSize['4xl'],
+    fontWeight: fw.extrabold,
+    marginBottom: spacing.sm,
+  },
+  heroTrack: {
+    height: layout.progressBarLg,
+    backgroundColor: colorAlpha.white10,
+    borderRadius: borderRadius.xs,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+  },
+  heroFill: {
+    height: '100%',
+    borderRadius: borderRadius.xs,
+  },
+  heroStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  heroStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  heroStatValue: {
+    color: colors.text,
+    fontSize: fontSize.sm,
+    fontWeight: fw.bold,
+  },
+  heroStatLabel: {
+    color: colors.textSecondary,
+    fontSize: fontSize.xs,
+  },
+  heroStatDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: colorAlpha.muted30,
+  },
+  certificateBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colorAlpha.accent20,
+  },
+  certificateText: {
+    color: colors.accent,
+    fontSize: fontSize.sm,
+    fontWeight: fw.bold,
+  },
 
   // Empty
   emptyCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: spacing.xl,
     alignItems: 'center',
+    gap: spacing.md,
   },
-  emptyEmoji: { fontSize: fontSize.emoji, marginBottom: spacing.md },
-  emptyText: { color: colors.text, fontSize: fontSize.lg, fontWeight: '600' },
-  emptySubtext: { color: colors.textSecondary, fontSize: fontSize.sm, marginTop: spacing.xs },
+  emptyIconWrap: {
+    width: 68,
+    height: 68,
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    backgroundColor: colorAlpha.primary15,
+    borderColor: colorAlpha.primary30,
+  },
+  emptyText: { color: colors.text, fontSize: fontSize.md, fontWeight: fw.semibold, textAlign: 'center' },
+  emptySubtext: { color: colors.textSecondary, fontSize: fontSize.sm, textAlign: 'center', lineHeight: 20 },
 
   // Course Card
   courseCard: {
@@ -271,26 +471,39 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
+    ...shadows.sm,
+  },
+  courseCardPressed: {
+    backgroundColor: colors.surfaceLight,
   },
   courseHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   courseOrderBadge: {
     width: layout.avatarSm,
     height: layout.avatarSm,
     borderRadius: layout.avatarSm / 2,
-    backgroundColor: colorAlpha.primary20,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.sm,
   },
-  courseOrderText: { color: colors.primaryLight, fontSize: fontSize.sm, fontWeight: '700' },
+  courseOrderText: { color: colors.text, fontSize: fontSize.sm, fontWeight: fw.bold },
   courseInfo: { flex: 1 },
-  courseTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
+  courseTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: fw.semibold },
   courseDescription: { color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 2 },
-  courseMeta: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  courseMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs },
+  courseMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   courseMetaText: { color: colors.textMuted, fontSize: fontSize.xs },
-  courseProgress: { color: colors.primaryLight, fontSize: fontSize.xs, fontWeight: '600' },
-  courseArrow: { color: colors.textMuted, fontSize: fontSize.sm },
-  courseProgressTrack: { height: layout.progressBarSm, backgroundColor: colors.surfaceLight, borderRadius: 2, marginTop: spacing.sm, overflow: 'hidden' },
-  courseProgressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 2 },
+  courseProgressLabel: { color: colors.primaryLight, fontSize: fontSize.xs, fontWeight: fw.semibold },
+  courseProgressTrack: {
+    height: layout.progressBarSm,
+    backgroundColor: colorAlpha.white10,
+    borderRadius: 2,
+    marginTop: spacing.sm,
+    overflow: 'hidden',
+  },
+  courseProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
 
   // Lessons
   lessonsContainer: {
@@ -319,19 +532,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  lessonCheckCompleted: { backgroundColor: colors.success, borderColor: colors.success },
-  lessonCheckMark: { color: colors.text, fontSize: fontSize.xs, fontWeight: '700' },
+  lessonCheckCompleted: {
+    backgroundColor: colors.success,
+    borderColor: colors.success,
+    ...shadows.glowSuccess,
+  },
+  lessonNumber: { color: colors.textMuted, fontSize: 10, fontWeight: fw.semibold },
   lessonInfo: { flex: 1 },
-  lessonTitle: { color: colors.text, fontSize: fontSize.sm, fontWeight: '500' },
+  lessonTitle: { color: colors.text, fontSize: fontSize.sm, fontWeight: fw.medium },
   lessonTitleCompleted: { color: colors.textMuted, textDecorationLine: 'line-through' },
-  lessonDuration: { color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 },
+  lessonDurationRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  lessonDuration: { color: colors.textMuted, fontSize: fontSize.xs },
   completeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     backgroundColor: colors.primary,
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    minWidth: 70,
-    alignItems: 'center',
+    minWidth: 80,
+    justifyContent: 'center',
   },
-  completeBtnText: { color: colors.text, fontSize: fontSize.xs, fontWeight: '600' },
+  completeBtnPressed: {
+    backgroundColor: colors.primaryDark,
+  },
+  completeBtnText: { color: colors.text, fontSize: fontSize.xs, fontWeight: fw.semibold },
 });

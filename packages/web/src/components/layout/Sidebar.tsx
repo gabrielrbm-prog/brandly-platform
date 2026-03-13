@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { logos } from '@/lib/logos';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
@@ -36,13 +37,13 @@ export default function Sidebar() {
       <div className="flex items-center justify-center px-3 h-16 border-b themed-border overflow-hidden">
         {collapsed ? (
           <img
-            src={isDark ? '/logos/symbol-white.png' : '/logos/symbol-blue.png'}
+            src={isDark ? logos.symbol.dark : logos.symbol.light}
             alt="Brandly"
             className="h-8 w-8 object-contain"
           />
         ) : (
           <img
-            src={isDark ? '/logos/logo-white.png' : '/logos/logo-dark.png'}
+            src={isDark ? logos.horizontal.dark : logos.horizontal.light}
             alt="Brandly"
             className="h-8 object-contain"
           />

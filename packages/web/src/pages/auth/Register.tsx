@@ -2,12 +2,15 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { User, Mail, Lock, Gift, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { logos } from '@/lib/logos';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { isDark } = useTheme();
   const [searchParams] = useSearchParams();
 
   const [name, setName] = useState('');
@@ -43,14 +46,9 @@ export default function Register() {
         {/* Logo */}
         <div className="text-center space-y-3">
           <img
-            src="/logos/logo-complete-white.png"
+            src={isDark ? logos.complete.dark : logos.complete.light}
             alt="Brandly"
-            className="h-16 mx-auto dark:block hidden"
-          />
-          <img
-            src="/logos/logo-complete-dark.png"
-            alt="Brandly"
-            className="h-16 mx-auto dark:hidden block"
+            className="h-16 mx-auto"
           />
           <p className="text-sm font-semibold text-brand-accent uppercase tracking-[2px]">
             Profissao Creator

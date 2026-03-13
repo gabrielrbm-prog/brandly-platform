@@ -1,20 +1,11 @@
 import { NavLink } from 'react-router-dom';
 import {
-  Home,
-  Video,
-  Users,
-  DollarSign,
-  User,
-  Wand2,
-  ShoppingBag,
-  Share2,
-  BookOpen,
-  Trophy,
-  Zap,
-  ChevronLeft,
-  ChevronRight,
+  Home, Video, Users, DollarSign, User, Wand2,
+  ShoppingBag, Share2, BookOpen, Trophy, Zap,
+  ChevronLeft, ChevronRight, Moon, Sun,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
@@ -31,27 +22,26 @@ const navItems = [
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <aside
       className={`
         hidden md:flex flex-col h-screen sticky top-0
-        bg-surface-card border-r border-gray-800
+        themed-surface-card border-r themed-border
         transition-all duration-300
         ${collapsed ? 'w-16' : 'w-60'}
       `}
     >
-      {/* Logo */}
-      <div className="flex items-center gap-2 px-4 h-16 border-b border-gray-800">
+      <div className="flex items-center gap-2 px-4 h-16 border-b themed-border">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-light flex items-center justify-center shrink-0">
           <Zap className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (
-          <span className="text-xl font-extrabold text-white tracking-tight">Brandly</span>
+          <span className="text-xl font-extrabold themed-text tracking-tight">Brandly</span>
         )}
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink
@@ -62,7 +52,7 @@ export default function Sidebar() {
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
                ${isActive
                  ? 'bg-brand-primary/15 text-brand-primary-light'
-                 : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                 : 'themed-text-muted hover:themed-surface-light hover:themed-text'
                }
                ${collapsed ? 'justify-center' : ''}
               `
@@ -74,13 +64,21 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-gray-800 text-gray-500 hover:text-white transition-colors"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+      <div className="border-t themed-border flex">
+        <button
+          onClick={toggleTheme}
+          className={`flex items-center justify-center h-12 themed-text-muted hover:themed-text transition-colors ${collapsed ? 'flex-1' : 'flex-1'}`}
+          title={isDark ? 'Modo claro' : 'Modo escuro'}
+        >
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="flex items-center justify-center h-12 themed-text-muted hover:themed-text transition-colors flex-1 border-l themed-border"
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
     </aside>
   );
 }

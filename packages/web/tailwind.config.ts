@@ -14,10 +14,17 @@ const config: Config = {
           'accent-light': '#FBBF24',
         },
         surface: {
-          DEFAULT: '#1A1A1A',
-          light: '#2A2A2A',
-          card: '#111111',
-          bg: '#0A0A0A',
+          DEFAULT: 'var(--color-surface)',
+          light: 'var(--color-surface-light)',
+          card: 'var(--color-surface-card)',
+          bg: 'var(--color-bg)',
+        },
+        themed: {
+          text: 'var(--color-text)',
+          'text-secondary': 'var(--color-text-secondary)',
+          'text-muted': 'var(--color-text-muted)',
+          border: 'var(--color-border)',
+          'border-light': 'var(--color-border-light)',
         },
       },
       fontFamily: {

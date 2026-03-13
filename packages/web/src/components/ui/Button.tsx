@@ -14,11 +14,11 @@ const variantClasses: Record<Variant, string> = {
   primary:
     'bg-gradient-to-r from-brand-primary to-brand-primary-light text-white glow-primary hover:opacity-90',
   secondary:
-    'bg-surface-light text-white border border-gray-700 hover:bg-gray-700',
+    'themed-surface-light themed-text border themed-border hover:opacity-80',
   outline:
     'border border-brand-primary text-brand-primary-light bg-transparent hover:bg-brand-primary/10',
   ghost:
-    'text-gray-400 bg-transparent hover:bg-white/5 hover:text-white',
+    'themed-text-muted bg-transparent hover:themed-surface-light hover:themed-text',
   danger:
     'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20',
 };

@@ -64,7 +64,7 @@ export const GlowMenu = React.forwardRef<HTMLDivElement, GlowMenuProps>(
       <motion.nav
         ref={ref}
         className={cn(
-          'p-2 rounded-2xl bg-gradient-to-b from-surface/80 to-surface/40 backdrop-blur-lg border border-gray-800/40 shadow-lg relative overflow-hidden',
+          'p-2 rounded-2xl themed-surface backdrop-blur-lg border themed-border shadow-lg relative overflow-hidden',
           className,
         )}
         initial="initial"

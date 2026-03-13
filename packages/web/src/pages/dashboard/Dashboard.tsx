@@ -92,10 +92,10 @@ export default function Dashboard() {
         <div className="rounded-2xl border border-brand-primary/15 bg-gradient-to-r from-brand-primary/10 to-transparent p-5">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold themed-text">
                 Ola, {user?.name?.split(' ')[0] ?? 'Creator'} 👋
               </h2>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm themed-text-secondary mt-1">
                 {used === 0 ? 'Pronto para dominar hoje?' : used < 5 ? `${used} videos feitos — keep going!` : used < 10 ? `${used}/10 — voce esta arrasando!` : 'Meta diaria concluida!'}
               </p>
             </div>
@@ -117,31 +117,31 @@ export default function Dashboard() {
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
                 <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Ganhos Hoje</span>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm themed-text-secondary">
                 R${' '}
                 <span className="text-4xl font-bold text-emerald-400">
                   {(daily?.earningsToday ?? 0).toFixed(2)}
                 </span>
               </p>
-              <p className="text-xs text-gray-500 mt-1">Meta: R$ 100,00/dia</p>
+              <p className="text-xs themed-text-muted mt-1">Meta: R$ 100,00/dia</p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 rounded-full border-[3px] border-emerald-500/20 bg-emerald-500/5 flex items-center justify-center">
                 <span className="text-2xl font-bold text-emerald-400">{used}</span>
-                <span className="text-sm text-gray-500">/10</span>
+                <span className="text-sm themed-text-muted">/10</span>
               </div>
-              <span className="text-xs text-gray-500 mt-1">videos</span>
+              <span className="text-xs themed-text-muted mt-1">videos</span>
             </div>
           </div>
           <ProgressBar value={used} max={10} color="#10B981" className="mt-4" />
-          <p className="text-xs text-gray-500 mt-1">{daily?.remainingSlots ?? 10} slots restantes hoje</p>
+          <p className="text-xs themed-text-muted mt-1">{daily?.remainingSlots ?? 10} slots restantes hoje</p>
         </Card>
 
         {/* Daily stats grid */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Sun className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Hoje</span>
+            <Sun className="w-3.5 h-3.5 themed-text-muted" />
+            <span className="text-xs font-semibold themed-text-muted uppercase tracking-wider">Hoje</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <StatCard glowing icon={<CheckCircle className="w-4 h-4" />} label="Aprovados" value={String(daily?.approved ?? 0)} color="#10B981" />
@@ -154,19 +154,19 @@ export default function Dashboard() {
         {/* Monthly summary */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-3.5 h-3.5 text-gray-500" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Este Mes</span>
+            <Calendar className="w-3.5 h-3.5 themed-text-muted" />
+            <span className="text-xs font-semibold themed-text-muted uppercase tracking-wider">Este Mes</span>
           </div>
           <Card glowing>
             <div className="flex items-center gap-2 mb-4">
-              <BarChart2 className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-semibold text-gray-300">Resumo Mensal</span>
+              <BarChart2 className="w-4 h-4 themed-text-secondary" />
+              <span className="text-sm font-semibold themed-text-secondary">Resumo Mensal</span>
             </div>
             <div className="grid grid-cols-3 divide-x divide-gray-800 text-center mb-4">
               <div>
-                <Video className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-                <p className="text-lg font-bold text-white">{monthly?.totalVideos ?? 0}</p>
-                <p className="text-xs text-gray-500">Videos</p>
+                <Video className="w-4 h-4 themed-text-secondary mx-auto mb-1" />
+                <p className="text-lg font-bold themed-text">{monthly?.totalVideos ?? 0}</p>
+                <p className="text-xs themed-text-muted">Videos</p>
               </div>
               <div>
                 <BarChart2 className="w-4 h-4 text-emerald-400 mx-auto mb-1" />

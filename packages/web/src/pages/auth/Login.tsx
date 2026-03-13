@@ -33,7 +33,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-bg flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen themed-bg flex items-center justify-center p-6 relative overflow-hidden">
       {/* Glow orb */}
       <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-60 h-60 rounded-full bg-brand-primary/10 blur-3xl pointer-events-none" />
 
@@ -44,12 +44,12 @@ export default function Login() {
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-primary to-brand-primary-light flex items-center justify-center shadow-lg shadow-brand-primary/25">
               <Zap className="w-6 h-6 text-white" />
             </div>
-            <span className="text-4xl font-extrabold text-white tracking-tight">Brandly</span>
+            <span className="text-4xl font-extrabold themed-text tracking-tight">Brandly</span>
           </div>
           <p className="text-sm font-semibold text-brand-primary-light uppercase tracking-[2px]">
             Profissao Creator
           </p>
-          <p className="text-gray-400">Entre na sua conta</p>
+          <p className="themed-text-secondary">Entre na sua conta</p>
         </div>
 
         {/* Error */}
@@ -88,7 +88,7 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-gray-400">
+        <p className="text-center text-sm themed-text-secondary">
           Nao tem conta?{' '}
           <Link to="/register" className="text-brand-primary-light font-semibold hover:underline">
             Cadastre-se gratuitamente

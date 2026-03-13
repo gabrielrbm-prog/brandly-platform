@@ -9,7 +9,7 @@ export default function ProgressBar({ value, max = 100, color = '#7C3AED', class
   const pct = Math.min((value / max) * 100, 100);
 
   return (
-    <div className={`h-2 rounded-full bg-white/5 overflow-hidden ${className}`}>
+    <div className={`h-2 rounded-full themed-surface-light overflow-hidden ${className}`}>
       <div
         className="h-full rounded-full transition-all duration-500"
         style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${color}80)` }}

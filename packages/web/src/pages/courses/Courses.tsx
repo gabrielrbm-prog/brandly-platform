@@ -1,14 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
-import { BookOpen, CheckCircle, Play, Lock } from 'lucide-react';
+import { BookOpen, CheckCircle, Play, Lock, ArrowLeft, GraduationCap } from 'lucide-react';
 import { coursesApi } from '@/lib/api';
 import PageContainer from '@/components/layout/PageContainer';
-import Card from '@/components/ui/Card';
+import CourseCard from '@/components/ui/CourseCard';
 import Badge from '@/components/ui/Badge';
-import ProgressBar from '@/components/ui/ProgressBar';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
 interface Course { id: string; title: string; description: string; lessonsCount: number; completedLessons: number }
 interface Lesson { id: string; title: string; duration: string; completed: boolean; locked: boolean }
+
+const COURSE_COLORS = ['purple', 'amber', 'emerald', 'blue', 'pink'] as const;
 
 export default function Courses() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -41,7 +42,13 @@ export default function Courses() {
     } catch { /* silent */ }
   }
 
-  if (loading) return <PageContainer title="Formacao"><div className="space-y-4"><SkeletonCard /><SkeletonCard /></div></PageContainer>;
+  if (loading) return (
+    <PageContainer title="Formacao">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard />
+      </div>
+    </PageContainer>
+  );
 
   return (
     <PageContainer title="Formacao">
@@ -49,60 +56,87 @@ export default function Courses() {
         {!selectedCourse ? (
           <>
             {courses.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-gray-500" />
+              <div className="text-center py-16">
+                <div className="w-20 h-20 rounded-2xl bg-brand-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <GraduationCap className="w-10 h-10 text-brand-primary-light" />
                 </div>
-                <p className="text-lg font-bold text-white mb-1">Nenhum curso disponivel</p>
-                <p className="text-sm text-gray-400">Em breve novos cursos serao adicionados.</p>
+                <p className="text-xl font-bold themed-text mb-2">Nenhum curso disponivel</p>
+                <p className="text-sm themed-text-secondary max-w-xs mx-auto">Em breve novos cursos serao adicionados a plataforma.</p>
               </div>
             ) : (
-              courses.map((c) => {
-                const pct = c.lessonsCount > 0 ? (c.completedLessons / c.lessonsCount) * 100 : 0;
-                return (
-                  <button key={c.id} onClick={() => selectCourse(c)} className="w-full text-left">
-                    <Card>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="w-5 h-5 text-brand-primary-light" />
-                          <h3 className="text-sm font-semibold text-white">{c.title}</h3>
-                        </div>
-                        <Badge variant={pct === 100 ? 'success' : 'primary'}>
-                          {c.completedLessons}/{c.lessonsCount}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-gray-500 mb-3">{c.description}</p>
-                      <ProgressBar value={pct} color={pct === 100 ? '#10B981' : '#7C3AED'} />
-                    </Card>
-                  </button>
-                );
-              })
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {courses.map((c, i) => {
+                  const pct = c.lessonsCount > 0 ? (c.completedLessons / c.lessonsCount) * 100 : 0;
+                  return (
+                    <CourseCard
+                      key={c.id}
+                      title={c.title}
+                      description={c.description}
+                      progress={pct}
+                      lessonsCount={c.lessonsCount}
+                      completedLessons={c.completedLessons}
+                      color={COURSE_COLORS[i % COURSE_COLORS.length]}
+                      icon={<BookOpen className="w-4 h-4" style={{ color: ['#7C3AED', '#F59E0B', '#10B981', '#3B82F6', '#EC4899'][i % 5] }} />}
+                      timeLeft={pct >= 100 ? 'Completo' : `${c.lessonsCount - c.completedLessons} restantes`}
+                      onClick={() => selectCourse(c)}
+                    />
+                  );
+                })}
+              </div>
             )}
           </>
         ) : (
           <>
-            <button onClick={() => setSelectedCourse(null)} className="text-sm text-brand-primary-light hover:underline">
-              &larr; Voltar
+            <button
+              onClick={() => setSelectedCourse(null)}
+              className="inline-flex items-center gap-2 text-sm text-brand-primary-light hover:underline transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar aos cursos
             </button>
-            <h2 className="text-xl font-bold text-white">{selectedCourse.title}</h2>
+
+            <div className="themed-surface rounded-2xl border themed-border p-5 md:p-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-brand-primary-light" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold themed-text">{selectedCourse.title}</h2>
+                  <p className="text-sm themed-text-secondary">{selectedCourse.description}</p>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              {lessons.map((l) => (
-                <div key={l.id} className={`flex items-center gap-3 bg-surface rounded-xl border border-gray-800 p-3 ${l.locked ? 'opacity-50' : ''}`}>
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                    l.completed ? 'bg-emerald-500/10' : l.locked ? 'bg-gray-800' : 'bg-brand-primary/10'
+              {lessons.map((l, i) => (
+                <div
+                  key={l.id}
+                  className={`
+                    flex items-center gap-3 themed-surface rounded-xl border themed-border p-3 md:p-4
+                    transition-all duration-200
+                    ${l.locked ? 'opacity-50' : 'hover:themed-surface-light'}
+                  `}
+                >
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full themed-surface-light text-xs font-bold themed-text-muted">
+                    {i + 1}
+                  </div>
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                    l.completed ? 'bg-emerald-500/10' : l.locked ? 'themed-surface-light' : 'bg-brand-primary/10'
                   }`}>
-                    {l.completed ? <CheckCircle className="w-4 h-4 text-emerald-400" /> :
-                     l.locked ? <Lock className="w-4 h-4 text-gray-500" /> :
+                    {l.completed ? <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> :
+                     l.locked ? <Lock className="w-4 h-4 themed-text-muted" /> :
                      <Play className="w-4 h-4 text-brand-primary-light" />}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-white">{l.title}</p>
-                    <p className="text-xs text-gray-500">{l.duration}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium themed-text truncate">{l.title}</p>
+                    <p className="text-xs themed-text-muted">{l.duration}</p>
                   </div>
-                  {!l.completed && !l.locked && (
+                  {l.completed ? (
+                    <Badge variant="success">Concluido</Badge>
+                  ) : !l.locked && (
                     <button
                       onClick={() => completeLesson(l.id)}
-                      className="text-xs text-brand-primary-light hover:underline"
+                      className="text-xs font-semibold text-brand-primary-light hover:underline shrink-0"
                     >
                       Concluir
                     </button>

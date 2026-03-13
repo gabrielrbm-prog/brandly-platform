@@ -36,7 +36,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-bg flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen themed-bg flex items-center justify-center p-6 relative overflow-hidden">
       <div className="absolute top-[-60px] left-1/2 -translate-x-1/2 w-52 h-52 rounded-full bg-brand-primary/8 blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-sm space-y-6">
@@ -46,12 +46,12 @@ export default function Register() {
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-primary to-brand-primary-light flex items-center justify-center shadow-lg shadow-brand-primary/25">
               <Zap className="w-6 h-6 text-white" />
             </div>
-            <span className="text-4xl font-extrabold text-white tracking-tight">Brandly</span>
+            <span className="text-4xl font-extrabold themed-text tracking-tight">Brandly</span>
           </div>
           <p className="text-sm font-semibold text-brand-primary-light uppercase tracking-[2px]">
             Profissao Creator
           </p>
-          <p className="text-gray-400">Crie sua conta gratuitamente</p>
+          <p className="themed-text-secondary">Crie sua conta gratuitamente</p>
         </div>
 
         {error && (
@@ -100,13 +100,13 @@ export default function Register() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-gray-500">
+        <p className="text-center text-xs themed-text-muted">
           Ao criar sua conta voce concorda com os{' '}
           <span className="text-brand-primary-light">Termos de Uso</span> e{' '}
           <span className="text-brand-primary-light">Politica de Privacidade</span>.
         </p>
 
-        <p className="text-center text-sm text-gray-400">
+        <p className="text-center text-sm themed-text-secondary">
           Ja tem conta?{' '}
           <Link to="/login" className="text-brand-primary-light font-semibold hover:underline">
             Entrar

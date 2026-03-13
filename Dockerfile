@@ -16,8 +16,8 @@ COPY . .
 
 # Build em ordem de dependencia (sem turbo)
 RUN npm run build -w packages/shared && \
-    npm run build -w packages/core && \
     npm run build -w packages/bonus-engine && \
+    npm run build -w packages/core && \
     npm run build -w packages/api && \
     npm run build -w packages/web
 

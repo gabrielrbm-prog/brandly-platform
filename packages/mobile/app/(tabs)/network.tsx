@@ -22,6 +22,8 @@ import {
 import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
+import Card from '@/components/Card';
+import StatCard from '@/components/StatCard';
 
 interface NetworkStats {
   period: string;
@@ -232,39 +234,42 @@ export default function NetworkScreen() {
             <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Minha Rede</Text>
           </View>
           <View style={styles.statsGrid}>
-            <View style={[styles.statCard, { backgroundColor: colorAlpha.info10, borderColor: colorAlpha.info20 }]}>
-              <View style={[styles.statIcon, { backgroundColor: colorAlpha.info20 }]}>
-                <Feather name="users" size={16} color={colors.info} />
-              </View>
-              <Text style={[styles.statGridValue, { color: colors.info }]}>{stats.network.totalMembers}</Text>
-              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Rede Total</Text>
-            </View>
-
-            <View style={[styles.statCard, { backgroundColor: colorAlpha.success10, borderColor: colorAlpha.success20 }]}>
-              <View style={[styles.statIcon, { backgroundColor: colorAlpha.success20 }]}>
-                <Feather name="check-circle" size={16} color={colors.success} />
-              </View>
-              <Text style={[styles.statGridValue, { color: colors.success }]}>{stats.network.activeMembers}</Text>
-              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Ativos</Text>
-            </View>
-
-            <View style={[styles.statCard, { backgroundColor: colorAlpha.primary10, borderColor: colorAlpha.primary20 }]}>
-              <View style={[styles.statIcon, { backgroundColor: colorAlpha.primary20 }]}>
-                <Feather name="user-plus" size={16} color={colors.primaryLight} />
-              </View>
-              <Text style={[styles.statGridValue, { color: colors.primaryLight }]}>{stats.network.directsActive}</Text>
-              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Diretos</Text>
-            </View>
-
-            <View style={[styles.statCard, { backgroundColor: colorAlpha.accent10, borderColor: colorAlpha.accent20 }]}>
-              <View style={[styles.statIcon, { backgroundColor: colorAlpha.accent20 }]}>
-                <Feather name="trending-up" size={16} color={colors.accent} />
-              </View>
-              <Text style={[styles.statGridValue, { color: colors.accent, fontSize: fontSize.sm }]}>
-                {formatCurrency(stats.network.totalVolume)}
-              </Text>
-              <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Volume</Text>
-            </View>
+            <StatCard
+              icon="users"
+              label="Rede Total"
+              value={String(stats.network.totalMembers)}
+              color={colors.info}
+              tinted
+              compact
+              style={styles.statGridItem}
+            />
+            <StatCard
+              icon="check-circle"
+              label="Ativos"
+              value={String(stats.network.activeMembers)}
+              color={colors.success}
+              tinted
+              compact
+              style={styles.statGridItem}
+            />
+            <StatCard
+              icon="user-plus"
+              label="Diretos"
+              value={String(stats.network.directsActive)}
+              color={colors.primaryLight}
+              tinted
+              compact
+              style={styles.statGridItem}
+            />
+            <StatCard
+              icon="trending-up"
+              label="Volume"
+              value={formatCurrency(stats.network.totalVolume)}
+              color={colors.accent}
+              tinted
+              compact
+              style={styles.statGridItem}
+            />
           </View>
         </AnimatedListItem>
       )}
@@ -272,12 +277,7 @@ export default function NetworkScreen() {
       {/* ─── Bonuses Card ─── */}
       {stats && (
         <AnimatedListItem index={2}>
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, ...shadows.sm }]}>
-            <View style={styles.cardTitleRow}>
-              <Feather name="gift" size={16} color={colors.primary} />
-              <Text style={[styles.cardTitle, { color: colors.text }]}>Bonus do Mes</Text>
-            </View>
-
+          <Card icon="gift" title="Bonus do Mes" variant="elevated">
             {BONUS_CONFIG.map((cfg) => {
               const value = stats.bonuses[cfg.key];
               const numValue = Number(value);
@@ -313,7 +313,7 @@ export default function NetworkScreen() {
               </View>
               <Text style={[styles.bonusTotalValue, { color: colors.success }]}>{formatCurrency(stats.bonuses.total)}</Text>
             </View>
-          </View>
+          </Card>
         </AnimatedListItem>
       )}
 
@@ -327,9 +327,9 @@ export default function NetworkScreen() {
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
-            <View style={styles.cardTitleRow}>
+            <View style={styles.referralTitleRow}>
               <Feather name="share-2" size={16} color={colors.primaryLight} />
-              <Text style={[styles.cardTitle, { color: colors.text }]}>Link de Indicacao</Text>
+              <Text style={[styles.referralTitle, { color: colors.text }]}>Link de Indicacao</Text>
             </View>
             <Text style={[styles.referralSubtitle, { color: colors.textSecondary }]}>
               Compartilhe e ganhe bonus em cada venda da sua rede
@@ -377,14 +377,16 @@ export default function NetworkScreen() {
 
       {/* ─── Direct Members ─── */}
       <AnimatedListItem index={4}>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, ...shadows.sm }]}>
-          <View style={styles.cardTitleRow}>
-            <Feather name="user-check" size={16} color={colors.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Meus Diretos</Text>
+        <Card
+          icon="user-check"
+          title="Meus Diretos"
+          variant="elevated"
+          headerRight={
             <View style={[styles.memberCountBadge, { backgroundColor: colorAlpha.primary20 }]}>
               <Text style={[styles.memberCountText, { color: colors.primaryLight }]}>{directs.length}</Text>
             </View>
-          </View>
+          }
+        >
 
           {directs.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -425,7 +427,7 @@ export default function NetworkScreen() {
               );
             })
           )}
-        </View>
+        </Card>
       </AnimatedListItem>
     </ScrollView>
   );
@@ -539,47 +541,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  statCard: {
+  statGridItem: {
     flex: 1,
     minWidth: '45%',
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    padding: spacing.sm,
-    alignItems: 'flex-start',
-  },
-  statIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  statGridValue: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
-    marginBottom: 2,
-  },
-  statGridLabel: {
-    fontSize: fontSize.xs,
-  },
-
-  // ─── Generic Card ───
-  card: {
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  cardTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  cardTitle: {
-    flex: 1,
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.semibold,
   },
 
   // ─── Bonuses ───
@@ -650,6 +614,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
     overflow: 'hidden',
+  },
+  referralTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  referralTitle: {
+    flex: 1,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
   },
   referralSubtitle: {
     fontSize: fontSize.sm,

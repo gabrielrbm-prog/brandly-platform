@@ -22,7 +22,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 import GlowCard from '@/components/GlowCard';
-import GlowOrb from '@/components/effects/GlowOrb';
+import Card from '@/components/Card';
+import StatCard from '@/components/StatCard';
 
 interface DailyStats {
   approved: number;
@@ -164,9 +165,14 @@ export default function HomeScreen() {
         </LinearGradient>
       </FadeInView>
 
-      {/* ─── Hero: Ganhos Hoje ─── */}
+      {/* ─── Hero: Ganhos Hoje (Spotlight Card) ─── */}
       <AnimatedListItem index={0}>
-        <GlowCard style={[styles.earningsHeroCard, { borderColor: colorAlpha.success20 }]} glowColor={colors.success}>
+        <GlowCard
+          variant="spotlight"
+          spotlightColor={colors.success}
+          glowColor={colors.success}
+          style={[styles.earningsHeroCard, { borderColor: colorAlpha.success20 }]}
+        >
           <LinearGradient
             colors={[colorAlpha.success20, colorAlpha.success10]}
             style={StyleSheet.absoluteFill}
@@ -218,56 +224,49 @@ export default function HomeScreen() {
         </GlowCard>
       </AnimatedListItem>
 
-      {/* ─── Grid de stats diarios ─── */}
+      {/* ─── Grid de stats diarios (usando StatCard) ─── */}
       <AnimatedListItem index={1}>
         <View style={styles.sectionHeader}>
           <Feather name="sun" size={14} color={colors.textMuted} />
           <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Hoje</Text>
         </View>
         <View style={styles.statsGrid}>
-          {/* Aprovados */}
-          <View style={[styles.statCard, { backgroundColor: colorAlpha.success10, borderColor: colorAlpha.success20 }]}>
-            <View style={[styles.statIcon, { backgroundColor: colorAlpha.success20 }]}>
-              <Feather name="check-circle" size={16} color={colors.success} />
-            </View>
-            <Text style={[styles.statGridValue, { color: colors.success }]}>
-              {daily?.approved ?? 0}
-            </Text>
-            <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Aprovados</Text>
-          </View>
-
-          {/* Pendentes */}
-          <View style={[styles.statCard, { backgroundColor: colorAlpha.warning10, borderColor: colorAlpha.warning20 }]}>
-            <View style={[styles.statIcon, { backgroundColor: colorAlpha.warning20 }]}>
-              <Feather name="clock" size={16} color={colors.warning} />
-            </View>
-            <Text style={[styles.statGridValue, { color: colors.warning }]}>
-              {daily?.pending ?? 0}
-            </Text>
-            <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Pendentes</Text>
-          </View>
-
-          {/* Rejeitados */}
-          <View style={[styles.statCard, { backgroundColor: colorAlpha.danger10, borderColor: colorAlpha.danger20 }]}>
-            <View style={[styles.statIcon, { backgroundColor: colorAlpha.danger20 }]}>
-              <Feather name="x-circle" size={16} color={colors.danger} />
-            </View>
-            <Text style={[styles.statGridValue, { color: colors.danger }]}>
-              {daily?.rejected ?? 0}
-            </Text>
-            <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Rejeitados</Text>
-          </View>
-
-          {/* Slots */}
-          <View style={[styles.statCard, { backgroundColor: colorAlpha.primary10, borderColor: colorAlpha.primary20 }]}>
-            <View style={[styles.statIcon, { backgroundColor: colorAlpha.primary20 }]}>
-              <Feather name="zap" size={16} color={colors.primaryLight} />
-            </View>
-            <Text style={[styles.statGridValue, { color: colors.primaryLight }]}>
-              {daily?.remainingSlots ?? 10}
-            </Text>
-            <Text style={[styles.statGridLabel, { color: colors.textMuted }]}>Restantes</Text>
-          </View>
+          <StatCard
+            icon="check-circle"
+            label="Aprovados"
+            value={String(daily?.approved ?? 0)}
+            color={colors.success}
+            tinted
+            compact
+            style={styles.statGridItem}
+          />
+          <StatCard
+            icon="clock"
+            label="Pendentes"
+            value={String(daily?.pending ?? 0)}
+            color={colors.warning}
+            tinted
+            compact
+            style={styles.statGridItem}
+          />
+          <StatCard
+            icon="x-circle"
+            label="Rejeitados"
+            value={String(daily?.rejected ?? 0)}
+            color={colors.danger}
+            tinted
+            compact
+            style={styles.statGridItem}
+          />
+          <StatCard
+            icon="zap"
+            label="Restantes"
+            value={String(daily?.remainingSlots ?? 10)}
+            color={colors.primaryLight}
+            tinted
+            compact
+            style={styles.statGridItem}
+          />
         </View>
       </AnimatedListItem>
 
@@ -277,7 +276,7 @@ export default function HomeScreen() {
           <Feather name="calendar" size={14} color={colors.textMuted} />
           <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Este Mes</Text>
         </View>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Card icon="bar-chart-2" title="Resumo Mensal" variant="elevated">
           {/* Linha de metricas principais */}
           <View style={styles.monthlyTopRow}>
             <View style={styles.monthlyMetric}>
@@ -305,39 +304,37 @@ export default function HomeScreen() {
 
           {/* Breakdown de ganhos */}
           {monthly?.earningsBreakdown && (
-            <>
-              <View style={[styles.breakdownContainer, { backgroundColor: colors.surfaceLight }]}>
-                <View style={styles.breakdownRow}>
-                  <View style={styles.breakdownLabelRow}>
-                    <View style={[styles.breakdownDot, { backgroundColor: colors.info }]} />
-                    <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Videos</Text>
-                  </View>
-                  <Text style={[styles.breakdownValue, { color: colors.text }]}>
-                    R$ {(monthly.earningsBreakdown.videos ?? 0).toFixed(2)}
-                  </Text>
+            <View style={[styles.breakdownContainer, { backgroundColor: colors.surfaceLight }]}>
+              <View style={styles.breakdownRow}>
+                <View style={styles.breakdownLabelRow}>
+                  <View style={[styles.breakdownDot, { backgroundColor: colors.info }]} />
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Videos</Text>
                 </View>
-                <View style={styles.breakdownRow}>
-                  <View style={styles.breakdownLabelRow}>
-                    <View style={[styles.breakdownDot, { backgroundColor: colors.primary }]} />
-                    <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Comissoes</Text>
-                  </View>
-                  <Text style={[styles.breakdownValue, { color: colors.text }]}>
-                    R$ {(monthly.earningsBreakdown.commissions ?? 0).toFixed(2)}
-                  </Text>
-                </View>
-                <View style={styles.breakdownRow}>
-                  <View style={styles.breakdownLabelRow}>
-                    <View style={[styles.breakdownDot, { backgroundColor: colors.accent }]} />
-                    <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Bonus</Text>
-                  </View>
-                  <Text style={[styles.breakdownValue, { color: colors.text }]}>
-                    R$ {(monthly.earningsBreakdown.bonuses ?? 0).toFixed(2)}
-                  </Text>
-                </View>
+                <Text style={[styles.breakdownValue, { color: colors.text }]}>
+                  R$ {(monthly.earningsBreakdown.videos ?? 0).toFixed(2)}
+                </Text>
               </View>
-            </>
+              <View style={styles.breakdownRow}>
+                <View style={styles.breakdownLabelRow}>
+                  <View style={[styles.breakdownDot, { backgroundColor: colors.primary }]} />
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Comissoes</Text>
+                </View>
+                <Text style={[styles.breakdownValue, { color: colors.text }]}>
+                  R$ {(monthly.earningsBreakdown.commissions ?? 0).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.breakdownRow}>
+                <View style={styles.breakdownLabelRow}>
+                  <View style={[styles.breakdownDot, { backgroundColor: colors.accent }]} />
+                  <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>Bonus</Text>
+                </View>
+                <Text style={[styles.breakdownValue, { color: colors.text }]}>
+                  R$ {(monthly.earningsBreakdown.bonuses ?? 0).toFixed(2)}
+                </Text>
+              </View>
+            </View>
           )}
-        </View>
+        </Card>
       </AnimatedListItem>
 
       {/* ─── Card: Nivel ─── */}
@@ -346,7 +343,7 @@ export default function HomeScreen() {
           <Feather name="award" size={14} color={colors.textMuted} />
           <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Nivel</Text>
         </View>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: `${levelColor}30` }]}>
+        <Card accent={levelColor} variant="default">
           <View style={styles.levelHeader}>
             <View style={[styles.levelIconWrap, { backgroundColor: `${levelColor}20` }]}>
               <Feather name="star" size={20} color={levelColor} />
@@ -367,21 +364,23 @@ export default function HomeScreen() {
               style={[styles.progressBarFill, { width: `${progressPct}%` as any }]}
             />
           </View>
-        </View>
+        </Card>
       </AnimatedListItem>
 
       {/* ─── Card: Marcas Ativas ─── */}
       <AnimatedListItem index={4}>
-        <View style={[styles.card, styles.brandsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={[styles.brandsIcon, { backgroundColor: colorAlpha.primary15 }]}>
-            <Feather name="briefcase" size={22} color={colors.primaryLight} />
+        <Card variant="default" style={styles.brandsCard}>
+          <View style={styles.brandsRow}>
+            <View style={[styles.brandsIcon, { backgroundColor: colorAlpha.primary15 }]}>
+              <Feather name="briefcase" size={22} color={colors.primaryLight} />
+            </View>
+            <View style={styles.brandsInfo}>
+              <Text style={[styles.brandsLabel, { color: colors.textMuted }]}>Marcas Conectadas</Text>
+              <Text style={[styles.brandsValue, { color: colors.text }]}>{data?.activeBrands ?? 0}</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </View>
-          <View style={styles.brandsInfo}>
-            <Text style={[styles.brandsLabel, { color: colors.textMuted }]}>Marcas Conectadas</Text>
-            <Text style={[styles.brandsValue, { color: colors.text }]}>{data?.activeBrands ?? 0}</Text>
-          </View>
-          <Feather name="chevron-right" size={18} color={colors.textMuted} />
-        </View>
+        </Card>
       </AnimatedListItem>
     </ScrollView>
   );
@@ -550,37 +549,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  statCard: {
+  statGridItem: {
     flex: 1,
     minWidth: '45%',
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    padding: spacing.sm,
-    alignItems: 'flex-start',
-  },
-  statIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  statGridValue: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
-    marginBottom: 2,
-  },
-  statGridLabel: {
-    fontSize: fontSize.xs,
-  },
-
-  // ─── Card base ───
-  card: {
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    padding: spacing.md,
-    marginBottom: spacing.md,
   },
 
   // ─── Monthly ───
@@ -673,6 +644,9 @@ const styles = StyleSheet.create({
 
   // ─── Brands compact card ───
   brandsCard: {
+    marginBottom: spacing.md,
+  },
+  brandsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,

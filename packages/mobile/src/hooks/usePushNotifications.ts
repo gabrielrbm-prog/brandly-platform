@@ -9,13 +9,15 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const notificationListener = useRef<Notifications.EventSubscription>();
-  const responseListener = useRef<Notifications.EventSubscription>();
+  const notificationListener = useRef<Notifications.EventSubscription>(null);
+  const responseListener = useRef<Notifications.EventSubscription>(null);
 
   useEffect(() => {
     registerForPushNotifications().then(token => {
@@ -26,17 +28,17 @@ export function usePushNotifications() {
       }
     });
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(() => {
+    notificationListener.current = Notifications.addNotificationReceivedListener((_notification) => {
       // Notificacao recebida em foreground
     });
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(() => {
+    responseListener.current = Notifications.addNotificationResponseReceivedListener((_response) => {
       // Usuario tocou na notificacao
     });
 
     return () => {
-      if (notificationListener.current) Notifications.removeNotificationSubscription(notificationListener.current);
-      if (responseListener.current) Notifications.removeNotificationSubscription(responseListener.current);
+      if (notificationListener.current) notificationListener.current.remove();
+      if (responseListener.current) responseListener.current.remove();
     };
   }, []);
 

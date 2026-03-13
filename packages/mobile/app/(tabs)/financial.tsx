@@ -24,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedListItem from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
+import Card from '@/components/Card';
 
 interface BalanceData {
   available: number;
@@ -380,21 +381,7 @@ export default function FinancialScreen() {
 
       {/* ─── Earnings Breakdown Card ─── */}
       <AnimatedListItem index={1}>
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              ...shadows.sm,
-            },
-          ]}
-        >
-          <View style={styles.cardTitleRow}>
-            <Feather name="pie-chart" size={16} color={colors.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Ganhos deste mes</Text>
-          </View>
-
+        <Card icon="pie-chart" title="Ganhos deste mes" variant="elevated">
           {EARNINGS_CONFIG.map((cfg, i) => {
             const item = earnings?.[cfg.key];
             const amount = item?.amount ?? 0;
@@ -447,26 +434,12 @@ export default function FinancialScreen() {
               {formatCurrency(earnings?.total ?? 0)}
             </Text>
           </View>
-        </View>
+        </Card>
       </AnimatedListItem>
 
       {/* ─── Recent Transactions ─── */}
       <AnimatedListItem index={2}>
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              ...shadows.sm,
-            },
-          ]}
-        >
-          <View style={styles.cardTitleRow}>
-            <Feather name="list" size={16} color={colors.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Transacoes recentes</Text>
-          </View>
-
+        <Card icon="list" title="Transacoes recentes" variant="elevated">
           {transactions.length === 0 ? (
             <View style={styles.emptyTxContainer}>
               <Feather name="inbox" size={28} color={colors.textMuted} />
@@ -527,7 +500,7 @@ export default function FinancialScreen() {
               );
             })
           )}
-        </View>
+        </Card>
       </AnimatedListItem>
     </ScrollView>
   );
@@ -675,23 +648,6 @@ const styles = StyleSheet.create({
   },
   withdrawCancelText: {
     fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
-  },
-
-  // ─── Generic Card ───
-  card: {
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  cardTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  cardTitle: {
-    fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
   },
 

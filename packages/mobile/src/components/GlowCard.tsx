@@ -9,6 +9,7 @@ import Animated, {
   withSequence,
   interpolate,
   Easing,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,8 +27,10 @@ interface GlowCardProps {
   gradientBorder?: [string, string];
   /** Enable pulsing glow animation */
   pulse?: boolean;
-  /** Variant: 'default' | 'glass' | 'elevated' */
-  variant?: 'default' | 'glass' | 'elevated';
+  /** Variant: 'default' | 'glass' | 'elevated' | 'spotlight' */
+  variant?: 'default' | 'glass' | 'elevated' | 'spotlight';
+  /** Spotlight accent color (used with variant='spotlight') */
+  spotlightColor?: string;
 }
 
 export default function GlowCard({
@@ -39,15 +42,20 @@ export default function GlowCard({
   gradientBorder,
   pulse = false,
   variant = 'default',
+  spotlightColor,
 }: GlowCardProps) {
   const { colors, colorAlpha, isDark } = useTheme();
 
   const scale = useSharedValue(1);
   const pulseProgress = useSharedValue(0);
+  const pressed = useSharedValue(0);
 
-  // Pulse animation
+  const isSpotlight = variant === 'spotlight';
+  const activeGlow = glowColor ?? (isSpotlight ? (spotlightColor ?? colors.primary) : colors.primary);
+
+  // Breathing glow animation for spotlight variant
   React.useEffect(() => {
-    if (pulse) {
+    if (isSpotlight || pulse) {
       pulseProgress.value = withRepeat(
         withSequence(
           withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
@@ -57,15 +65,17 @@ export default function GlowCard({
         false,
       );
     }
-  }, [pulse]);
+  }, [isSpotlight, pulse]);
 
   const tap = Gesture.Tap()
-    .enabled(!disabled && !!onPress)
+    .enabled(!disabled && (!!onPress || isSpotlight))
     .onBegin(() => {
       scale.value = withSpring(0.975, { damping: 15, stiffness: 400, mass: 0.5 });
+      pressed.value = withTiming(1, { duration: 150 });
     })
     .onFinalize(() => {
       scale.value = withSpring(1, springConfig);
+      pressed.value = withTiming(0, { duration: 300 });
     })
     .onEnd(() => {
       onPress?.();
@@ -77,30 +87,40 @@ export default function GlowCard({
   }));
 
   const pulseStyle = useAnimatedStyle(() => {
-    if (!pulse) return {};
-    const glowRadius = interpolate(pulseProgress.value, [0, 1], [8, 16]);
-    const glowOpacity = interpolate(pulseProgress.value, [0, 1], [0.15, 0.35]);
+    if (!pulse && !isSpotlight) return {};
+    const baseRadius = isSpotlight ? 12 : 8;
+    const maxRadius = isSpotlight ? 22 : 16;
+    const baseOpacity = isSpotlight ? 0.25 : 0.15;
+    const maxOpacity = isSpotlight ? 0.5 : 0.35;
+
+    const glowRadius = interpolate(pulseProgress.value, [0, 1], [baseRadius, maxRadius]);
+    const glowOpacityVal = interpolate(pulseProgress.value, [0, 1], [baseOpacity, maxOpacity]);
+
+    // Intensify on press
+    const pressBoost = pressed.value;
     return {
-      shadowRadius: glowRadius,
-      shadowOpacity: glowOpacity,
+      shadowRadius: glowRadius + pressBoost * 10,
+      shadowOpacity: glowOpacityVal + pressBoost * 0.3,
     };
   });
 
-  const glowShadow = glowColor
-    ? {
-        shadowColor: glowColor,
-        shadowOffset: { width: 0, height: 0 } as const,
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
-        elevation: 6,
-      }
-    : {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 0 } as const,
-        shadowOpacity: isDark ? 0.2 : 0.1,
-        shadowRadius: 8,
-        elevation: 4,
-      };
+  // Animated spotlight border glow
+  const spotlightBorderStyle = useAnimatedStyle(() => {
+    if (!isSpotlight) return {};
+    const borderOpacity = interpolate(pulseProgress.value, [0, 1], [0.15, 0.4]);
+    const pressBoost = pressed.value;
+    return {
+      borderColor: `${activeGlow}${Math.round((borderOpacity + pressBoost * 0.3) * 255).toString(16).padStart(2, '0')}`,
+    };
+  });
+
+  const glowShadow = {
+    shadowColor: activeGlow,
+    shadowOffset: { width: 0, height: 0 } as const,
+    shadowOpacity: isSpotlight ? 0.3 : (glowColor ? 0.25 : (isDark ? 0.2 : 0.1)),
+    shadowRadius: isSpotlight ? 14 : (glowColor ? 10 : 8),
+    elevation: isSpotlight ? 8 : (glowColor ? 6 : 4),
+  };
 
   // Variant styles
   const variantStyle: ViewStyle = variant === 'glass'
@@ -113,6 +133,12 @@ export default function GlowCard({
         shadowOpacity: isDark ? 0.3 : 0.08,
         shadowRadius: 12,
         elevation: 8,
+      }
+    : variant === 'spotlight'
+    ? {
+        backgroundColor: colors.surface,
+        borderWidth: 1.5,
+        borderColor: `${activeGlow}25`,
       }
     : { backgroundColor: colors.surface };
 
@@ -146,16 +172,51 @@ export default function GlowCard({
         style={[
           styles.card,
           variantStyle,
-          { borderColor: colors.border },
+          !isSpotlight && { borderColor: colors.border },
           glowShadow,
           animatedStyle,
           pulseStyle,
+          isSpotlight && spotlightBorderStyle,
           style,
         ]}
       >
+        {/* Spotlight inner glow overlay */}
+        {isSpotlight && (
+          <SpotlightOverlay color={activeGlow} pulseProgress={pulseProgress} pressed={pressed} />
+        )}
         {children}
       </Animated.View>
     </GestureDetector>
+  );
+}
+
+/** Animated inner glow gradient that breathes and reacts to press */
+function SpotlightOverlay({
+  color,
+  pulseProgress,
+  pressed,
+}: {
+  color: string;
+  pulseProgress: SharedValue<number>;
+  pressed: SharedValue<number>;
+}) {
+  const overlayStyle = useAnimatedStyle(() => {
+    const baseOpacity = interpolate(pulseProgress.value, [0, 1], [0.03, 0.1]);
+    const pressBoost = pressed.value * 0.12;
+    return {
+      opacity: baseOpacity + pressBoost,
+    };
+  });
+
+  return (
+    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, overlayStyle]}>
+      <LinearGradient
+        colors={[`${color}40`, `${color}10`, 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    </Animated.View>
   );
 }
 
@@ -168,7 +229,7 @@ const styles = StyleSheet.create({
   },
   gradientBorder: {
     borderRadius: borderRadius.lg,
-    padding: 1.5, // gradient border thickness
+    padding: 1.5,
   },
   cardInner: {
     padding: spacing.md,

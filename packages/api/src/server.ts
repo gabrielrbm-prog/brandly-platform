@@ -21,6 +21,9 @@ import { socialRoutes } from './routes/social.js';
 import { adminPanelRoutes } from './routes/admin-panel.js';
 import { cronRoutes } from './routes/cron.js';
 import { notificationRoutes } from './routes/notifications.js';
+import { integrationRoutes } from './routes/integrations.js';
+import { campaignRoutes } from './routes/campaigns.js';
+import { analyticsRoutes } from './routes/analytics.js';
 
 const app = Fastify({
   logger: {
@@ -54,6 +57,11 @@ async function start() {
 
   // Social — Integracao Phyllo (Instagram/TikTok)
   await app.register(socialRoutes, { prefix: '/api/social' });
+
+  // Sprint 4 — Integracoes & Analytics
+  await app.register(integrationRoutes, { prefix: '/api/integrations' });
+  await app.register(campaignRoutes, { prefix: '/api/campaigns' });
+  await app.register(analyticsRoutes, { prefix: '/api/analytics' });
 
   // Auxiliares
   await app.register(userRoutes, { prefix: '/api/users' });

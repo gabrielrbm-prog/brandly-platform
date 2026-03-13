@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="pt-BR" x-data="dashboard()" x-init="init()">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brandly — TikTok Shop Analytics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.4/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.4/dist/ScrollTrigger.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#667EEA', light: '#7C93F5', dark: '#4C64D0' },
+            accent: { DEFAULT: '#764BA2', light: '#8E5FBD', dark: '#5E3A82' },
+            tiktok: { cyan: '#25F4EE', red: '#FE2C55', dark: '#161823' },
+            surface: { DEFAULT: '#111111', light: '#1A1A1A', lighter: '#222222', border: '#2A2A2A' },
+            bg: '#0A0A0A',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body { background: #0A0A0A; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #667EEA, #764BA2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gradient-border {
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      position: relative;
+    }
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, #667EEA33, #764BA233);
+      z-index: -1;
+    }
+    .card {
+      background: #111111;
+      border: 1px solid #2A2A2A;
+      border-radius: 12px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      border-color: #667EEA44;
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.05);
+    }
+    .glow-brand { box-shadow: 0 0 20px rgba(102, 126, 234, 0.15); }
+    .glow-tiktok-cyan { box-shadow: 0 0 15px rgba(37, 244, 238, 0.15); }
+    .glow-tiktok-red { box-shadow: 0 0 15px rgba(254, 44, 85, 0.15); }
+
+    .skeleton {
+      background: linear-gradient(90deg, #1A1A1A 25%, #222 50%, #1A1A1A 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #22C55E;
+      animation: pulse-green 2s infinite;
+    }
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+
+    .funnel-step {
+      clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+    }
+
+    .heatmap-cell {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .heatmap-cell:hover {
+      transform: scale(1.3);
+      z-index: 10;
+      box-shadow: 0 0 10px rgba(102,126,234,0.5);
+    }
+
+    .nav-item {
+      position: relative;
+      transition: color 0.2s;
+    }
+    .nav-item::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #667EEA, #764BA2);
+      transition: width 0.3s;
+    }
+    .nav-item:hover::after, .nav-item.active::after {
+      width: 100%;
+    }
+
+    .tooltip-container { position: relative; }
+    .tooltip-container .tooltip-text {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: #ccc;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+      z-index: 50;
+      border: 1px solid #333;
+    }
+    .tooltip-container:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .word-cloud span {
+      display: inline-block;
+      padding: 4px 10px;
+      margin: 3px;
+      border-radius: 20px;
+      background: #1A1A1A;
+      border: 1px solid #2A2A2A;
+      transition: all 0.3s;
+      cursor: default;
+    }
+    .word-cloud span:hover {
+      border-color: #667EEA;
+      background: #667EEA11;
+    }
+  </style>
+</head>
+<body class="text-gray-300 min-h-screen" x-cloak>
+
+  <!-- Sticky Top Navigation -->
+  <nav class="sticky top-0 z-50 bg-bg/80 backdrop-blur-xl border-b border-surface-border">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <!-- Left: Logo + Breadcrumbs -->
+        <div class="flex items-center gap-4">
+          <a href="#" class="flex items-center gap-2 shrink-0">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand to-accent flex items-center justify-center">
+              <span class="text-white font-bold text-sm">B</span>
+            </div>
+            <span class="font-bold text-white text-lg hidden sm:block">Brandly</span>
+          </a>
+          <div class="hidden md:flex items-center gap-2 text-sm text-gray-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <a href="#" class="hover:text-gray-300 transition">Dashboard</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-gray-300">TikTok Shop Analytics</span>
+          </div>
+        </div>
+
+        <!-- Center: Nav Items -->
+        <div class="hidden lg:flex items-center gap-6">
+          <button @click="scrollToSection('overview')" class="nav-item text-sm text-gray-400 hover:text-white" :class="activeSection === 'overview' && 'active text-white'">Visao Geral</button>
+          <button @click="scrollToSection('sales')" class="nav-item text-sm text-gray-400 hover:text-white" :class="activeSection === 'sales' && 'active text-white'">Vendas</button>
+          <button @click="scrollToSection('products')" class="nav-item text-sm text-gray-400 hover:text-white" :class="activeSection === 'products' && 'active text-white'">Produtos</button>
+          <button @click="scrollToSection('creators')" class="nav-item text-sm text-gray-400 hover:text-white" :class="activeSection === 'creators' && 'active text-white'">Creators</button>
+          <button @click="scrollToSection('content')" class="nav-item text-sm text-gray-400 hover:text-white" :class="activeSection === 'content' && 'active text-white'">Conteudo</button>
+          <button @click="scrollToSection('audience')" class="nav-item text-sm text-gray-400 hover:text-white" :class="activeSection === 'audience' && 'active text-white'">Audiencia</button>
+          <button @click="scrollToSection('commissions')" class="nav-item text-sm text-gray-400 hover:text-white" :class="activeSection === 'commissions' && 'active text-white'">Comissoes</button>
+        </div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-3">
+          <!-- Auto-refresh indicator -->
+          <div class="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+            <div class="pulse-dot"></div>
+            <span>Ao vivo</span>
+          </div>
+
+          <!-- Export -->
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface border border-surface-border rounded-lg hover:border-gray-600 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span class="hidden sm:inline">Exportar</span>
+            </button>
+            <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-40 bg-surface-light border border-surface-border rounded-lg shadow-xl overflow-hidden">
+              <button @click="exportData('csv'); open = false" class="w-full px-4 py-2.5 text-left text-sm hover:bg-surface-lighter transition flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                CSV
+              </button>
+              <button @click="exportData('pdf'); open = false" class="w-full px-4 py-2.5 text-left text-sm hover:bg-surface-lighter transition flex items-center gap-2">
+                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Back to Dashboard -->
+          <a href="#" class="px-3 py-1.5 text-sm bg-gradient-to-r from-brand to-accent text-white rounded-lg hover:opacity-90 transition hidden sm:flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-8">
+
+    <!-- Page Header + Controls -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-animate>
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-white">TikTok Shop Analytics</h1>
+        <p class="text-gray-500 mt-1">Ultima atualizacao: <span x-text="lastUpdate"></span></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Period Selector -->
+        <div class="flex bg-surface border border-surface-border rounded-lg overflow-hidden">
+          <template x-for="p in periods" :key="p.value">
+            <button
+              @click="selectedPeriod = p.value; updateCharts()"
+              :class="selectedPeriod === p.value ? 'bg-brand text-white' : 'text-gray-400 hover:text-white hover:bg-surface-lighter'"
+              class="px-3 py-1.5 text-sm font-medium transition"
+              x-text="p.label"
+            ></button>
+          </template>
+        </div>
+        <!-- Date Range Picker -->
+        <div class="flex items-center gap-2 bg-surface border border-surface-border rounded-lg px-3 py-1.5">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <input type="date" x-model="dateFrom" class="bg-transparent text-sm text-gray-300 outline-none w-28">
+          <span class="text-gray-600">-</span>
+          <input type="date" x-model="dateTo" class="bg-transparent text-sm text-gray-300 outline-none w-28">
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SECTION 1: OVERVIEW ===================== -->
+    <section id="overview">
+      <!-- KPI Stats Bar -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" data-animate>
+        <!-- GMV Total -->
+        <div class="card p-5 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-brand/10 to-transparent rounded-bl-full"></div>
+          <div class="flex items-center gap-2 text-gray-500 text-sm mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            GMV Total
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-white" x-text="'R$ ' + animatedGMV.toLocaleString('pt-BR')">R$ 0</div>
+          <div class="flex items-center gap-1 mt-2 text-sm text-green-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            +23.5%
+            <span class="text-gray-600 ml-1">vs periodo anterior</span>
+          </div>
+        </div>
+
+        <!-- Pedidos Hoje -->
+        <div class="card p-5 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-tiktok-cyan/10 to-transparent rounded-bl-full"></div>
+          <div class="flex items-center gap-2 text-gray-500 text-sm mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            Pedidos Hoje
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-white" x-text="animatedOrders.toLocaleString('pt-BR')">0</div>
+          <div class="flex items-center gap-1 mt-2 text-sm text-green-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            +12.8%
+            <span class="text-gray-600 ml-1">vs ontem</span>
+          </div>
+        </div>
+
+        <!-- Produtos Ativos -->
+        <div class="card p-5 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-full"></div>
+          <div class="flex items-center gap-2 text-gray-500 text-sm mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Produtos Ativos
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-white" x-text="animatedProducts">0</div>
+          <div class="flex items-center gap-1 mt-2 text-sm text-tiktok-cyan">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            +4 novos
+            <span class="text-gray-600 ml-1">esta semana</span>
+          </div>
+        </div>
+
+        <!-- Alcance de Creators -->
+        <div class="card p-5 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-tiktok-red/10 to-transparent rounded-bl-full"></div>
+          <div class="flex items-center gap-2 text-gray-500 text-sm mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            Alcance Creators
+          </div>
+          <div class="text-2xl sm:text-3xl font-bold text-white" x-text="animatedReach.toLocaleString('pt-BR')">0</div>
+          <div class="flex items-center gap-1 mt-2 text-sm text-green-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            +31.2%
+            <span class="text-gray-600 ml-1">vs periodo anterior</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SECTION 2: SALES PERFORMANCE ===================== -->
+    <section id="sales" class="space-y-6">
+      <div class="flex items-center gap-3 mb-2" data-animate>
+        <div class="w-1 h-6 bg-gradient-to-b from-brand to-accent rounded-full"></div>
+        <h2 class="text-xl font-bold text-white">Performance de Vendas</h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Daily GMV Chart -->
+        <div class="card p-6" data-animate>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">GMV Diario</h3>
+            <span class="text-xs text-gray-600">Ultimos <span x-text="selectedPeriod === '7d' ? '7' : selectedPeriod === '30d' ? '30' : '90'"></span> dias</span>
+          </div>
+          <div class="h-64">
+            <canvas id="gmvChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Orders by Category -->
+        <div class="card p-6" data-animate>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Pedidos por Categoria</h3>
+          </div>
+          <div class="h-64">
+            <canvas id="ordersChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Conversion Funnel -->
+        <div class="card p-6" data-animate>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Funil de Conversao</h3>
+          </div>
+          <div class="space-y-3 mt-6">
+            <template x-for="(step, i) in funnelData" :key="i">
+              <div class="relative">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm text-gray-400" x-text="step.label"></span>
+                  <span class="text-sm font-semibold text-white" x-text="step.value.toLocaleString('pt-BR')"></span>
+                </div>
+                <div class="h-10 rounded-lg overflow-hidden bg-surface-lighter relative funnel-bar">
+                  <div
+                    class="h-full rounded-lg transition-all duration-1000 ease-out"
+                    :style="`width: ${step.percent}%; background: linear-gradient(90deg, ${step.color}CC, ${step.color}66);`"
+                  ></div>
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold" :style="`color: ${step.color}`" x-text="step.percent + '%'"></span>
+                </div>
+                <template x-if="i < funnelData.length - 1">
+                  <div class="text-center text-xs text-gray-600 mt-1">
+                    <span x-text="((funnelData[i+1].value / step.value) * 100).toFixed(1) + '% taxa de passagem'"></span>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Average Order Value -->
+        <div class="card p-6" data-animate>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Ticket Medio (AOV)</h3>
+            <div class="flex items-center gap-1 text-sm text-green-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+              +8.3%
+            </div>
+          </div>
+          <div class="h-64">
+            <canvas id="aovChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SECTION 3: PRODUCT ANALYTICS ===================== -->
+    <section id="products" class="space-y-6">
+      <div class="flex items-center gap-3 mb-2" data-animate>
+        <div class="w-1 h-6 bg-gradient-to-b from-tiktok-cyan to-brand rounded-full"></div>
+        <h2 class="text-xl font-bold text-white">Analise de Produtos</h2>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <!-- Product Table -->
+        <div class="card p-6 xl:col-span-2 overflow-hidden" data-animate>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Performance de Produtos</h3>
+            <div class="flex items-center gap-2">
+              <input type="text" placeholder="Buscar produto..." class="bg-surface-lighter border border-surface-border rounded-lg px-3 py-1.5 text-sm text-gray-300 outline-none focus:border-brand w-40">
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-gray-500 border-b border-surface-border">
+                  <th class="text-left py-3 px-2 font-medium cursor-pointer hover:text-white transition" @click="sortProducts('name')">Produto</th>
+                  <th class="text-right py-3 px-2 font-medium cursor-pointer hover:text-white transition" @click="sortProducts('price')">Preco</th>
+                  <th class="text-right py-3 px-2 font-medium cursor-pointer hover:text-white transition" @click="sortProducts('units')">Vendidos</th>
+                  <th class="text-right py-3 px-2 font-medium cursor-pointer hover:text-white transition" @click="sortProducts('revenue')">Receita</th>
+                  <th class="text-right py-3 px-2 font-medium cursor-pointer hover:text-white transition" @click="sortProducts('conversion')">Conversao</th>
+                  <th class="text-center py-3 px-2 font-medium">Estoque</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(p, i) in products" :key="i">
+                  <tr class="border-b border-surface-border/50 hover:bg-surface-lighter/50 transition">
+                    <td class="py-3 px-2">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg shrink-0" :style="`background: ${p.color}`"></div>
+                        <div>
+                          <div class="text-white font-medium" x-text="p.name"></div>
+                          <div class="text-gray-600 text-xs" x-text="p.category"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-right py-3 px-2 text-gray-300" x-text="'R$ ' + p.price.toFixed(2).replace('.', ',')"></td>
+                    <td class="text-right py-3 px-2 text-white font-medium" x-text="p.units.toLocaleString('pt-BR')"></td>
+                    <td class="text-right py-3 px-2 text-green-400 font-medium" x-text="'R$ ' + p.revenue.toLocaleString('pt-BR')"></td>
+                    <td class="text-right py-3 px-2">
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium" :class="p.conversion > 5 ? 'bg-green-400/10 text-green-400' : p.conversion > 3 ? 'bg-yellow-400/10 text-yellow-400' : 'bg-red-400/10 text-red-400'" x-text="p.conversion.toFixed(1) + '%'"></span>
+                    </td>
+                    <td class="text-center py-3 px-2">
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium" :class="p.stock === 'Em estoque' ? 'bg-green-400/10 text-green-400' : p.stock === 'Baixo' ? 'bg-yellow-400/10 text-yellow-400' : 'bg-red-400/10 text-red-400'" x-text="p.stock"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Categorias</h3>
+          <div class="h-56">
+            <canvas id="categoryChart"></canvas>
+          </div>
+          <div class="mt-4 space-y-2">
+            <template x-for="(cat, i) in categories" :key="i">
+              <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded-full" :style="`background: ${cat.color}`"></div>
+                  <span class="text-gray-400" x-text="cat.name"></span>
+                </div>
+                <span class="text-white font-medium" x-text="cat.percent + '%'"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Best Sellers Ranking -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-animate>
+        <template x-for="(p, i) in products.slice(0, 4)" :key="i">
+          <div class="card p-5 relative overflow-hidden">
+            <div class="absolute top-3 right-3 text-3xl font-black text-white/5" x-text="'#' + (i+1)"></div>
+            <div class="w-full h-32 rounded-lg mb-3" :style="`background: linear-gradient(135deg, ${p.color}, ${p.color}88)`"></div>
+            <h4 class="text-white font-semibold text-sm" x-text="p.name"></h4>
+            <p class="text-gray-500 text-xs mt-1" x-text="p.units.toLocaleString('pt-BR') + ' vendidos'"></p>
+            <p class="text-green-400 font-bold mt-2" x-text="'R$ ' + p.revenue.toLocaleString('pt-BR')"></p>
+          </div>
+        </template>
+      </div>
+    </section>
+
+    <!-- ===================== SECTION 4: CREATOR PERFORMANCE ===================== -->
+    <section id="creators" class="space-y-6">
+      <div class="flex items-center gap-3 mb-2" data-animate>
+        <div class="w-1 h-6 bg-gradient-to-b from-tiktok-red to-tiktok-cyan rounded-full"></div>
+        <h2 class="text-xl font-bold text-white">Performance de Creators</h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Creator Leaderboard -->
+        <div class="card p-6 lg:col-span-2" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Ranking de Creators</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-gray-500 border-b border-surface-border">
+                  <th class="text-left py-3 px-2 font-medium">#</th>
+                  <th class="text-left py-3 px-2 font-medium">Creator</th>
+                  <th class="text-right py-3 px-2 font-medium">Videos</th>
+                  <th class="text-right py-3 px-2 font-medium">Views</th>
+                  <th class="text-right py-3 px-2 font-medium">Vendas</th>
+                  <th class="text-right py-3 px-2 font-medium">Comissao</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(c, i) in creators" :key="i">
+                  <tr class="border-b border-surface-border/50 hover:bg-surface-lighter/50 transition">
+                    <td class="py-3 px-2">
+                      <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" :class="i < 3 ? 'bg-gradient-to-r from-brand to-accent text-white' : 'bg-surface-lighter text-gray-500'" x-text="i + 1"></span>
+                    </td>
+                    <td class="py-3 px-2">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" :style="`background: ${c.avatar}`" x-text="c.name.charAt(0)"></div>
+                        <div>
+                          <div class="text-white font-medium" x-text="c.name"></div>
+                          <div class="text-gray-600 text-xs" x-text="'@' + c.handle"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-right py-3 px-2 text-gray-300" x-text="c.videos"></td>
+                    <td class="text-right py-3 px-2 text-gray-300" x-text="formatNumber(c.views)"></td>
+                    <td class="text-right py-3 px-2 text-white font-medium" x-text="'R$ ' + c.sales.toLocaleString('pt-BR')"></td>
+                    <td class="text-right py-3 px-2 text-green-400 font-medium" x-text="'R$ ' + c.commission.toLocaleString('pt-BR')"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Creator Attribution Pie -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Atribuicao de Vendas</h3>
+          <div class="h-56">
+            <canvas id="creatorPieChart"></canvas>
+          </div>
+          <div class="mt-4 space-y-2">
+            <template x-for="(c, i) in creators.slice(0, 5)" :key="i">
+              <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded-full" :style="`background: ${creatorColors[i]}`"></div>
+                  <span class="text-gray-400" x-text="c.name"></span>
+                </div>
+                <span class="text-white font-medium" x-text="c.salesPercent + '%'"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Creator ROI Chart + Top Videos -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">ROI por Creator</h3>
+          <div class="h-64">
+            <canvas id="creatorROIChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Videos com Melhor Performance</h3>
+          <div class="space-y-3">
+            <template x-for="(v, i) in topVideos" :key="i">
+              <div class="flex items-center gap-3 p-3 bg-surface-lighter rounded-lg hover:bg-surface-lighter/80 transition">
+                <div class="w-16 h-16 rounded-lg shrink-0 flex items-center justify-center text-white text-xs" :style="`background: linear-gradient(135deg, ${v.color1}, ${v.color2})`">
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white text-sm font-medium truncate" x-text="v.title"></p>
+                  <p class="text-gray-500 text-xs" x-text="v.creator"></p>
+                  <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                    <span x-text="formatNumber(v.views) + ' views'"></span>
+                    <span x-text="formatNumber(v.likes) + ' likes'"></span>
+                    <span class="text-green-400" x-text="'R$ ' + v.sales.toLocaleString('pt-BR')"></span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SECTION 5: CONTENT ANALYTICS ===================== -->
+    <section id="content" class="space-y-6">
+      <div class="flex items-center gap-3 mb-2" data-animate>
+        <div class="w-1 h-6 bg-gradient-to-b from-brand to-tiktok-cyan rounded-full"></div>
+        <h2 class="text-xl font-bold text-white">Analise de Conteudo</h2>
+      </div>
+
+      <!-- Video Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" data-animate>
+        <template x-for="(v, i) in videoGrid" :key="i">
+          <div class="card p-3 hover:scale-[1.02] transition-transform cursor-pointer">
+            <div class="aspect-[9/16] rounded-lg mb-2 flex items-center justify-center relative overflow-hidden" :style="`background: linear-gradient(135deg, ${v.bg1}, ${v.bg2})`">
+              <svg class="w-8 h-8 text-white/50" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <div class="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1 rounded" x-text="v.duration"></div>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-gray-500 flex items-center gap-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  <span x-text="formatNumber(v.views)"></span>
+                </span>
+                <span class="text-gray-500 flex items-center gap-0.5">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                  <span x-text="formatNumber(v.likes)"></span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-gray-500 flex items-center gap-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                  <span x-text="formatNumber(v.shares)"></span>
+                </span>
+                <span class="text-gray-500 flex items-center gap-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                  <span x-text="formatNumber(v.comments)"></span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Engagement Rate Over Time -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Taxa de Engajamento</h3>
+          <div class="h-64">
+            <canvas id="engagementChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Content Type Breakdown -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Tipo de Conteudo</h3>
+          <div class="space-y-4 mt-6">
+            <template x-for="(ct, i) in contentTypes" :key="i">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm text-gray-300" x-text="ct.name"></span>
+                  <span class="text-sm text-white font-medium" x-text="ct.count + ' videos'"></span>
+                </div>
+                <div class="h-3 rounded-full bg-surface-lighter overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-1000" :style="`width: ${ct.percent}%; background: linear-gradient(90deg, ${ct.color}, ${ct.colorEnd})`"></div>
+                </div>
+                <div class="flex items-center justify-between mt-1 text-xs text-gray-600">
+                  <span x-text="ct.percent + '% do total'"></span>
+                  <span x-text="'Eng. media: ' + ct.engagement + '%'"></span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Best Posting Times Heatmap -->
+      <div class="card p-6" data-animate>
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Melhores Horarios para Postar</h3>
+        <div class="overflow-x-auto">
+          <div class="min-w-[700px]">
+            <!-- Hour headers -->
+            <div class="flex items-center gap-1 mb-1">
+              <div class="w-16 shrink-0"></div>
+              <template x-for="h in 24" :key="h">
+                <div class="flex-1 text-center text-[10px] text-gray-600" x-text="(h-1) + 'h'"></div>
+              </template>
+            </div>
+            <!-- Rows -->
+            <template x-for="(day, di) in heatmapDays" :key="di">
+              <div class="flex items-center gap-1 mb-1">
+                <div class="w-16 text-xs text-gray-500 shrink-0" x-text="day"></div>
+                <template x-for="h in 24" :key="h">
+                  <div
+                    class="flex-1 aspect-square rounded-sm heatmap-cell cursor-pointer relative tooltip-container"
+                    :style="`background: ${getHeatmapColor(di, h-1)}`"
+                  >
+                    <span class="tooltip-text" x-text="day + ' ' + (h-1) + ':00 — Eng: ' + heatmapData[di][h-1].toFixed(1) + '%'"></span>
+                  </div>
+                </template>
+              </div>
+            </template>
+            <!-- Legend -->
+            <div class="flex items-center justify-end gap-2 mt-3">
+              <span class="text-xs text-gray-600">Menor</span>
+              <div class="flex gap-0.5">
+                <div class="w-4 h-4 rounded-sm" style="background: #1a1a2e"></div>
+                <div class="w-4 h-4 rounded-sm" style="background: #16213e"></div>
+                <div class="w-4 h-4 rounded-sm" style="background: #2a3f6f"></div>
+                <div class="w-4 h-4 rounded-sm" style="background: #4a6fa5"></div>
+                <div class="w-4 h-4 rounded-sm" style="background: #667EEA"></div>
+                <div class="w-4 h-4 rounded-sm" style="background: #25F4EE"></div>
+              </div>
+              <span class="text-xs text-gray-600">Maior</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SECTION 6: AUDIENCE INSIGHTS ===================== -->
+    <section id="audience" class="space-y-6">
+      <div class="flex items-center gap-3 mb-2" data-animate>
+        <div class="w-1 h-6 bg-gradient-to-b from-accent to-tiktok-red rounded-full"></div>
+        <h2 class="text-xl font-bold text-white">Insights de Audiencia</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Age Groups -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Faixa Etaria</h3>
+          <div class="h-56">
+            <canvas id="ageChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Gender Split -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Genero</h3>
+          <div class="h-56">
+            <canvas id="genderChart"></canvas>
+          </div>
+          <div class="flex justify-center gap-6 mt-4">
+            <div class="flex items-center gap-2 text-sm">
+              <div class="w-3 h-3 rounded-full bg-brand"></div>
+              <span class="text-gray-400">Feminino 62%</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <div class="w-3 h-3 rounded-full" style="background: #25F4EE"></div>
+              <span class="text-gray-400">Masculino 35%</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <div class="w-3 h-3 rounded-full bg-gray-600"></div>
+              <span class="text-gray-400">Outro 3%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Follower Growth -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Crescimento de Seguidores</h3>
+          <div class="h-56">
+            <canvas id="followerChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Geographic Distribution (Brazilian States Grid) -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Distribuicao Geografica</h3>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mt-4">
+            <template x-for="(state, i) in statesData" :key="i">
+              <div class="tooltip-container rounded-lg p-2 text-center cursor-pointer transition-all hover:scale-105" :style="`background: ${state.color}22; border: 1px solid ${state.color}44`">
+                <div class="text-xs font-bold" :style="`color: ${state.color}`" x-text="state.uf"></div>
+                <div class="text-[10px] text-gray-500" x-text="state.percent + '%'"></div>
+                <span class="tooltip-text" x-text="state.name + ': ' + state.percent + '% da audiencia'"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Interests Word Cloud -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Interesses da Audiencia</h3>
+          <div class="word-cloud flex flex-wrap justify-center items-center py-4">
+            <template x-for="(w, i) in interests" :key="i">
+              <span :style="`font-size: ${w.size}px; color: ${w.color}; opacity: ${w.opacity}`" x-text="w.text"></span>
+            </template>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SECTION 7: COMMISSIONS & PAYMENTS ===================== -->
+    <section id="commissions" class="space-y-6 pb-12">
+      <div class="flex items-center gap-3 mb-2" data-animate>
+        <div class="w-1 h-6 bg-gradient-to-b from-green-400 to-brand rounded-full"></div>
+        <h2 class="text-xl font-bold text-white">Comissoes e Pagamentos</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" data-animate>
+        <div class="card p-5">
+          <div class="text-gray-500 text-sm mb-1">Total Pago</div>
+          <div class="text-2xl font-bold text-green-400">R$ 127.450</div>
+          <div class="text-xs text-gray-600 mt-1">Este mes</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-gray-500 text-sm mb-1">Pendente</div>
+          <div class="text-2xl font-bold text-yellow-400">R$ 34.280</div>
+          <div class="text-xs text-gray-600 mt-1">Pagamento em 5 dias</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-gray-500 text-sm mb-1">Comissao Media</div>
+          <div class="text-2xl font-bold text-brand">18.5%</div>
+          <div class="text-xs text-gray-600 mt-1">Todos os creators</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Commission by Creator (Stacked Bar) -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Comissao por Creator</h3>
+          <div class="h-72">
+            <canvas id="commissionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Commission Rate Tiers -->
+        <div class="card p-6" data-animate>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Niveis de Comissao</h3>
+          <div class="space-y-4 mt-4">
+            <template x-for="(tier, i) in commissionTiers" :key="i">
+              <div class="flex items-center gap-4 p-3 rounded-lg" :class="tier.active ? 'bg-brand/10 border border-brand/30' : 'bg-surface-lighter'">
+                <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" :style="`background: ${tier.color}22`">
+                  <span class="text-lg font-bold" :style="`color: ${tier.color}`" x-text="tier.rate + '%'"></span>
+                </div>
+                <div class="flex-1">
+                  <div class="text-white font-semibold text-sm" x-text="tier.name"></div>
+                  <div class="text-gray-500 text-xs" x-text="tier.description"></div>
+                </div>
+                <div class="text-right">
+                  <div class="text-white text-sm font-medium" x-text="tier.creators + ' creators'"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Timeline -->
+      <div class="card p-6" data-animate>
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Historico de Pagamentos</h3>
+        <div class="h-64">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-surface-border py-6">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 flex items-center justify-between text-sm text-gray-600">
+      <span>Brandly Platform &copy; 2026. Todos os direitos reservados.</span>
+      <span>TikTok Shop Analytics v1.0</span>
+    </div>
+  </footer>
+
+  <script>
+    function dashboard() {
+      return {
+        // State
+        loading: true,
+        activeSection: 'overview',
+        selectedPeriod: '30d',
+        dateFrom: '2026-02-11',
+        dateTo: '2026-03-13',
+        lastUpdate: 'agora mesmo',
+        periods: [
+          { label: '7D', value: '7d' },
+          { label: '30D', value: '30d' },
+          { label: '90D', value: '90d' },
+          { label: 'Custom', value: 'custom' },
+        ],
+
+        // Animated counters
+        animatedGMV: 0,
+        animatedOrders: 0,
+        animatedProducts: 0,
+        animatedReach: 0,
+
+        // Target values
+        targetGMV: 847235,
+        targetOrders: 1284,
+        targetProducts: 47,
+        targetReach: 2340000,
+
+        // Charts
+        charts: {},
+
+        // Funnel Data
+        funnelData: [
+          { label: 'Visualizacoes', value: 4250000, percent: 100, color: '#667EEA' },
+          { label: 'Cliques', value: 382500, percent: 85, color: '#764BA2' },
+          { label: 'Adicionou ao Carrinho', value: 89400, percent: 52, color: '#25F4EE' },
+          { label: 'Compras', value: 12840, percent: 28, color: '#22C55E' },
+        ],
+
+        // Products
+        products: [
+          { name: 'Serum Vitamina C', category: 'Beleza', price: 89.90, units: 2340, revenue: 210366, conversion: 6.8, stock: 'Em estoque', color: '#F59E0B' },
+          { name: 'Creme Anti-Idade', category: 'Beleza', price: 129.90, units: 1856, revenue: 241094, conversion: 5.2, stock: 'Em estoque', color: '#EC4899' },
+          { name: 'Whey Protein 1kg', category: 'Saude', price: 149.90, units: 1420, revenue: 212858, conversion: 4.1, stock: 'Baixo', color: '#8B5CF6' },
+          { name: 'Kit Maquiagem Completo', category: 'Beleza', price: 199.90, units: 980, revenue: 195902, conversion: 3.9, stock: 'Em estoque', color: '#EF4444' },
+          { name: 'Oleo Capilar Organico', category: 'Cabelo', price: 59.90, units: 3120, revenue: 186888, conversion: 7.3, stock: 'Em estoque', color: '#10B981' },
+          { name: 'Suplemento Colageno', category: 'Saude', price: 79.90, units: 1650, revenue: 131835, conversion: 5.5, stock: 'Baixo', color: '#06B6D4' },
+          { name: 'Perfume Exclusivo 50ml', category: 'Perfumaria', price: 249.90, units: 560, revenue: 139944, conversion: 2.8, stock: 'Em estoque', color: '#D946EF' },
+          { name: 'Protetor Solar FPS 70', category: 'Beleza', price: 69.90, units: 2100, revenue: 146790, conversion: 6.1, stock: 'Esgotado', color: '#F97316' },
+        ],
+        productSortKey: 'revenue',
+        productSortAsc: false,
+
+        // Categories
+        categories: [
+          { name: 'Beleza', percent: 38, color: '#667EEA' },
+          { name: 'Saude', percent: 25, color: '#25F4EE' },
+          { name: 'Cabelo', percent: 18, color: '#764BA2' },
+          { name: 'Perfumaria', percent: 12, color: '#FE2C55' },
+          { name: 'Outros', percent: 7, color: '#6B7280' },
+        ],
+
+        // Creators
+        creators: [
+          { name: 'Carolina Mendes', handle: 'carolmendes', videos: 87, views: 3240000, sales: 89400, commission: 16092, avatar: '#667EEA', salesPercent: 28 },
+          { name: 'Amanda Silva', handle: 'amandasilva', videos: 64, views: 2180000, sales: 67200, commission: 12096, avatar: '#EC4899', salesPercent: 21 },
+          { name: 'Juliana Costa', handle: 'jucosta', videos: 52, views: 1870000, sales: 54300, commission: 9774, avatar: '#8B5CF6', salesPercent: 17 },
+          { name: 'Beatriz Oliveira', handle: 'biaoliv', videos: 45, views: 1560000, sales: 38600, commission: 6948, avatar: '#F59E0B', salesPercent: 12 },
+          { name: 'Fernanda Lima', handle: 'felima', videos: 38, views: 1230000, sales: 28900, commission: 5202, avatar: '#10B981', salesPercent: 9 },
+          { name: 'Marina Santos', handle: 'marinasantos', videos: 33, views: 980000, sales: 21400, commission: 3852, avatar: '#EF4444', salesPercent: 7 },
+          { name: 'Camila Rocha', handle: 'camilarocha', videos: 28, views: 720000, sales: 15800, commission: 2844, avatar: '#06B6D4', salesPercent: 6 },
+        ],
+        creatorColors: ['#667EEA', '#EC4899', '#8B5CF6', '#F59E0B', '#10B981', '#EF4444', '#06B6D4'],
+
+        // Top Videos
+        topVideos: [
+          { title: 'Review Serum Vitamina C - antes e depois!', creator: '@carolmendes', views: 1240000, likes: 89000, sales: 23400, color1: '#667EEA', color2: '#764BA2' },
+          { title: 'Minha rotina de skincare completa', creator: '@amandasilva', views: 980000, likes: 72000, sales: 18200, color1: '#EC4899', color2: '#F59E0B' },
+          { title: 'Unboxing Kit Maquiagem - vale a pena?', creator: '@jucosta', views: 876000, likes: 65000, sales: 15600, color1: '#25F4EE', color2: '#667EEA' },
+          { title: 'Whey Protein - 30 dias de teste', creator: '@biaoliv', views: 654000, likes: 48000, sales: 12800, color1: '#8B5CF6', color2: '#FE2C55' },
+          { title: 'Tutorial maquiagem para iniciantes', creator: '@felima', views: 543000, likes: 41000, sales: 9400, color1: '#10B981', color2: '#06B6D4' },
+        ],
+
+        // Video Grid
+        videoGrid: [
+          { views: 1240000, likes: 89000, shares: 12400, comments: 3200, saves: 8900, duration: '0:32', bg1: '#667EEA', bg2: '#764BA2' },
+          { views: 980000, likes: 72000, shares: 9800, comments: 2800, saves: 7200, duration: '0:45', bg1: '#EC4899', bg2: '#F59E0B' },
+          { views: 876000, likes: 65000, shares: 8760, comments: 2500, saves: 6500, duration: '0:28', bg1: '#25F4EE', bg2: '#667EEA' },
+          { views: 654000, likes: 48000, shares: 6540, comments: 1900, saves: 4800, duration: '1:00', bg1: '#8B5CF6', bg2: '#FE2C55' },
+          { views: 543000, likes: 41000, shares: 5430, comments: 1600, saves: 4100, duration: '0:38', bg1: '#10B981', bg2: '#06B6D4' },
+          { views: 421000, likes: 32000, shares: 4210, comments: 1200, saves: 3200, duration: '0:52', bg1: '#FE2C55', bg2: '#EC4899' },
+        ],
+
+        // Content Types
+        contentTypes: [
+          { name: 'Review de Produto', count: 124, percent: 42, engagement: 8.2, color: '#667EEA', colorEnd: '#764BA2' },
+          { name: 'Unboxing', count: 68, percent: 23, engagement: 7.1, color: '#25F4EE', colorEnd: '#667EEA' },
+          { name: 'Tutorial', count: 56, percent: 19, engagement: 9.4, color: '#FE2C55', colorEnd: '#EC4899' },
+          { name: 'Lifestyle', count: 47, percent: 16, engagement: 6.8, color: '#F59E0B', colorEnd: '#EF4444' },
+        ],
+
+        // Heatmap
+        heatmapDays: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'],
+        heatmapData: [],
+
+        // States
+        statesData: [
+          { uf: 'SP', name: 'Sao Paulo', percent: 28.5, color: '#667EEA' },
+          { uf: 'RJ', name: 'Rio de Janeiro', percent: 14.2, color: '#667EEA' },
+          { uf: 'MG', name: 'Minas Gerais', percent: 10.8, color: '#764BA2' },
+          { uf: 'BA', name: 'Bahia', percent: 6.3, color: '#764BA2' },
+          { uf: 'RS', name: 'Rio Grande do Sul', percent: 5.9, color: '#8B5CF6' },
+          { uf: 'PR', name: 'Parana', percent: 5.4, color: '#8B5CF6' },
+          { uf: 'PE', name: 'Pernambuco', percent: 4.1, color: '#25F4EE' },
+          { uf: 'CE', name: 'Ceara', percent: 3.8, color: '#25F4EE' },
+          { uf: 'SC', name: 'Santa Catarina', percent: 3.5, color: '#06B6D4' },
+          { uf: 'GO', name: 'Goias', percent: 3.2, color: '#06B6D4' },
+          { uf: 'DF', name: 'Distrito Federal', percent: 2.9, color: '#10B981' },
+          { uf: 'PA', name: 'Para', percent: 2.4, color: '#10B981' },
+          { uf: 'MA', name: 'Maranhao', percent: 1.8, color: '#F59E0B' },
+          { uf: 'ES', name: 'Espirito Santo', percent: 1.6, color: '#F59E0B' },
+          { uf: 'AM', name: 'Amazonas', percent: 1.4, color: '#EF4444' },
+        ],
+
+        // Interests
+        interests: [
+          { text: 'Skincare', size: 24, color: '#667EEA', opacity: 1 },
+          { text: 'Maquiagem', size: 22, color: '#EC4899', opacity: 0.95 },
+          { text: 'Fitness', size: 20, color: '#25F4EE', opacity: 0.9 },
+          { text: 'Moda', size: 19, color: '#764BA2', opacity: 0.85 },
+          { text: 'Saude', size: 18, color: '#10B981', opacity: 0.85 },
+          { text: 'Receitas', size: 16, color: '#F59E0B', opacity: 0.8 },
+          { text: 'Viagem', size: 15, color: '#FE2C55', opacity: 0.75 },
+          { text: 'Tecnologia', size: 14, color: '#06B6D4', opacity: 0.7 },
+          { text: 'Decoracao', size: 14, color: '#8B5CF6', opacity: 0.7 },
+          { text: 'Cabelo', size: 17, color: '#D946EF', opacity: 0.8 },
+          { text: 'Bem-estar', size: 16, color: '#22C55E', opacity: 0.75 },
+          { text: 'Pets', size: 13, color: '#EF4444', opacity: 0.65 },
+          { text: 'Livros', size: 12, color: '#6B7280', opacity: 0.6 },
+          { text: 'Empreender', size: 15, color: '#F97316', opacity: 0.75 },
+          { text: 'Maternidade', size: 16, color: '#EC4899', opacity: 0.75 },
+          { text: 'Sustentabilidade', size: 13, color: '#10B981', opacity: 0.65 },
+          { text: 'Musica', size: 14, color: '#667EEA', opacity: 0.7 },
+          { text: 'Yoga', size: 12, color: '#764BA2', opacity: 0.6 },
+          { text: 'Alimentacao', size: 15, color: '#F59E0B', opacity: 0.75 },
+          { text: 'Autoestima', size: 17, color: '#FE2C55', opacity: 0.8 },
+        ],
+
+        // Commission Tiers
+        commissionTiers: [
+          { name: 'Seed', rate: 10, description: 'Nivel inicial — ate R$ 5.000 em vendas', creators: 42, color: '#6B7280', active: false },
+          { name: 'Spark', rate: 15, description: 'R$ 5.000 - R$ 15.000 em vendas', creators: 28, color: '#667EEA', active: false },
+          { name: 'Flow', rate: 18, description: 'R$ 15.000 - R$ 50.000 em vendas', creators: 15, color: '#764BA2', active: true },
+          { name: 'Iconic', rate: 22, description: 'R$ 50.000 - R$ 100.000 em vendas', creators: 8, color: '#25F4EE', active: false },
+          { name: 'Vision', rate: 28, description: 'R$ 100.000 - R$ 250.000 em vendas', creators: 4, color: '#F59E0B', active: false },
+          { name: 'Empire+', rate: 35, description: 'Acima de R$ 250.000 em vendas', creators: 2, color: '#FE2C55', active: false },
+        ],
+
+        // Methods
+        init() {
+          this.generateHeatmapData();
+          this.sortProducts('revenue');
+
+          // Animate counters
+          this.animateCounter('animatedGMV', this.targetGMV, 2000);
+          this.animateCounter('animatedOrders', this.targetOrders, 1800);
+          this.animateCounter('animatedProducts', this.targetProducts, 1500);
+          this.animateCounter('animatedReach', this.targetReach, 2200);
+
+          // Init charts after DOM ready
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.initCharts();
+              this.initAnimations();
+              this.loading = false;
+            }, 100);
+          });
+
+          // Simulate auto-refresh timestamp
+          setInterval(() => {
+            const now = new Date();
+            this.lastUpdate = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          }, 1000);
+        },
+
+        animateCounter(prop, target, duration) {
+          const start = 0;
+          const startTime = performance.now();
+          const step = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            this[prop] = Math.round(start + (target - start) * eased);
+            if (progress < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        },
+
+        formatNumber(n) {
+          if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+          if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+          return n.toString();
+        },
+
+        generateHeatmapData() {
+          this.heatmapData = [];
+          for (let d = 0; d < 7; d++) {
+            const row = [];
+            for (let h = 0; h < 24; h++) {
+              // Simulate realistic engagement patterns
+              let base = 2;
+              if (h >= 7 && h <= 9) base = 5;
+              if (h >= 11 && h <= 13) base = 7;
+              if (h >= 18 && h <= 22) base = 9;
+              if (h >= 20 && h <= 21) base = 11;
+              if (d >= 5) base *= 1.3; // weekends
+              row.push(base + Math.random() * 3);
+            }
+            this.heatmapData.push(row);
+          }
+        },
+
+        getHeatmapColor(day, hour) {
+          const val = this.heatmapData[day]?.[hour] || 0;
+          const max = 14;
+          const ratio = val / max;
+          if (ratio < 0.2) return '#1a1a2e';
+          if (ratio < 0.35) return '#16213e';
+          if (ratio < 0.5) return '#2a3f6f';
+          if (ratio < 0.65) return '#4a6fa5';
+          if (ratio < 0.8) return '#667EEA';
+          return '#25F4EE';
+        },
+
+        sortProducts(key) {
+          if (this.productSortKey === key) {
+            this.productSortAsc = !this.productSortAsc;
+          } else {
+            this.productSortKey = key;
+            this.productSortAsc = false;
+          }
+          this.products.sort((a, b) => {
+            const va = a[key], vb = b[key];
+            if (typeof va === 'string') return this.productSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+            return this.productSortAsc ? va - vb : vb - va;
+          });
+        },
+
+        scrollToSection(id) {
+          this.activeSection = id;
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+
+        exportData(format) {
+          alert(`Exportando dados em ${format.toUpperCase()}...\n\nEsta funcionalidade estara disponivel em breve.`);
+        },
+
+        generateDailyData(days, min, max) {
+          const data = [];
+          let prev = (min + max) / 2;
+          for (let i = 0; i < days; i++) {
+            prev = prev + (Math.random() - 0.45) * (max - min) * 0.15;
+            prev = Math.max(min, Math.min(max, prev));
+            data.push(Math.round(prev));
+          }
+          return data;
+        },
+
+        generateLabels(days) {
+          const labels = [];
+          const today = new Date();
+          for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+          }
+          return labels;
+        },
+
+        initCharts() {
+          Chart.defaults.color = '#6B7280';
+          Chart.defaults.borderColor = '#2A2A2A';
+          Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+
+          const days = this.selectedPeriod === '7d' ? 7 : this.selectedPeriod === '90d' ? 90 : 30;
+          const labels = this.generateLabels(days);
+
+          // GMV Chart
+          const gmvCtx = document.getElementById('gmvChart');
+          if (gmvCtx) {
+            this.charts.gmv = new Chart(gmvCtx, {
+              type: 'line',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'GMV (R$)',
+                  data: this.generateDailyData(days, 15000, 45000),
+                  borderColor: '#667EEA',
+                  backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  pointHoverRadius: 6,
+                  pointHoverBackgroundColor: '#667EEA',
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 11 } } },
+                  y: {
+                    grid: { color: '#1A1A1A' },
+                    ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k', font: { size: 11 } }
+                  }
+                },
+                interaction: { mode: 'index', intersect: false },
+              }
+            });
+          }
+
+          // Orders by Category
+          const ordersCtx = document.getElementById('ordersChart');
+          if (ordersCtx) {
+            this.charts.orders = new Chart(ordersCtx, {
+              type: 'bar',
+              data: {
+                labels: ['Beleza', 'Saude', 'Cabelo', 'Perfumaria', 'Suplementos', 'Outros'],
+                datasets: [{
+                  label: 'Pedidos',
+                  data: [487, 321, 231, 154, 198, 89],
+                  backgroundColor: ['#667EEA', '#25F4EE', '#764BA2', '#FE2C55', '#F59E0B', '#6B7280'],
+                  borderRadius: 6,
+                  borderSkipped: false,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                  y: { grid: { color: '#1A1A1A' }, ticks: { font: { size: 11 } } }
+                }
+              }
+            });
+          }
+
+          // AOV Chart
+          const aovCtx = document.getElementById('aovChart');
+          if (aovCtx) {
+            this.charts.aov = new Chart(aovCtx, {
+              type: 'line',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Ticket Medio (R$)',
+                  data: this.generateDailyData(days, 85, 145),
+                  borderColor: '#25F4EE',
+                  backgroundColor: 'rgba(37, 244, 238, 0.05)',
+                  fill: true,
+                  tension: 0.4,
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  pointHoverRadius: 6,
+                  pointHoverBackgroundColor: '#25F4EE',
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 11 } } },
+                  y: {
+                    grid: { color: '#1A1A1A' },
+                    ticks: { callback: v => 'R$ ' + v, font: { size: 11 } }
+                  }
+                },
+                interaction: { mode: 'index', intersect: false },
+              }
+            });
+          }
+
+          // Category Donut
+          const catCtx = document.getElementById('categoryChart');
+          if (catCtx) {
+            this.charts.category = new Chart(catCtx, {
+              type: 'doughnut',
+              data: {
+                labels: this.categories.map(c => c.name),
+                datasets: [{
+                  data: this.categories.map(c => c.percent),
+                  backgroundColor: this.categories.map(c => c.color),
+                  borderWidth: 0,
+                  spacing: 3,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { display: false } },
+              }
+            });
+          }
+
+          // Creator Attribution Pie
+          const cpCtx = document.getElementById('creatorPieChart');
+          if (cpCtx) {
+            this.charts.creatorPie = new Chart(cpCtx, {
+              type: 'doughnut',
+              data: {
+                labels: this.creators.slice(0, 5).map(c => c.name),
+                datasets: [{
+                  data: this.creators.slice(0, 5).map(c => c.salesPercent),
+                  backgroundColor: this.creatorColors.slice(0, 5),
+                  borderWidth: 0,
+                  spacing: 2,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: { display: false } },
+              }
+            });
+          }
+
+          // Creator ROI Chart
+          const roiCtx = document.getElementById('creatorROIChart');
+          if (roiCtx) {
+            this.charts.creatorROI = new Chart(roiCtx, {
+              type: 'bar',
+              data: {
+                labels: this.creators.slice(0, 6).map(c => c.name.split(' ')[0]),
+                datasets: [
+                  {
+                    label: 'Vendas Geradas (R$)',
+                    data: this.creators.slice(0, 6).map(c => c.sales),
+                    backgroundColor: '#667EEA88',
+                    borderRadius: 4,
+                  },
+                  {
+                    label: 'Comissao Paga (R$)',
+                    data: this.creators.slice(0, 6).map(c => c.commission),
+                    backgroundColor: '#FE2C5588',
+                    borderRadius: 4,
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'top', labels: { boxWidth: 12, padding: 15, font: { size: 11 } } }
+                },
+                scales: {
+                  x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                  y: {
+                    grid: { color: '#1A1A1A' },
+                    ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k', font: { size: 11 } }
+                  }
+                }
+              }
+            });
+          }
+
+          // Engagement Chart
+          const engCtx = document.getElementById('engagementChart');
+          if (engCtx) {
+            this.charts.engagement = new Chart(engCtx, {
+              type: 'line',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Taxa de Engajamento (%)',
+                  data: this.generateDailyData(days, 4, 12),
+                  borderColor: '#FE2C55',
+                  backgroundColor: 'rgba(254, 44, 85, 0.08)',
+                  fill: true,
+                  tension: 0.4,
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  pointHoverRadius: 6,
+                  pointHoverBackgroundColor: '#FE2C55',
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 11 } } },
+                  y: {
+                    grid: { color: '#1A1A1A' },
+                    ticks: { callback: v => v + '%', font: { size: 11 } }
+                  }
+                },
+                interaction: { mode: 'index', intersect: false },
+              }
+            });
+          }
+
+          // Age Chart
+          const ageCtx = document.getElementById('ageChart');
+          if (ageCtx) {
+            this.charts.age = new Chart(ageCtx, {
+              type: 'bar',
+              data: {
+                labels: ['13-17', '18-24', '25-34', '35-44', '45-54', '55+'],
+                datasets: [{
+                  label: '% da Audiencia',
+                  data: [8, 32, 35, 15, 7, 3],
+                  backgroundColor: ['#6B7280', '#25F4EE', '#667EEA', '#764BA2', '#F59E0B', '#6B7280'],
+                  borderRadius: 4,
+                  borderSkipped: false,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { color: '#1A1A1A' }, ticks: { callback: v => v + '%', font: { size: 11 } } },
+                  y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                }
+              }
+            });
+          }
+
+          // Gender Chart
+          const genCtx = document.getElementById('genderChart');
+          if (genCtx) {
+            this.charts.gender = new Chart(genCtx, {
+              type: 'doughnut',
+              data: {
+                labels: ['Feminino', 'Masculino', 'Outro'],
+                datasets: [{
+                  data: [62, 35, 3],
+                  backgroundColor: ['#667EEA', '#25F4EE', '#6B7280'],
+                  borderWidth: 0,
+                  spacing: 3,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { display: false } },
+              }
+            });
+          }
+
+          // Follower Growth
+          const folCtx = document.getElementById('followerChart');
+          if (folCtx) {
+            const followerData = [];
+            let base = 45000;
+            for (let i = 0; i < days; i++) {
+              base += Math.round(Math.random() * 800 + 200);
+              followerData.push(base);
+            }
+            this.charts.follower = new Chart(folCtx, {
+              type: 'line',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Seguidores',
+                  data: followerData,
+                  borderColor: '#764BA2',
+                  backgroundColor: 'rgba(118, 75, 162, 0.08)',
+                  fill: true,
+                  tension: 0.4,
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  pointHoverRadius: 6,
+                  pointHoverBackgroundColor: '#764BA2',
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 11 } } },
+                  y: {
+                    grid: { color: '#1A1A1A' },
+                    ticks: { callback: v => (v/1000).toFixed(0) + 'K', font: { size: 11 } }
+                  }
+                },
+                interaction: { mode: 'index', intersect: false },
+              }
+            });
+          }
+
+          // Commission by Creator (Stacked Bar)
+          const comCtx = document.getElementById('commissionChart');
+          if (comCtx) {
+            const months = ['Set', 'Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar'];
+            this.charts.commission = new Chart(comCtx, {
+              type: 'bar',
+              data: {
+                labels: months,
+                datasets: this.creators.slice(0, 5).map((c, i) => ({
+                  label: c.name.split(' ')[0],
+                  data: months.map(() => Math.round(c.commission / 7 * (0.6 + Math.random() * 0.8))),
+                  backgroundColor: this.creatorColors[i] + 'AA',
+                  borderRadius: 2,
+                }))
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'top', labels: { boxWidth: 10, padding: 12, font: { size: 10 } } }
+                },
+                scales: {
+                  x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } },
+                  y: {
+                    stacked: true,
+                    grid: { color: '#1A1A1A' },
+                    ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k', font: { size: 11 } }
+                  }
+                }
+              }
+            });
+          }
+
+          // Payment Timeline
+          const payCtx = document.getElementById('paymentChart');
+          if (payCtx) {
+            const payLabels = this.generateLabels(days);
+            const paid = this.generateDailyData(days, 2000, 8000);
+            const pending = this.generateDailyData(days, 500, 3000);
+            this.charts.payment = new Chart(payCtx, {
+              type: 'line',
+              data: {
+                labels: payLabels,
+                datasets: [
+                  {
+                    label: 'Pago (R$)',
+                    data: paid,
+                    borderColor: '#22C55E',
+                    backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                  },
+                  {
+                    label: 'Pendente (R$)',
+                    data: pending,
+                    borderColor: '#F59E0B',
+                    backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'top', labels: { boxWidth: 12, padding: 15, font: { size: 11 } } }
+                },
+                scales: {
+                  x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 11 } } },
+                  y: {
+                    grid: { color: '#1A1A1A' },
+                    ticks: { callback: v => 'R$ ' + (v/1000).toFixed(1) + 'k', font: { size: 11 } }
+                  }
+                },
+                interaction: { mode: 'index', intersect: false },
+              }
+            });
+          }
+        },
+
+        updateCharts() {
+          // Destroy and reinit
+          Object.values(this.charts).forEach(c => c?.destroy());
+          this.charts = {};
+          this.$nextTick(() => {
+            setTimeout(() => this.initCharts(), 50);
+          });
+        },
+
+        initAnimations() {
+          gsap.registerPlugin(ScrollTrigger);
+
+          document.querySelectorAll('[data-animate]').forEach(el => {
+            gsap.from(el, {
+              y: 30,
+              opacity: 0,
+              duration: 0.6,
+              ease: 'power2.out',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 90%',
+                toggleActions: 'play none none none',
+              }
+            });
+          });
+
+          // Animate funnel bars
+          document.querySelectorAll('.funnel-bar div').forEach((bar, i) => {
+            gsap.from(bar, {
+              width: 0,
+              duration: 1.2,
+              delay: i * 0.15,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: bar,
+                start: 'top 90%',
+              }
+            });
+          });
+        },
+      };
+    }
+  </script>
+</body>
+</html>

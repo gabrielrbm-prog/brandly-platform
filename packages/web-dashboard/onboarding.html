@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandly - Onboarding Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { primary: '#667EEA', accent: '#764BA2' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0A0A0A; color: #fff; }
+        .gradient-text { background: linear-gradient(135deg, #667EEA, #764BA2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .gradient-bg { background: linear-gradient(135deg, #667EEA, #764BA2); }
+        .gradient-border { position: relative; }
+        .gradient-border::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, #667EEA, #764BA2); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+        .step-dot { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .step-line { transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-card:hover { transform: translateY(-2px); }
+        .option-card.selected { border-color: #667EEA; background: rgba(102, 126, 234, 0.05); box-shadow: 0 0 20px rgba(102, 126, 234, 0.1); }
+        .brand-card { transition: all 0.3s; }
+        .brand-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+        .brand-card.selected { border-color: #667EEA; box-shadow: 0 0 24px rgba(102, 126, 234, 0.15); }
+        .slide-enter { opacity: 0; transform: translateX(40px); }
+        .slide-active { opacity: 1; transform: translateX(0); }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #667EEA; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .input-field { background: #111; border: 1px solid #1E1E1E; border-radius: 12px; padding: 12px 16px; color: #fff; font-size: 14px; width: 100%; transition: all 0.2s; }
+        .input-field::placeholder { color: #666; }
+        .input-field.error { border-color: #EF4444; }
+        .shake { animation: shake 0.5s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .float { animation: float 3s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.2); } 50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.4); } }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 3px; }
+    </style>
+</head>
+<body x-data="onboarding()" x-init="init()" class="min-h-screen flex items-center justify-center p-4">
+
+<!-- Background decoration -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-[#667EEA]/5 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#764BA2]/5 rounded-full blur-3xl"></div>
+</div>
+
+<div class="relative w-full max-w-2xl mx-auto">
+
+    <!-- Progress Bar (top) -->
+    <div class="mb-8" x-show="step > 0 && step < totalSteps - 1">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs text-[#A0A0A0]">Passo <span x-text="step + 1"></span> de <span x-text="totalSteps"></span></span>
+            <span class="text-xs font-mono text-[#667EEA]" x-text="Math.round(((step) / (totalSteps - 1)) * 100) + '%'"></span>
+        </div>
+        <div class="h-1 bg-[#1E1E1E] rounded-full overflow-hidden">
+            <div class="h-full gradient-bg rounded-full transition-all duration-500 ease-out" :style="`width: ${((step) / (totalSteps - 1)) * 100}%`"></div>
+        </div>
+    </div>
+
+    <!-- Step Dots -->
+    <div class="flex items-center justify-center gap-0 mb-8" x-show="step > 0 && step < totalSteps - 1">
+        <template x-for="(s, i) in steps" :key="i">
+            <div class="flex items-center">
+                <div class="step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold cursor-pointer" :class="i < step ? 'gradient-bg text-white' : i === step ? 'border-2 border-[#667EEA] text-[#667EEA]' : 'border border-[#2A2A2A] text-[#666]'" @click="i < step && goToStep(i)" x-text="i + 1"></div>
+                <div x-show="i < steps.length - 1" class="step-line w-8 h-0.5 mx-1" :class="i < step ? 'gradient-bg' : 'bg-[#1E1E1E]'"></div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Main Card -->
+    <div class="bg-[#111] border border-[#1E1E1E] rounded-2xl overflow-hidden" id="main-card">
+
+        <!-- ===== STEP 0: WELCOME ===== -->
+        <div x-show="step === 0" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="p-8 md:p-12 text-center">
+            <div class="mb-8" id="logo-container">
+                <div class="w-20 h-20 rounded-2xl gradient-bg mx-auto flex items-center justify-center text-3xl font-black float pulse-glow">B</div>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">Bem-vindo à <span class="gradient-text">Brandly</span></h1>
+            <p class="text-[#A0A0A0] text-lg mb-2">Sua jornada como Creator Profissional começa agora.</p>
+            <p class="text-[#666] text-sm mb-8 max-w-md mx-auto">Conectamos você com as melhores marcas, oferecemos ferramentas de IA para criar conteúdo incrível e garantimos sua remuneração por produção.</p>
+
+            <div class="grid grid-cols-3 gap-4 mb-10 max-w-sm mx-auto">
+                <div class="bg-[#0A0A0A] rounded-xl p-4 border border-[#1E1E1E]">
+                    <p class="text-2xl font-bold gradient-text">R$100</p>
+                    <p class="text-[10px] text-[#666] mt-1">por dia garantido</p>
+                </div>
+                <div class="bg-[#0A0A0A] rounded-xl p-4 border border-[#1E1E1E]">
+                    <p class="text-2xl font-bold gradient-text">IA</p>
+                    <p class="text-[10px] text-[#666] mt-1">roteiros automáticos</p>
+                </div>
+                <div class="bg-[#0A0A0A] rounded-xl p-4 border border-[#1E1E1E]">
+                    <p class="text-2xl font-bold gradient-text">30s</p>
+                    <p class="text-[10px] text-[#666] mt-1">edição por vídeo</p>
+                </div>
+            </div>
+
+            <button @click="nextStep()" class="px-10 py-4 rounded-xl gradient-bg text-white font-semibold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#667EEA]/20">
+                Começar Minha Jornada
+            </button>
+        </div>
+
+        <!-- ===== STEP 1: PROFILE ===== -->
+        <div x-show="step === 1" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0" class="p-8 md:p-10">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-bg text-white mb-3">Passo 1</span>
+                <h2 class="text-2xl font-bold mb-2">Seu Perfil</h2>
+                <p class="text-[#A0A0A0] text-sm">Conte-nos sobre você para personalizarmos sua experiência.</p>
+            </div>
+
+            <!-- Photo Upload -->
+            <div class="flex justify-center mb-8">
+                <div class="relative cursor-pointer group">
+                    <div class="w-24 h-24 rounded-full bg-[#1A1A1A] border-2 border-dashed border-[#2A2A2A] group-hover:border-[#667EEA] transition-colors flex items-center justify-center">
+                        <svg class="w-8 h-8 text-[#666] group-hover:text-[#667EEA] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full gradient-bg flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5">Nome completo <span class="text-[#EF4444]">*</span></label>
+                        <input type="text" x-model="form.name" class="input-field" :class="{'error': errors.name}" placeholder="Seu nome" @input="errors.name = false">
+                        <p x-show="errors.name" class="text-xs text-[#EF4444] mt-1">Por favor, insira seu nome.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5">Email <span class="text-[#EF4444]">*</span></label>
+                        <input type="email" x-model="form.email" class="input-field" :class="{'error': errors.email}" placeholder="seu@email.com" @input="errors.email = false">
+                        <p x-show="errors.email" class="text-xs text-[#EF4444] mt-1">Email inválido.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5">Telefone <span class="text-[#EF4444]">*</span></label>
+                        <input type="tel" x-model="form.phone" class="input-field" :class="{'error': errors.phone}" placeholder="(11) 99999-9999" @input="errors.phone = false">
+                        <p x-show="errors.phone" class="text-xs text-[#EF4444] mt-1">Informe seu telefone.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5">Cidade / Estado</label>
+                        <input type="text" x-model="form.city" class="input-field" placeholder="São Paulo, SP">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5">Instagram</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#666] text-sm">@</span>
+                            <input type="text" x-model="form.instagram" class="input-field pl-8" placeholder="seuuser">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5">TikTok</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#666] text-sm">@</span>
+                            <input type="text" x-model="form.tiktok" class="input-field pl-8" placeholder="seuuser">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1.5">YouTube</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#666] text-sm">@</span>
+                            <input type="text" x-model="form.youtube" class="input-field pl-8" placeholder="seucanal">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">Bio</label>
+                    <textarea x-model="form.bio" class="input-field resize-none" rows="3" placeholder="Conte um pouco sobre você e seus objetivos como creator..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== STEP 2: BEHAVIORAL PROFILE ===== -->
+        <div x-show="step === 2" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0" class="p-8 md:p-10">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-bg text-white mb-3">Passo 2</span>
+                <h2 class="text-2xl font-bold mb-2">Perfil Comportamental</h2>
+                <p class="text-[#A0A0A0] text-sm">Queremos entender seu estilo para recomendar o melhor caminho.</p>
+            </div>
+
+            <div class="mb-4 text-center">
+                <span class="text-sm text-[#A0A0A0]">Pergunta <span class="text-[#667EEA] font-semibold" x-text="currentQuestion + 1"></span> de <span x-text="questions.length"></span></span>
+                <div class="h-1 bg-[#1E1E1E] rounded-full mt-2 max-w-xs mx-auto overflow-hidden">
+                    <div class="h-full gradient-bg rounded-full transition-all duration-300" :style="`width: ${((currentQuestion + 1) / questions.length) * 100}%`"></div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold text-center mb-6" x-text="questions[currentQuestion].question"></h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <template x-for="(opt, oi) in questions[currentQuestion].options" :key="oi">
+                        <div class="option-card bg-[#0A0A0A] border border-[#1E1E1E] rounded-xl p-4 cursor-pointer" :class="{'selected': form.answers[currentQuestion] === oi}" @click="selectAnswer(currentQuestion, oi)">
+                            <div class="flex items-start gap-3">
+                                <span class="text-2xl" x-text="opt.icon"></span>
+                                <div>
+                                    <p class="font-medium text-sm" x-text="opt.label"></p>
+                                    <p class="text-xs text-[#666] mt-1" x-text="opt.desc"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <p x-show="errors.answer" class="text-xs text-[#EF4444] text-center mt-3">Selecione uma opção para continuar.</p>
+
+                <div class="flex justify-between mt-6">
+                    <button @click="prevQuestion()" x-show="currentQuestion > 0" class="text-sm text-[#A0A0A0] hover:text-white transition-colors">&larr; Anterior</button>
+                    <div x-show="currentQuestion === 0"></div>
+                    <button @click="nextQuestion()" class="px-6 py-2 rounded-lg gradient-bg text-white text-sm font-medium hover:opacity-90 transition-opacity" x-text="currentQuestion < questions.length - 1 ? 'Próxima' : 'Continuar'"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== STEP 3: CHOOSE PATH ===== -->
+        <div x-show="step === 3" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0" class="p-8 md:p-10">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-bg text-white mb-3">Passo 3</span>
+                <h2 class="text-2xl font-bold mb-2">Escolha seu Caminho</h2>
+                <p class="text-[#A0A0A0] text-sm">Selecione o track que combina com seu momento atual.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <template x-for="(track, ti) in tracks" :key="ti">
+                    <div class="option-card bg-[#0A0A0A] border border-[#1E1E1E] rounded-xl p-6 cursor-pointer text-center" :class="{'selected': form.track === ti}" @click="form.track = ti; errors.track = false">
+                        <div class="text-4xl mb-4" x-text="track.icon"></div>
+                        <h4 class="text-lg font-bold mb-1" x-text="track.name"></h4>
+                        <p class="text-xs text-[#667EEA] mb-4" x-text="track.subtitle"></p>
+                        <div class="space-y-2 text-sm text-[#A0A0A0]">
+                            <div class="flex justify-between"><span>Ganho estimado:</span><span class="text-white font-semibold" x-text="track.earnings"></span></div>
+                            <div class="flex justify-between"><span>Dedicação:</span><span class="text-white" x-text="track.time"></span></div>
+                            <div class="flex justify-between"><span>Requisito:</span><span class="text-white" x-text="track.requirement"></span></div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-[#1E1E1E]">
+                            <p class="text-xs text-[#666]" x-text="track.description"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <p x-show="errors.track" class="text-xs text-[#EF4444] text-center mt-3">Selecione um caminho.</p>
+        </div>
+
+        <!-- ===== STEP 4: REFERRAL CODE ===== -->
+        <div x-show="step === 4" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0" class="p-8 md:p-10">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-bg text-white mb-3">Passo 4</span>
+                <h2 class="text-2xl font-bold mb-2">Código de Indicação</h2>
+                <p class="text-[#A0A0A0] text-sm">Alguém te indicou? Insira o código para conectar sua rede.</p>
+            </div>
+
+            <div class="max-w-md mx-auto">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Código do indicador (opcional)</label>
+                    <input type="text" x-model="form.referralCode" class="input-field text-center text-lg tracking-wider uppercase" placeholder="BRANDLY-XXXX" @input="checkReferral()">
+                </div>
+
+                <!-- Referrer Info -->
+                <div x-show="referrer" x-transition class="bg-[#0A0A0A] border border-[#10B981]/20 rounded-xl p-5 mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-lg font-bold">RG</div>
+                        <div>
+                            <p class="font-semibold">Raquel Guerreiro</p>
+                            <p class="text-xs text-[#10B981]">Creator Iconic &mdash; Sua mentora</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Benefits -->
+                <div class="bg-[#0A0A0A] rounded-xl p-5 border border-[#1E1E1E]">
+                    <h4 class="font-semibold text-sm mb-3">Benefícios da Rede Brandly</h4>
+                    <div class="space-y-3 text-sm text-[#A0A0A0]">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-[#667EEA] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Mentoria direta do seu indicador</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-[#667EEA] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Bônus de rede: ganhe comissões quando sua equipe vende</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-[#667EEA] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Aceleração de carreira: suba de nível mais rápido em equipe</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-xs text-[#666] text-center mt-4">Não tem código? Sem problemas, prossiga normalmente.</p>
+            </div>
+        </div>
+
+        <!-- ===== STEP 5: BRAND SELECTION ===== -->
+        <div x-show="step === 5" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0" class="p-8 md:p-10">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-bg text-white mb-3">Passo 5</span>
+                <h2 class="text-2xl font-bold mb-2">Escolha suas Marcas</h2>
+                <p class="text-[#A0A0A0] text-sm">Selecione de 1 a 3 marcas para começar a criar conteúdo.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                <template x-for="(brand, bi) in brands" :key="bi">
+                    <div class="brand-card bg-[#0A0A0A] border border-[#1E1E1E] rounded-xl p-5 cursor-pointer" :class="{'selected': form.brands.includes(bi)}" @click="toggleBrand(bi)">
+                        <div class="w-14 h-14 rounded-xl mb-4 flex items-center justify-center text-2xl font-black" :style="`background: ${brand.color}20; color: ${brand.color}`" x-text="brand.initials"></div>
+                        <h4 class="font-semibold text-sm" x-text="brand.name"></h4>
+                        <p class="text-xs text-[#667EEA] mb-3" x-text="brand.category"></p>
+                        <div class="space-y-1.5 text-xs text-[#A0A0A0]">
+                            <div class="flex justify-between"><span>Comissão:</span><span class="text-[#10B981] font-semibold" x-text="brand.commission"></span></div>
+                            <div class="flex justify-between"><span>Ganho médio:</span><span class="text-white" x-text="brand.avgEarnings"></span></div>
+                        </div>
+                        <!-- Selection indicator -->
+                        <div class="mt-3 pt-3 border-t border-[#1E1E1E] text-center">
+                            <span x-show="form.brands.includes(bi)" class="text-xs text-[#667EEA] font-medium">Selecionada</span>
+                            <span x-show="!form.brands.includes(bi)" class="text-xs text-[#666]">Clique para selecionar</span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="text-center">
+                <p class="text-xs text-[#666] mb-1"><span x-text="form.brands.length"></span>/3 marcas selecionadas</p>
+                <p x-show="errors.brands" class="text-xs text-[#EF4444]">Selecione pelo menos 1 marca.</p>
+            </div>
+        </div>
+
+        <!-- ===== STEP 6: REVIEW ===== -->
+        <div x-show="step === 6" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0" class="p-8 md:p-10">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-medium gradient-bg text-white mb-3">Revisão</span>
+                <h2 class="text-2xl font-bold mb-2">Tudo certo?</h2>
+                <p class="text-[#A0A0A0] text-sm">Confira seus dados antes de ativar sua conta.</p>
+            </div>
+
+            <div class="space-y-4 mb-8">
+                <!-- Profile Summary -->
+                <div class="bg-[#0A0A0A] rounded-xl p-5 border border-[#1E1E1E]">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-[#A0A0A0]">Perfil</h4>
+                        <button @click="goToStep(1)" class="text-xs text-[#667EEA] hover:underline">Editar</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div><span class="text-[#666]">Nome:</span> <span x-text="form.name || '—'"></span></div>
+                        <div><span class="text-[#666]">Email:</span> <span x-text="form.email || '—'"></span></div>
+                        <div><span class="text-[#666]">Telefone:</span> <span x-text="form.phone || '—'"></span></div>
+                        <div><span class="text-[#666]">Cidade:</span> <span x-text="form.city || '—'"></span></div>
+                    </div>
+                </div>
+
+                <!-- Track Summary -->
+                <div class="bg-[#0A0A0A] rounded-xl p-5 border border-[#1E1E1E]">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-[#A0A0A0]">Caminho</h4>
+                        <button @click="goToStep(3)" class="text-xs text-[#667EEA] hover:underline">Editar</button>
+                    </div>
+                    <p class="text-sm" x-text="form.track !== null ? tracks[form.track].name + ' — ' + tracks[form.track].earnings : '—'"></p>
+                </div>
+
+                <!-- Brands Summary -->
+                <div class="bg-[#0A0A0A] rounded-xl p-5 border border-[#1E1E1E]">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-[#A0A0A0]">Marcas</h4>
+                        <button @click="goToStep(5)" class="text-xs text-[#667EEA] hover:underline">Editar</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="bi in form.brands" :key="bi">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-[#667EEA]/10 text-[#667EEA]" x-text="brands[bi].name"></span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms -->
+            <label class="flex items-start gap-3 cursor-pointer mb-6 p-4 bg-[#0A0A0A] rounded-xl border border-[#1E1E1E]" :class="{'border-[#EF4444]': errors.terms}">
+                <input type="checkbox" x-model="form.terms" class="mt-1 w-4 h-4 rounded bg-[#111] border-[#1E1E1E] text-[#667EEA]" @change="errors.terms = false">
+                <span class="text-sm text-[#A0A0A0]">Li e aceito os <a href="#" class="text-[#667EEA] hover:underline">Termos de Uso</a> e a <a href="#" class="text-[#667EEA] hover:underline">Política de Privacidade</a> da Brandly.</span>
+            </label>
+            <p x-show="errors.terms" class="text-xs text-[#EF4444] mb-4">Você precisa aceitar os termos para continuar.</p>
+        </div>
+
+        <!-- ===== STEP 7: COMPLETION ===== -->
+        <div x-show="step === 7" x-transition:enter="transition ease-out duration-600" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="p-8 md:p-12 text-center">
+            <div class="w-24 h-24 rounded-full gradient-bg mx-auto flex items-center justify-center text-4xl mb-6">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h2 class="text-3xl font-bold mb-3">Conta Ativada! <span class="gradient-text">Parabéns!</span></h2>
+            <p class="text-[#A0A0A0] text-lg mb-2">Bem-vindo à comunidade Brandly, <span class="text-white font-semibold" x-text="form.name || 'Creator'"></span>!</p>
+            <p class="text-[#666] text-sm mb-8 max-w-md mx-auto">Sua jornada como Creator Profissional começou. Prepare-se para criar conteúdo incrível, conectar-se com marcas e construir sua carreira.</p>
+
+            <div class="bg-[#0A0A0A] rounded-xl p-6 border border-[#1E1E1E] max-w-sm mx-auto mb-8">
+                <h4 class="font-semibold mb-3">Próximos passos:</h4>
+                <div class="space-y-3 text-sm text-left text-[#A0A0A0]">
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full gradient-bg flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                        <span>Complete seu treinamento inicial</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full gradient-bg flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                        <span>Grave seu primeiro vídeo com IA</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full gradient-bg flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                        <span>Submeta para aprovação e receba</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-sm text-[#666] mb-4">Redirecionando para o dashboard em <span class="text-[#667EEA] font-semibold" x-text="countdown"></span>s...</p>
+            <button @click="window.location.href='#dashboard'" class="px-8 py-3 rounded-xl gradient-bg text-white font-semibold hover:opacity-90 transition-opacity">Ir para o Dashboard</button>
+        </div>
+
+        <!-- ===== NAVIGATION BUTTONS ===== -->
+        <div x-show="step > 0 && step < 7" class="flex items-center justify-between px-8 md:px-10 py-5 border-t border-[#1E1E1E]">
+            <button @click="prevStep()" class="flex items-center gap-2 text-sm text-[#A0A0A0] hover:text-white transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Voltar
+            </button>
+
+            <button @click="nextStep()" class="flex items-center gap-2 px-6 py-2.5 rounded-lg gradient-bg text-white text-sm font-medium hover:opacity-90 transition-opacity" x-text="step === 6 ? 'Ativar minha conta' : 'Continuar'"></button>
+        </div>
+
+    </div>
+
+    <!-- Keyboard hint -->
+    <p class="text-center text-[10px] text-[#444] mt-4" x-show="step > 0 && step < 7">Use <kbd class="px-1.5 py-0.5 bg-[#1E1E1E] rounded text-[#666]">Enter</kbd> para avançar e <kbd class="px-1.5 py-0.5 bg-[#1E1E1E] rounded text-[#666]">Esc</kbd> para voltar</p>
+</div>
+
+<script>
+function onboarding() {
+    return {
+        step: 0,
+        totalSteps: 8,
+        currentQuestion: 0,
+        referrer: false,
+        countdown: 5,
+        steps: [
+            { name: 'Perfil' },
+            { name: 'Comportamento' },
+            { name: 'Caminho' },
+            { name: 'Indicação' },
+            { name: 'Marcas' },
+            { name: 'Revisão' },
+            { name: 'Completo' },
+        ],
+        form: {
+            name: '', email: '', phone: '', city: '',
+            instagram: '', tiktok: '', youtube: '', bio: '',
+            answers: [null, null, null, null, null, null],
+            track: null,
+            referralCode: '',
+            brands: [],
+            terms: false,
+        },
+        errors: {
+            name: false, email: false, phone: false,
+            answer: false, track: false, brands: false, terms: false,
+        },
+        questions: [
+            {
+                question: 'O que te motiva mais?',
+                options: [
+                    { icon: '💰', label: 'Independência financeira', desc: 'Quero ganhar meu próprio dinheiro e ter liberdade' },
+                    { icon: '🎨', label: 'Expressão criativa', desc: 'Adoro criar conteúdo e me expressar' },
+                    { icon: '👥', label: 'Comunidade', desc: 'Quero fazer parte de algo maior' },
+                    { icon: '🚀', label: 'Crescimento profissional', desc: 'Busco construir uma carreira sólida' },
+                ]
+            },
+            {
+                question: 'Quanto tempo por dia você pode dedicar?',
+                options: [
+                    { icon: '⏰', label: '1-2 horas', desc: 'Tenho pouco tempo livre, mas sou focado(a)' },
+                    { icon: '📅', label: '3-4 horas', desc: 'Posso dedicar meio período' },
+                    { icon: '💪', label: '5-6 horas', desc: 'Tenho bastante disponibilidade' },
+                    { icon: '🔥', label: 'Full-time', desc: 'Quero me dedicar 100% a isso' },
+                ]
+            },
+            {
+                question: 'Qual sua experiência com criação de conteúdo?',
+                options: [
+                    { icon: '🌱', label: 'Nunca criei', desc: 'Sou totalmente iniciante' },
+                    { icon: '📱', label: 'Posto nas redes', desc: 'Publico casualmente no Instagram/TikTok' },
+                    { icon: '🎬', label: 'Crio regularmente', desc: 'Já tenho uma rotina de criação' },
+                    { icon: '⭐', label: 'Sou creator', desc: 'Já trabalho com conteúdo e tenho audiência' },
+                ]
+            },
+            {
+                question: 'Qual tipo de conteúdo você mais gosta?',
+                options: [
+                    { icon: '🎥', label: 'Vídeos curtos', desc: 'Reels, TikToks, Shorts' },
+                    { icon: '📸', label: 'Fotos e carrosséis', desc: 'Posts visuais e educativos' },
+                    { icon: '🎙️', label: 'Lives e stories', desc: 'Conteúdo ao vivo e bastidores' },
+                    { icon: '✍️', label: 'Texto e copywriting', desc: 'Legendas, newsletters, blogs' },
+                ]
+            },
+            {
+                question: 'Como você lida com desafios?',
+                options: [
+                    { icon: '🧘', label: 'Com calma e planejamento', desc: 'Analiso a situação e busco soluções' },
+                    { icon: '⚡', label: 'Ação imediata', desc: 'Parto para resolução rápida' },
+                    { icon: '🤝', label: 'Peço ajuda', desc: 'Busco orientação de pessoas experientes' },
+                    { icon: '📚', label: 'Estudo primeiro', desc: 'Pesquiso bastante antes de agir' },
+                ]
+            },
+            {
+                question: 'Qual seu objetivo de renda mensal com a Brandly?',
+                options: [
+                    { icon: '💵', label: 'R$ 1.000 - R$ 3.000', desc: 'Uma renda extra consistente' },
+                    { icon: '💰', label: 'R$ 3.000 - R$ 5.000', desc: 'Equivalente a um salário' },
+                    { icon: '🏆', label: 'R$ 5.000 - R$ 10.000', desc: 'Renda principal com crescimento' },
+                    { icon: '👑', label: 'R$ 10.000+', desc: 'Quero escalar ao máximo' },
+                ]
+            },
+        ],
+        tracks: [
+            {
+                icon: '🌱',
+                name: 'Iniciante',
+                subtitle: 'Comece do zero',
+                earnings: 'R$ 1k - 3k/mês',
+                time: '2-3h/dia',
+                requirement: 'Nenhum',
+                description: 'Ideal para quem nunca criou conteúdo. Treinamento completo desde o básico, com acompanhamento próximo e metas progressivas.'
+            },
+            {
+                icon: '🚀',
+                name: 'Intermediário',
+                subtitle: 'Acelere seus resultados',
+                earnings: 'R$ 3k - 7k/mês',
+                time: '4-5h/dia',
+                requirement: '+1k seguidores',
+                description: 'Para quem já tem experiência básica com redes sociais. Foco em otimização de conteúdo e construção de equipe.'
+            },
+            {
+                icon: '👑',
+                name: 'Avançado',
+                subtitle: 'Maximize seu potencial',
+                earnings: 'R$ 7k - 20k+/mês',
+                time: '6h+/dia',
+                requirement: '+10k seguidores',
+                description: 'Para creators experientes que querem escalar. Acesso a marcas premium, mentorias exclusivas e bônus acelerados.'
+            },
+        ],
+        brands: [
+            { name: 'Yav Health', initials: 'YH', category: 'Saúde & Bem-estar', commission: 'até 20%', avgEarnings: 'R$ 1.200/mês', color: '#10B981' },
+            { name: 'Native', initials: 'NT', category: 'Beleza Natural', commission: 'até 18%', avgEarnings: 'R$ 950/mês', color: '#8B5CF6' },
+            { name: 'Foka', initials: 'FK', category: 'Moda Urbana', commission: 'até 22%', avgEarnings: 'R$ 1.400/mês', color: '#F59E0B' },
+            { name: 'ETF', initials: 'ET', category: 'Fitness & Suplementos', commission: 'até 25%', avgEarnings: 'R$ 1.800/mês', color: '#EF4444' },
+            { name: 'Conectar Energy', initials: 'CE', category: 'Energia & Tecnologia', commission: 'até 15%', avgEarnings: 'R$ 800/mês', color: '#3B82F6' },
+            { name: 'Vyva', initials: 'VV', category: 'Lifestyle Premium', commission: 'até 20%', avgEarnings: 'R$ 1.500/mês', color: '#EC4899' },
+        ],
+
+        init() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && this.step > 0 && this.step < 7) this.nextStep();
+                if (e.key === 'Escape' && this.step > 0 && this.step < 7) this.prevStep();
+            });
+
+            // Animate welcome on load
+            setTimeout(() => {
+                gsap.from('#logo-container', { y: -30, opacity: 0, duration: 0.8, ease: 'back.out(1.7)' });
+            }, 200);
+        },
+
+        goToStep(s) {
+            this.step = s;
+            this.animateStep();
+        },
+
+        nextStep() {
+            if (!this.validateStep()) return;
+
+            if (this.step === 6) {
+                this.complete();
+                return;
+            }
+
+            this.step++;
+            this.animateStep();
+        },
+
+        prevStep() {
+            if (this.step > 0) {
+                this.step--;
+                this.animateStep();
+            }
+        },
+
+        animateStep() {
+            gsap.fromTo('#main-card', { opacity: 0.8, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+        },
+
+        validateStep() {
+            this.errors = { name: false, email: false, phone: false, answer: false, track: false, brands: false, terms: false };
+
+            if (this.step === 1) {
+                let valid = true;
+                if (!this.form.name.trim()) { this.errors.name = true; valid = false; }
+                if (!this.form.email.trim() || !this.form.email.includes('@')) { this.errors.email = true; valid = false; }
+                if (!this.form.phone.trim()) { this.errors.phone = true; valid = false; }
+                if (!valid) this.shakeCard();
+                return valid;
+            }
+
+            if (this.step === 2) {
+                // All questions must be answered
+                for (let i = 0; i < this.questions.length; i++) {
+                    if (this.form.answers[i] === null) {
+                        this.currentQuestion = i;
+                        this.errors.answer = true;
+                        this.shakeCard();
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (this.step === 3) {
+                if (this.form.track === null) { this.errors.track = true; this.shakeCard(); return false; }
+                return true;
+            }
+
+            if (this.step === 5) {
+                if (this.form.brands.length === 0) { this.errors.brands = true; this.shakeCard(); return false; }
+                return true;
+            }
+
+            if (this.step === 6) {
+                if (!this.form.terms) { this.errors.terms = true; this.shakeCard(); return false; }
+                return true;
+            }
+
+            return true;
+        },
+
+        shakeCard() {
+            const card = document.getElementById('main-card');
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 500);
+        },
+
+        selectAnswer(qi, oi) {
+            this.form.answers[qi] = oi;
+            this.errors.answer = false;
+        },
+
+        nextQuestion() {
+            if (this.form.answers[this.currentQuestion] === null) {
+                this.errors.answer = true;
+                return;
+            }
+            this.errors.answer = false;
+            if (this.currentQuestion < this.questions.length - 1) {
+                this.currentQuestion++;
+            } else {
+                this.nextStep();
+            }
+        },
+
+        prevQuestion() {
+            if (this.currentQuestion > 0) this.currentQuestion--;
+        },
+
+        checkReferral() {
+            this.referrer = this.form.referralCode.length >= 6;
+        },
+
+        toggleBrand(bi) {
+            const idx = this.form.brands.indexOf(bi);
+            if (idx > -1) {
+                this.form.brands.splice(idx, 1);
+            } else if (this.form.brands.length < 3) {
+                this.form.brands.push(bi);
+            }
+            this.errors.brands = false;
+        },
+
+        complete() {
+            this.step = 7;
+            this.animateStep();
+
+            // Fire confetti
+            setTimeout(() => {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#667EEA', '#764BA2', '#10B981', '#F59E0B'] });
+                setTimeout(() => {
+                    confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 }, colors: ['#667EEA', '#764BA2'] });
+                }, 500);
+            }, 300);
+
+            // Countdown
+            this.countdown = 5;
+            const timer = setInterval(() => {
+                this.countdown--;
+                if (this.countdown <= 0) clearInterval(timer);
+            }, 1000);
+        },
+    }
+}
+</script>
+
+</body>
+</html>

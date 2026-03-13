@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandly — Ferramentas de Criacao de Conteudo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#0A0A0A',
+                            surface: '#111111',
+                            card: '#161616',
+                            border: '#222222',
+                            muted: '#888888',
+                            primary: '#667EEA',
+                            accent: '#764BA2',
+                            cyan: '#06B6D4',
+                            pink: '#EC4899',
+                            red: '#EF4444',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Inter', sans-serif; background: #0A0A0A; }
+        .gradient-text { background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .gradient-border { border: 1px solid transparent; background-clip: padding-box; position: relative; }
+        .gradient-border::before { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, #667EEA, #764BA2); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+        .tool-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tool-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15); }
+        .skeleton { background: linear-gradient(90deg, #161616 25%, #1e1e1e 50%, #161616 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 15px rgba(102,126,234,0.3); } 50% { box-shadow: 0 0 30px rgba(102,126,234,0.6); } }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .toast-enter { animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-exit { animation: slideOutRight 0.3s ease-in forwards; }
+        @keyframes slideOutRight { to { transform: translateX(120%); opacity: 0; } }
+        .btn-primary { background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); transition: all 0.2s; }
+        .btn-primary:hover { filter: brightness(1.15); transform: scale(1.02); }
+        .btn-primary:active { transform: scale(0.98); }
+        input, textarea, select { transition: border-color 0.2s, box-shadow 0.2s; }
+        input:focus, textarea:focus, select:focus { border-color: #667EEA; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .calendar-cell { min-height: 90px; }
+        .tag-badge { transition: all 0.15s; }
+        .tag-badge:hover { transform: scale(1.05); }
+        .copy-btn { transition: all 0.15s; }
+        .copy-btn:hover { background: rgba(102,126,234,0.15); }
+        .copy-btn:active { transform: scale(0.9); }
+        .wizard-step { transition: all 0.3s; }
+    </style>
+</head>
+<body class="min-h-screen text-white" x-data="toolsApp()" x-init="init()">
+
+    <!-- Toast Notifications -->
+    <div class="fixed top-6 right-6 z-50 flex flex-col gap-3" x-ref="toastContainer">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div class="bg-brand-card border border-brand-border rounded-xl px-5 py-3 shadow-2xl flex items-center gap-3 toast-enter"
+                 :class="toast.leaving ? 'toast-exit' : ''"
+                 x-show="true">
+                <div class="w-2 h-2 rounded-full" :class="toast.type === 'success' ? 'bg-green-400' : 'bg-brand-primary'"></div>
+                <span class="text-sm text-gray-200" x-text="toast.message"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Header -->
+    <header class="border-b border-brand-border bg-brand-surface/80 backdrop-blur-xl sticky top-0 z-40">
+        <div class="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="index.html" class="flex items-center gap-3 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center text-white font-bold text-sm">B</div>
+                    <span class="font-bold text-lg text-white group-hover:text-brand-primary transition-colors">Brandly</span>
+                </a>
+                <div class="hidden md:flex items-center gap-1 text-sm text-brand-muted">
+                    <a href="index.html" class="hover:text-white transition-colors">Dashboard</a>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <span class="text-white">Ferramentas de Conteudo</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:flex items-center gap-2 bg-brand-card rounded-lg px-3 py-1.5 border border-brand-border">
+                    <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                    <span class="text-xs text-brand-muted">IA Ativa</span>
+                </div>
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center text-sm font-semibold cursor-pointer hover:scale-105 transition-transform">CR</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 flex flex-col lg:flex-row gap-6">
+
+        <!-- Sidebar / Tool Selector -->
+        <aside class="lg:w-64 shrink-0">
+            <div class="lg:sticky lg:top-24">
+                <h2 class="text-xs font-semibold text-brand-muted uppercase tracking-wider mb-4 px-3">Ferramentas</h2>
+                <nav class="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+                    <template x-for="(tool, idx) in tools" :key="tool.id">
+                        <button @click="selectTool(tool.id)"
+                                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0"
+                                :class="activeTool === tool.id ? 'bg-gradient-to-r from-brand-primary/20 to-brand-accent/10 text-white border border-brand-primary/30' : 'text-brand-muted hover:text-white hover:bg-brand-card border border-transparent'">
+                            <span class="text-lg" x-text="tool.icon"></span>
+                            <span x-text="tool.name"></span>
+                        </button>
+                    </template>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Tool Content Area -->
+        <main class="flex-1 min-w-0" x-ref="toolContent">
+
+            <!-- TOOL 1: Script Generator -->
+            <div x-show="activeTool === 'scripts'" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="mb-8">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Gerador de Roteiros <span class="gradient-text">IA</span></h1>
+                    <p class="text-brand-muted">3 Ganchos x 3 Corpos x 3 CTAs = 27 combinacoes unicas para seus videos.</p>
+                </div>
+
+                <!-- Input Form -->
+                <div class="bg-brand-card rounded-2xl border border-brand-border p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Nome do Produto</label>
+                            <input type="text" x-model="scriptForm.product" placeholder="Ex: Serum Vitamina C Yav Health"
+                                   class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Publico-Alvo</label>
+                            <input type="text" x-model="scriptForm.audience" placeholder="Ex: Mulheres 25-40 anos, skincare"
+                                   class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Plataforma</label>
+                            <select x-model="scriptForm.platform" class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none appearance-none">
+                                <option value="tiktok">TikTok</option>
+                                <option value="reels">Instagram Reels</option>
+                                <option value="shorts">YouTube Shorts</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Tom de Voz</label>
+                            <select x-model="scriptForm.tone" class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none appearance-none">
+                                <option value="casual">Casual e Divertido</option>
+                                <option value="educational">Educativo</option>
+                                <option value="urgency">Urgencia</option>
+                                <option value="storytelling">Storytelling</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Beneficios Principais</label>
+                            <textarea x-model="scriptForm.benefits" rows="3" placeholder="Liste os principais beneficios do produto..."
+                                      class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none resize-none"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center gap-4">
+                        <button @click="generateScripts()" class="btn-primary px-8 py-3 rounded-xl font-semibold text-white flex items-center gap-2" :disabled="scriptLoading">
+                            <svg x-show="!scriptLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <svg x-show="scriptLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            <span x-text="scriptLoading ? 'Gerando com IA...' : 'Gerar Roteiros'"></span>
+                        </button>
+                        <span class="text-xs text-brand-muted">27 combinacoes serao geradas</span>
+                    </div>
+                </div>
+
+                <!-- Loading Skeleton -->
+                <div x-show="scriptLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <template x-for="i in 6">
+                        <div class="bg-brand-card rounded-xl border border-brand-border p-5">
+                            <div class="skeleton h-4 w-24 rounded mb-3"></div>
+                            <div class="skeleton h-3 w-full rounded mb-2"></div>
+                            <div class="skeleton h-3 w-4/5 rounded mb-2"></div>
+                            <div class="skeleton h-3 w-3/5 rounded mb-4"></div>
+                            <div class="skeleton h-8 w-20 rounded"></div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Matrix Header -->
+                <div x-show="scriptResults.length > 0 && !scriptLoading" class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Matriz de Roteiros</h3>
+                        <div class="flex items-center gap-3 text-xs">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-brand-primary"></span> Gancho</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-brand-accent"></span> Corpo</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-green-500"></span> CTA</span>
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="flex gap-2 mb-4 flex-wrap">
+                        <button @click="scriptFilter = 'all'" class="px-4 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :class="scriptFilter === 'all' ? 'bg-brand-primary text-white' : 'bg-brand-card text-brand-muted hover:text-white border border-brand-border'">
+                            Todos (27)
+                        </button>
+                        <template x-for="h in 3">
+                            <button @click="scriptFilter = 'hook-' + h" class="px-4 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                    :class="scriptFilter === 'hook-' + h ? 'bg-brand-primary text-white' : 'bg-brand-card text-brand-muted hover:text-white border border-brand-border'"
+                                    x-text="'Gancho ' + h + ' (9)'"></button>
+                        </template>
+                    </div>
+
+                    <!-- Script Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <template x-for="(script, idx) in filteredScripts" :key="idx">
+                            <div class="tool-card bg-brand-card rounded-xl border border-brand-border p-5 group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-brand-primary/20 text-brand-primary font-medium" x-text="'G' + script.hook"></span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-medium" x-text="'C' + script.body"></span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-medium" x-text="'CTA' + script.cta"></span>
+                                    </div>
+                                    <span class="text-[10px] text-brand-muted" x-text="'#' + (idx + 1)"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <p class="text-xs text-brand-primary font-semibold mb-1">GANCHO:</p>
+                                    <p class="text-sm text-gray-300 mb-3" x-text="script.hookText"></p>
+                                </div>
+                                <div class="mb-2">
+                                    <p class="text-xs text-purple-400 font-semibold mb-1">CORPO:</p>
+                                    <p class="text-sm text-gray-300 mb-3" x-text="script.bodyText"></p>
+                                </div>
+                                <div class="mb-4">
+                                    <p class="text-xs text-green-400 font-semibold mb-1">CTA:</p>
+                                    <p class="text-sm text-gray-300" x-text="script.ctaText"></p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button @click="copyText(script.hookText + ' ' + script.bodyText + ' ' + script.ctaText)" class="copy-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-brand-muted hover:text-white border border-brand-border">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                        Copiar
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOOL 2: Caption Generator -->
+            <div x-show="activeTool === 'captions'" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="mb-8">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Gerador de Legendas <span class="gradient-text">IA</span></h1>
+                    <p class="text-brand-muted">Crie legendas envolventes com hashtags otimizadas para cada plataforma.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Input -->
+                    <div class="bg-brand-card rounded-2xl border border-brand-border p-6">
+                        <h3 class="font-semibold mb-4">Configuracao</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Topico do Video</label>
+                                <input type="text" x-model="captionForm.topic" placeholder="Ex: Review do serum vitamina C"
+                                       class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Plataforma</label>
+                                <div class="flex gap-2">
+                                    <template x-for="p in [{id:'tiktok',name:'TikTok',color:'cyan'},{id:'instagram',name:'Instagram',color:'pink'},{id:'youtube',name:'YouTube',color:'red'}]">
+                                        <button @click="captionForm.platform = p.id"
+                                                class="flex-1 px-3 py-2.5 rounded-xl text-xs font-medium border transition-all"
+                                                :class="captionForm.platform === p.id ? 'border-brand-primary bg-brand-primary/10 text-white' : 'border-brand-border text-brand-muted hover:text-white'">
+                                            <span x-text="p.name"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Estilo de Hashtags</label>
+                                <select x-model="captionForm.hashtagStyle" class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none appearance-none">
+                                    <option value="trending">Trending</option>
+                                    <option value="niche">Nicho Especifico</option>
+                                    <option value="mix">Mix Estrategico</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Nivel de Emojis</label>
+                                <div class="flex gap-2">
+                                    <template x-for="level in [{id:'none',label:'Nenhum'},{id:'low',label:'Poucos'},{id:'medium',label:'Medio'},{id:'high',label:'Muitos'}]">
+                                        <button @click="captionForm.emojiLevel = level.id"
+                                                class="flex-1 px-2 py-2 rounded-lg text-xs font-medium border transition-all"
+                                                :class="captionForm.emojiLevel === level.id ? 'border-brand-primary bg-brand-primary/10 text-white' : 'border-brand-border text-brand-muted hover:text-white'"
+                                                x-text="level.label"></button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click="generateCaptions()" class="btn-primary w-full mt-6 px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2" :disabled="captionLoading">
+                            <svg x-show="captionLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            <span x-text="captionLoading ? 'Gerando...' : 'Gerar 5 Legendas'"></span>
+                        </button>
+                    </div>
+
+                    <!-- Output -->
+                    <div class="space-y-4">
+                        <!-- Loading -->
+                        <template x-if="captionLoading">
+                            <div class="space-y-4">
+                                <template x-for="i in 3">
+                                    <div class="bg-brand-card rounded-xl border border-brand-border p-5">
+                                        <div class="skeleton h-4 w-32 rounded mb-3"></div>
+                                        <div class="skeleton h-3 w-full rounded mb-2"></div>
+                                        <div class="skeleton h-3 w-4/5 rounded mb-2"></div>
+                                        <div class="skeleton h-3 w-3/5 rounded"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-for="(caption, idx) in captionResults" :key="idx">
+                            <div class="tool-card bg-brand-card rounded-xl border border-brand-border p-5">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-xs font-semibold text-brand-primary" x-text="'Variacao ' + (idx + 1)"></span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full" :class="caption.text.length <= 150 ? 'bg-green-500/20 text-green-400' : caption.text.length <= 220 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'" x-text="caption.text.length + ' chars'"></span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-200 mb-3 leading-relaxed whitespace-pre-line" x-text="caption.text"></p>
+                                <div class="flex flex-wrap gap-1.5 mb-4">
+                                    <template x-for="tag in caption.hashtags">
+                                        <span class="tag-badge text-[10px] px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary cursor-pointer" x-text="'#' + tag"></span>
+                                    </template>
+                                </div>
+                                <button @click="copyText(caption.text + '\n\n' + caption.hashtags.map(t => '#' + t).join(' '))" class="copy-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-brand-muted hover:text-white border border-brand-border">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                    Copiar Tudo
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOOL 3: Thumbnail Creator -->
+            <div x-show="activeTool === 'thumbnails'" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="mb-8">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Criador de <span class="gradient-text">Thumbnails</span></h1>
+                    <p class="text-brand-muted">Crie thumbnails profissionais para seus videos em segundos.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Controls -->
+                    <div class="bg-brand-card rounded-2xl border border-brand-border p-6 space-y-5">
+                        <h3 class="font-semibold">Personalizacao</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Texto Principal</label>
+                            <input type="text" x-model="thumbForm.title" placeholder="Titulo da thumbnail"
+                                   class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Subtitulo</label>
+                            <input type="text" x-model="thumbForm.subtitle" placeholder="Texto secundario"
+                                   class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Tamanho da Fonte: <span x-text="thumbForm.fontSize + 'px'" class="text-brand-primary"></span></label>
+                            <input type="range" x-model="thumbForm.fontSize" min="20" max="72" class="w-full accent-brand-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Cor do Texto</label>
+                            <div class="flex gap-2">
+                                <template x-for="color in ['#FFFFFF','#667EEA','#F59E0B','#EF4444','#10B981','#EC4899']">
+                                    <button @click="thumbForm.textColor = color"
+                                            class="w-8 h-8 rounded-lg border-2 transition-transform hover:scale-110"
+                                            :style="'background:' + color"
+                                            :class="thumbForm.textColor === color ? 'border-white scale-110' : 'border-transparent'"></button>
+                                </template>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Fundo</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <template x-for="bg in thumbBackgrounds">
+                                    <button @click="thumbForm.background = bg.value"
+                                            class="h-12 rounded-lg border-2 transition-transform hover:scale-105"
+                                            :style="'background:' + bg.value"
+                                            :class="thumbForm.background === bg.value ? 'border-white scale-105' : 'border-brand-border'">
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                        <button @click="showToast('Download iniciado!', 'success')" class="btn-primary w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Baixar Thumbnail
+                        </button>
+                    </div>
+
+                    <!-- Preview -->
+                    <div class="lg:col-span-2">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="font-semibold">Preview</h3>
+                            <span class="text-xs text-brand-muted">1280 x 720px (16:9)</span>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden border border-brand-border mb-6" style="aspect-ratio: 16/9;"
+                             :style="'background:' + thumbForm.background">
+                            <div class="w-full h-full flex flex-col items-center justify-center p-8 text-center">
+                                <p class="font-black leading-tight mb-2" :style="'font-size:' + thumbForm.fontSize + 'px; color:' + thumbForm.textColor" x-text="thumbForm.title || 'Seu Titulo Aqui'"></p>
+                                <p class="font-medium opacity-80" :style="'font-size:' + (thumbForm.fontSize * 0.5) + 'px; color:' + thumbForm.textColor" x-text="thumbForm.subtitle || 'Subtitulo'"></p>
+                            </div>
+                        </div>
+
+                        <!-- Templates -->
+                        <h3 class="font-semibold mb-3">Templates Prontos</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <template x-for="(tpl, idx) in thumbTemplates" :key="idx">
+                                <button @click="applyThumbTemplate(tpl)"
+                                        class="rounded-xl border border-brand-border overflow-hidden group hover:border-brand-primary transition-colors"
+                                        style="aspect-ratio: 16/9;"
+                                        :style="'background:' + tpl.background">
+                                    <div class="w-full h-full flex flex-col items-center justify-center p-3 text-center">
+                                        <p class="font-bold text-xs sm:text-sm leading-tight" :style="'color:' + tpl.textColor" x-text="tpl.title"></p>
+                                        <p class="text-[9px] sm:text-[10px] mt-1 opacity-70" :style="'color:' + tpl.textColor" x-text="tpl.subtitle"></p>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOOL 4: Content Calendar -->
+            <div x-show="activeTool === 'calendar'" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="mb-8">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Calendario de <span class="gradient-text">Conteudo</span></h1>
+                    <p class="text-brand-muted">Planeje e organize suas publicacoes em todas as plataformas.</p>
+                </div>
+
+                <div class="flex flex-col xl:flex-row gap-6">
+                    <!-- Calendar -->
+                    <div class="flex-1">
+                        <div class="bg-brand-card rounded-2xl border border-brand-border p-6">
+                            <!-- Month Header -->
+                            <div class="flex items-center justify-between mb-6">
+                                <button @click="calendarMonth > 0 ? calendarMonth-- : (calendarMonth = 11, calendarYear--)" class="p-2 rounded-lg hover:bg-brand-bg transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+                                <h3 class="font-bold text-lg" x-text="monthNames[calendarMonth] + ' ' + calendarYear"></h3>
+                                <button @click="calendarMonth < 11 ? calendarMonth++ : (calendarMonth = 0, calendarYear++)" class="p-2 rounded-lg hover:bg-brand-bg transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Day Headers -->
+                            <div class="grid grid-cols-7 gap-1 mb-2">
+                                <template x-for="day in ['Dom','Seg','Ter','Qua','Qui','Sex','Sab']">
+                                    <div class="text-center text-xs font-medium text-brand-muted py-2" x-text="day"></div>
+                                </template>
+                            </div>
+
+                            <!-- Calendar Grid -->
+                            <div class="grid grid-cols-7 gap-1">
+                                <template x-for="day in calendarDays" :key="day.key">
+                                    <div class="calendar-cell rounded-lg border border-brand-border/50 p-1.5 transition-colors hover:border-brand-primary/30"
+                                         :class="day.isCurrentMonth ? 'bg-brand-bg' : 'bg-transparent opacity-30'">
+                                        <div class="text-[10px] font-medium mb-1" :class="day.isToday ? 'text-brand-primary font-bold' : 'text-brand-muted'" x-text="day.num"></div>
+                                        <template x-for="event in day.events">
+                                            <div class="text-[9px] px-1.5 py-0.5 rounded mb-0.5 truncate cursor-pointer hover:opacity-80 transition-opacity"
+                                                 :class="{
+                                                     'bg-cyan-500/20 text-cyan-400': event.platform === 'tiktok',
+                                                     'bg-pink-500/20 text-pink-400': event.platform === 'instagram',
+                                                     'bg-red-500/20 text-red-400': event.platform === 'youtube'
+                                                 }"
+                                                 x-text="event.title"></div>
+                                        </template>
+                                        <template x-if="day.bestTime">
+                                            <div class="text-[8px] text-brand-muted mt-1 flex items-center gap-0.5">
+                                                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
+                                                <span x-text="day.bestTime"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="flex items-center gap-4 mt-4 pt-4 border-t border-brand-border">
+                                <span class="flex items-center gap-1.5 text-[10px]"><span class="w-2.5 h-2.5 rounded bg-cyan-500"></span> TikTok</span>
+                                <span class="flex items-center gap-1.5 text-[10px]"><span class="w-2.5 h-2.5 rounded bg-pink-500"></span> Instagram</span>
+                                <span class="flex items-center gap-1.5 text-[10px]"><span class="w-2.5 h-2.5 rounded bg-red-500"></span> YouTube</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Summary Sidebar -->
+                    <div class="xl:w-80 shrink-0">
+                        <div class="bg-brand-card rounded-2xl border border-brand-border p-6 xl:sticky xl:top-24">
+                            <h3 class="font-semibold mb-4">Resumo Semanal</h3>
+                            <div class="space-y-3 mb-6">
+                                <div class="flex items-center justify-between p-3 rounded-xl bg-brand-bg">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded bg-cyan-500"></span>
+                                        <span class="text-sm">TikTok</span>
+                                    </div>
+                                    <span class="text-sm font-semibold text-cyan-400">5 videos</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 rounded-xl bg-brand-bg">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded bg-pink-500"></span>
+                                        <span class="text-sm">Instagram</span>
+                                    </div>
+                                    <span class="text-sm font-semibold text-pink-400">3 posts</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 rounded-xl bg-brand-bg">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded bg-red-500"></span>
+                                        <span class="text-sm">YouTube</span>
+                                    </div>
+                                    <span class="text-sm font-semibold text-red-400">2 shorts</span>
+                                </div>
+                            </div>
+                            <h4 class="text-sm font-semibold mb-3 text-brand-muted">Melhores Horarios</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-400">TikTok</span>
+                                    <span class="text-cyan-400 font-medium">11h, 19h, 21h</span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-400">Instagram</span>
+                                    <span class="text-pink-400 font-medium">12h, 18h, 20h</span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-400">YouTube</span>
+                                    <span class="text-red-400 font-medium">14h, 17h</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 pt-4 border-t border-brand-border">
+                                <h4 class="text-sm font-semibold mb-3">Proximos Posts</h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-brand-bg transition-colors cursor-pointer">
+                                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                                        <div>
+                                            <p class="text-xs font-medium">Review Serum</p>
+                                            <p class="text-[10px] text-brand-muted">Hoje, 19h00</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-brand-bg transition-colors cursor-pointer">
+                                        <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                                        <div>
+                                            <p class="text-xs font-medium">Rotina Matinal</p>
+                                            <p class="text-[10px] text-brand-muted">Amanha, 12h00</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-brand-bg transition-colors cursor-pointer">
+                                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                        <div>
+                                            <p class="text-xs font-medium">Unboxing Kit Creator</p>
+                                            <p class="text-[10px] text-brand-muted">Qui, 14h00</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOOL 5: Hashtag Research -->
+            <div x-show="activeTool === 'hashtags'" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="mb-8">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Pesquisa de <span class="gradient-text">Hashtags</span></h1>
+                    <p class="text-brand-muted">Descubra as melhores hashtags para maximizar seu alcance organico.</p>
+                </div>
+
+                <!-- Search -->
+                <div class="bg-brand-card rounded-2xl border border-brand-border p-6 mb-6">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" x-model="hashtagForm.topic" placeholder="Digite o topico ou nicho (ex: skincare, fitness, receitas)"
+                               class="flex-1 bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none"
+                               @keyup.enter="searchHashtags()">
+                        <button @click="searchHashtags()" class="btn-primary px-8 py-3 rounded-xl font-semibold text-white flex items-center gap-2 shrink-0" :disabled="hashtagLoading">
+                            <svg x-show="!hashtagLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <svg x-show="hashtagLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            <span x-text="hashtagLoading ? 'Buscando...' : 'Pesquisar'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div x-show="hashtagLoading" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <template x-for="i in 3">
+                        <div class="bg-brand-card rounded-xl border border-brand-border p-5">
+                            <div class="skeleton h-5 w-32 rounded mb-4"></div>
+                            <template x-for="j in 5"><div class="skeleton h-8 w-full rounded-lg mb-2"></div></template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Results -->
+                <div x-show="hashtagResults.length > 0 && !hashtagLoading">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold">Resultados para "<span class="text-brand-primary" x-text="hashtagForm.lastSearch"></span>"</h3>
+                        <button @click="copyAllHashtags()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-brand-card border border-brand-border hover:border-brand-primary transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            Copiar Todas
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <template x-for="group in hashtagResults" :key="group.category">
+                            <div class="bg-brand-card rounded-2xl border border-brand-border p-5">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="w-3 h-3 rounded-full" :class="{
+                                        'bg-red-500': group.category === 'trending',
+                                        'bg-yellow-500': group.category === 'medium',
+                                        'bg-green-500': group.category === 'niche'
+                                    }"></span>
+                                    <h4 class="font-semibold text-sm" x-text="group.label"></h4>
+                                </div>
+                                <div class="space-y-2">
+                                    <template x-for="tag in group.tags" :key="tag.name">
+                                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-brand-bg group/tag hover:bg-brand-primary/5 transition-colors">
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <span class="text-sm text-brand-primary font-medium truncate" x-text="'#' + tag.name"></span>
+                                            </div>
+                                            <div class="flex items-center gap-3 shrink-0">
+                                                <div class="text-right">
+                                                    <p class="text-[10px] text-brand-muted">Alcance</p>
+                                                    <p class="text-xs font-medium" x-text="tag.reach"></p>
+                                                </div>
+                                                <div class="w-16">
+                                                    <p class="text-[10px] text-brand-muted mb-0.5">Competicao</p>
+                                                    <div class="w-full h-1.5 rounded-full bg-brand-border">
+                                                        <div class="h-full rounded-full" :style="'width:' + tag.competition + '%'"
+                                                             :class="{
+                                                                 'bg-red-500': tag.competition > 70,
+                                                                 'bg-yellow-500': tag.competition > 40 && tag.competition <= 70,
+                                                                 'bg-green-500': tag.competition <= 40
+                                                             }"></div>
+                                                    </div>
+                                                </div>
+                                                <button @click="toggleFavoriteTag(tag.name)" class="copy-btn p-1 rounded-lg" :class="favoriteHashtags.includes(tag.name) ? 'text-yellow-400' : 'text-brand-muted'">
+                                                    <svg class="w-4 h-4" :fill="favoriteHashtags.includes(tag.name) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Favorites -->
+                    <div x-show="favoriteHashtags.length > 0" class="mt-6 bg-brand-card rounded-2xl border border-brand-border p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                                Favoritos
+                            </h4>
+                            <button @click="copyText(favoriteHashtags.map(t => '#' + t).join(' '))" class="text-xs text-brand-primary hover:underline">Copiar favoritos</button>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="fav in favoriteHashtags">
+                                <span class="tag-badge text-xs px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 cursor-pointer" x-text="'#' + fav" @click="toggleFavoriteTag(fav)"></span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOOL 6: Video Brief Builder -->
+            <div x-show="activeTool === 'briefs'" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="mb-8">
+                    <h1 class="text-2xl sm:text-3xl font-bold mb-2">Construtor de <span class="gradient-text">Briefings</span></h1>
+                    <p class="text-brand-muted">Monte briefings profissionais passo a passo para suas producoes de video.</p>
+                </div>
+
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Wizard -->
+                    <div class="flex-1">
+                        <!-- Step Indicator -->
+                        <div class="flex items-center gap-0 mb-8">
+                            <template x-for="(step, idx) in briefSteps" :key="idx">
+                                <div class="flex items-center" :class="idx < briefSteps.length - 1 ? 'flex-1' : ''">
+                                    <button @click="briefStep = idx + 1"
+                                            class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all shrink-0"
+                                            :class="briefStep === idx + 1 ? 'bg-gradient-to-r from-brand-primary to-brand-accent text-white pulse-glow' : briefStep > idx + 1 ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-brand-card text-brand-muted border border-brand-border'"
+                                            x-text="briefStep > idx + 1 ? '✓' : idx + 1"></button>
+                                    <div x-show="idx < briefSteps.length - 1" class="flex-1 h-0.5 mx-2" :class="briefStep > idx + 1 ? 'bg-green-500/30' : 'bg-brand-border'"></div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Step 1: Brand & Product -->
+                        <div x-show="briefStep === 1" class="bg-brand-card rounded-2xl border border-brand-border p-6 wizard-step">
+                            <h3 class="text-lg font-semibold mb-1" x-text="briefSteps[0].title"></h3>
+                            <p class="text-sm text-brand-muted mb-6" x-text="briefSteps[0].desc"></p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome da Marca</label>
+                                    <input type="text" x-model="briefForm.brandName" placeholder="Ex: Yav Health"
+                                           class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome do Produto</label>
+                                    <input type="text" x-model="briefForm.productName" placeholder="Ex: Serum Vitamina C 30ml"
+                                           class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Categoria</label>
+                                    <select x-model="briefForm.category" class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none appearance-none">
+                                        <option value="">Selecione...</option>
+                                        <option value="beleza">Beleza & Skincare</option>
+                                        <option value="saude">Saude & Bem-estar</option>
+                                        <option value="moda">Moda & Acessorios</option>
+                                        <option value="tech">Tecnologia</option>
+                                        <option value="food">Alimentacao</option>
+                                        <option value="fitness">Fitness</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Descricao do Produto</label>
+                                    <textarea x-model="briefForm.productDesc" rows="3" placeholder="Descreva brevemente o produto e seus diferenciais..."
+                                              class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Target Audience -->
+                        <div x-show="briefStep === 2" class="bg-brand-card rounded-2xl border border-brand-border p-6 wizard-step">
+                            <h3 class="text-lg font-semibold mb-1" x-text="briefSteps[1].title"></h3>
+                            <p class="text-sm text-brand-muted mb-6" x-text="briefSteps[1].desc"></p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Publico-Alvo</label>
+                                    <input type="text" x-model="briefForm.targetAudience" placeholder="Ex: Mulheres 25-40 anos interessadas em skincare"
+                                           class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Mensagem Principal</label>
+                                    <textarea x-model="briefForm.mainMessage" rows="2" placeholder="Qual a mensagem central que o video deve transmitir?"
+                                              class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Tom de Comunicacao</label>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="tone in ['Divertido','Educativo','Inspirador','Urgente','Elegante','Jovem']">
+                                            <button @click="briefForm.tone = tone"
+                                                    class="px-4 py-2 rounded-xl text-xs font-medium border transition-all"
+                                                    :class="briefForm.tone === tone ? 'border-brand-primary bg-brand-primary/10 text-white' : 'border-brand-border text-brand-muted hover:text-white'"
+                                                    x-text="tone"></button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Pontos que DEVE mencionar</label>
+                                    <textarea x-model="briefForm.mustMention" rows="2" placeholder="Ex: Ingredientes naturais, resultado em 7 dias, garantia..."
+                                              class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Visual Requirements -->
+                        <div x-show="briefStep === 3" class="bg-brand-card rounded-2xl border border-brand-border p-6 wizard-step">
+                            <h3 class="text-lg font-semibold mb-1" x-text="briefSteps[2].title"></h3>
+                            <p class="text-sm text-brand-muted mb-6" x-text="briefSteps[2].desc"></p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Formato do Video</label>
+                                    <div class="flex gap-2">
+                                        <template x-for="fmt in [{id:'vertical',label:'Vertical 9:16'},{id:'square',label:'Quadrado 1:1'},{id:'horizontal',label:'Horizontal 16:9'}]">
+                                            <button @click="briefForm.format = fmt.id"
+                                                    class="flex-1 px-3 py-3 rounded-xl text-xs font-medium border transition-all text-center"
+                                                    :class="briefForm.format === fmt.id ? 'border-brand-primary bg-brand-primary/10 text-white' : 'border-brand-border text-brand-muted hover:text-white'"
+                                                    x-text="fmt.label"></button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Duracao</label>
+                                    <select x-model="briefForm.duration" class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none appearance-none">
+                                        <option value="15s">15 segundos</option>
+                                        <option value="30s">30 segundos</option>
+                                        <option value="60s">60 segundos</option>
+                                        <option value="90s">90 segundos</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Cenario Recomendado</label>
+                                    <input type="text" x-model="briefForm.setting" placeholder="Ex: Banheiro clean, luz natural, fundo neutro"
+                                           class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">O que NAO fazer</label>
+                                    <textarea x-model="briefForm.dontDo" rows="2" placeholder="Ex: Nao mencionar concorrentes, nao fazer claims medicos..."
+                                              class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Referencia de Estilo</label>
+                                    <input type="text" x-model="briefForm.styleRef" placeholder="Link de video referencia ou descricao do estilo"
+                                           class="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Review -->
+                        <div x-show="briefStep === 4" class="bg-brand-card rounded-2xl border border-brand-border p-6 wizard-step">
+                            <h3 class="text-lg font-semibold mb-1" x-text="briefSteps[3].title"></h3>
+                            <p class="text-sm text-brand-muted mb-6" x-text="briefSteps[3].desc"></p>
+
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-xl bg-brand-bg">
+                                    <p class="text-xs text-brand-muted mb-1">Marca / Produto</p>
+                                    <p class="text-sm font-medium"><span x-text="briefForm.brandName || '-'"></span> — <span x-text="briefForm.productName || '-'"></span></p>
+                                </div>
+                                <div class="p-4 rounded-xl bg-brand-bg">
+                                    <p class="text-xs text-brand-muted mb-1">Categoria</p>
+                                    <p class="text-sm font-medium" x-text="briefForm.category || '-'"></p>
+                                </div>
+                                <div class="p-4 rounded-xl bg-brand-bg">
+                                    <p class="text-xs text-brand-muted mb-1">Publico-Alvo</p>
+                                    <p class="text-sm font-medium" x-text="briefForm.targetAudience || '-'"></p>
+                                </div>
+                                <div class="p-4 rounded-xl bg-brand-bg">
+                                    <p class="text-xs text-brand-muted mb-1">Mensagem Principal</p>
+                                    <p class="text-sm font-medium" x-text="briefForm.mainMessage || '-'"></p>
+                                </div>
+                                <div class="p-4 rounded-xl bg-brand-bg">
+                                    <p class="text-xs text-brand-muted mb-1">Tom / Formato / Duracao</p>
+                                    <p class="text-sm font-medium"><span x-text="briefForm.tone || '-'"></span> | <span x-text="briefForm.format || '-'"></span> | <span x-text="briefForm.duration || '-'"></span></p>
+                                </div>
+                            </div>
+
+                            <button @click="exportBrief()" class="btn-primary w-full mt-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Exportar Briefing
+                            </button>
+                        </div>
+
+                        <!-- Nav Buttons -->
+                        <div class="flex justify-between mt-6">
+                            <button x-show="briefStep > 1" @click="briefStep--"
+                                    class="px-6 py-2.5 rounded-xl text-sm font-medium border border-brand-border text-brand-muted hover:text-white hover:border-brand-primary transition-all">
+                                Voltar
+                            </button>
+                            <div x-show="briefStep === 1"></div>
+                            <button x-show="briefStep < 4" @click="briefStep++"
+                                    class="btn-primary px-8 py-2.5 rounded-xl text-sm font-semibold text-white">
+                                Proximo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preview Panel -->
+                    <div class="lg:w-80 shrink-0">
+                        <div class="bg-brand-card rounded-2xl border border-brand-border p-6 lg:sticky lg:top-24">
+                            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Preview do Briefing
+                            </h3>
+
+                            <div class="space-y-3 text-sm">
+                                <div class="pb-3 border-b border-brand-border">
+                                    <p class="text-[10px] text-brand-muted uppercase tracking-wider mb-1">Marca</p>
+                                    <p class="font-medium" x-text="briefForm.brandName || 'Nao informado'"></p>
+                                </div>
+                                <div class="pb-3 border-b border-brand-border">
+                                    <p class="text-[10px] text-brand-muted uppercase tracking-wider mb-1">Produto</p>
+                                    <p class="font-medium" x-text="briefForm.productName || 'Nao informado'"></p>
+                                </div>
+                                <div class="pb-3 border-b border-brand-border">
+                                    <p class="text-[10px] text-brand-muted uppercase tracking-wider mb-1">Publico</p>
+                                    <p class="font-medium" x-text="briefForm.targetAudience || 'Nao informado'"></p>
+                                </div>
+                                <div class="pb-3 border-b border-brand-border">
+                                    <p class="text-[10px] text-brand-muted uppercase tracking-wider mb-1">Mensagem</p>
+                                    <p class="font-medium" x-text="briefForm.mainMessage || 'Nao informado'"></p>
+                                </div>
+                                <div class="pb-3 border-b border-brand-border">
+                                    <p class="text-[10px] text-brand-muted uppercase tracking-wider mb-1">Tom</p>
+                                    <p class="font-medium" x-text="briefForm.tone || 'Nao informado'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-brand-muted uppercase tracking-wider mb-1">Formato</p>
+                                    <p class="font-medium"><span x-text="briefForm.format || '-'"></span> | <span x-text="briefForm.duration || '-'"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 p-3 rounded-xl bg-brand-primary/5 border border-brand-primary/10">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-brand-primary"></div>
+                                    <span class="text-[10px] font-semibold text-brand-primary uppercase">Progresso</span>
+                                </div>
+                                <div class="w-full h-1.5 rounded-full bg-brand-border mt-2">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-brand-primary to-brand-accent transition-all duration-500"
+                                         :style="'width:' + (briefStep / 4 * 100) + '%'"></div>
+                                </div>
+                                <p class="text-[10px] text-brand-muted mt-1" x-text="'Etapa ' + briefStep + ' de 4'"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-brand-border mt-12 py-6">
+        <div class="max-w-[1600px] mx-auto px-6 flex items-center justify-between">
+            <p class="text-xs text-brand-muted">Brandly Platform — Ferramentas de Criacao de Conteudo</p>
+            <p class="text-xs text-brand-muted">Powered by IA</p>
+        </div>
+    </footer>
+
+    <script>
+    function toolsApp() {
+        return {
+            activeTool: 'scripts',
+            toasts: [],
+            toastId: 0,
+
+            tools: [
+                { id: 'scripts', name: 'Gerador de Roteiros', icon: '⚡' },
+                { id: 'captions', name: 'Gerador de Legendas', icon: '💬' },
+                { id: 'thumbnails', name: 'Criador de Thumbnails', icon: '🎨' },
+                { id: 'calendar', name: 'Calendario de Conteudo', icon: '📅' },
+                { id: 'hashtags', name: 'Pesquisa de Hashtags', icon: '#️⃣' },
+                { id: 'briefs', name: 'Construtor de Briefings', icon: '📋' },
+            ],
+
+            // Script Generator
+            scriptForm: {
+                product: 'Serum Vitamina C Yav Health',
+                audience: 'Mulheres 25-40 anos, interessadas em skincare natural',
+                platform: 'tiktok',
+                tone: 'casual',
+                benefits: 'Clareamento de manchas em 7 dias, ingredientes 100% naturais, textura leve nao oleosa, vitamina C pura 20%'
+            },
+            scriptLoading: false,
+            scriptResults: [],
+            scriptFilter: 'all',
+
+            // Caption Generator
+            captionForm: {
+                topic: 'Review do Serum Vitamina C - antes e depois de 7 dias',
+                platform: 'tiktok',
+                hashtagStyle: 'mix',
+                emojiLevel: 'medium'
+            },
+            captionLoading: false,
+            captionResults: [],
+
+            // Thumbnail Creator
+            thumbForm: {
+                title: 'RESULTADO REAL',
+                subtitle: '7 dias usando Vitamina C',
+                fontSize: 42,
+                textColor: '#FFFFFF',
+                background: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)'
+            },
+            thumbBackgrounds: [
+                { value: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)' },
+                { value: 'linear-gradient(135deg, #F093FB 0%, #F5576C 100%)' },
+                { value: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' },
+                { value: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)' },
+                { value: 'linear-gradient(135deg, #FA709A 0%, #FEE140 100%)' },
+                { value: '#0A0A0A' },
+            ],
+            thumbTemplates: [
+                { title: 'RESULTADO INCRIVEL', subtitle: 'Assista ate o final', background: 'linear-gradient(135deg, #667EEA, #764BA2)', textColor: '#FFFFFF', fontSize: 38 },
+                { title: 'ANTES E DEPOIS', subtitle: '7 dias de uso', background: 'linear-gradient(135deg, #F093FB, #F5576C)', textColor: '#FFFFFF', fontSize: 40 },
+                { title: 'TOP 5 PRODUTOS', subtitle: 'Que realmente funcionam', background: '#0A0A0A', textColor: '#F59E0B', fontSize: 42 },
+                { title: 'NAO COMPRE ANTES', subtitle: 'de ver esse video', background: 'linear-gradient(135deg, #FA709A, #FEE140)', textColor: '#FFFFFF', fontSize: 36 },
+                { title: 'REVIEW HONESTO', subtitle: 'Vale a pena?', background: 'linear-gradient(135deg, #4FACFE, #00F2FE)', textColor: '#FFFFFF', fontSize: 40 },
+                { title: 'SEGREDO REVELADO', subtitle: 'As marcas nao querem que voce saiba', background: 'linear-gradient(135deg, #43E97B, #38F9D7)', textColor: '#0A0A0A', fontSize: 34 },
+            ],
+
+            // Content Calendar
+            calendarMonth: new Date().getMonth(),
+            calendarYear: new Date().getFullYear(),
+            monthNames: ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+
+            calendarEvents: [
+                { day: 3, title: 'Review Serum', platform: 'tiktok' },
+                { day: 3, title: 'Rotina AM', platform: 'instagram' },
+                { day: 5, title: 'Unboxing Kit', platform: 'youtube' },
+                { day: 7, title: 'Dica Skincare', platform: 'tiktok' },
+                { day: 8, title: 'Reels BTS', platform: 'instagram' },
+                { day: 10, title: 'Tutorial', platform: 'tiktok' },
+                { day: 10, title: 'Antes/Depois', platform: 'instagram' },
+                { day: 12, title: 'FAQ Produto', platform: 'youtube' },
+                { day: 14, title: 'Trend Alert', platform: 'tiktok' },
+                { day: 15, title: 'Sorteio', platform: 'instagram' },
+                { day: 17, title: 'POV Creator', platform: 'tiktok' },
+                { day: 19, title: 'Collab Video', platform: 'youtube' },
+                { day: 20, title: 'GRWM', platform: 'tiktok' },
+                { day: 20, title: 'Carrossel Tips', platform: 'instagram' },
+                { day: 22, title: '5 Erros', platform: 'tiktok' },
+                { day: 24, title: 'Review 2', platform: 'tiktok' },
+                { day: 25, title: 'Rotina PM', platform: 'instagram' },
+                { day: 27, title: 'Comparativo', platform: 'youtube' },
+                { day: 28, title: 'Hack Creator', platform: 'tiktok' },
+            ],
+
+            bestTimes: { 1: '19h', 3: '21h', 5: '14h', 8: '18h', 10: '11h', 12: '17h', 14: '19h', 17: '21h', 20: '11h', 22: '19h', 24: '21h', 27: '14h' },
+
+            // Hashtag Research
+            hashtagForm: { topic: 'skincare vitamina c', lastSearch: 'skincare vitamina c' },
+            hashtagLoading: false,
+            hashtagResults: [],
+            favoriteHashtags: [],
+
+            // Brief Builder
+            briefStep: 1,
+            briefSteps: [
+                { title: 'Marca & Produto', desc: 'Informacoes basicas sobre a marca e o produto' },
+                { title: 'Publico & Mensagem', desc: 'Defina o publico-alvo e a mensagem central' },
+                { title: 'Requisitos Visuais', desc: 'Formato, duracao e diretrizes visuais' },
+                { title: 'Revisao & Exportar', desc: 'Confira tudo e exporte o briefing final' },
+            ],
+            briefForm: {
+                brandName: 'Yav Health',
+                productName: 'Serum Vitamina C 30ml',
+                category: 'beleza',
+                productDesc: 'Serum facial com Vitamina C pura 20%, textura leve, resultados visiveis em 7 dias. 100% natural, vegano e cruelty-free.',
+                targetAudience: 'Mulheres 25-40 anos, classe B/C, interessadas em skincare acessivel e natural',
+                mainMessage: 'Pele radiante e sem manchas em apenas 7 dias com ingredientes naturais que voce pode confiar',
+                tone: 'Divertido',
+                mustMention: 'Vitamina C pura 20%, resultado em 7 dias, 100% natural, vegano, garantia de 30 dias',
+                format: 'vertical',
+                duration: '30s',
+                setting: 'Banheiro clean com luz natural, bancada organizada, fundo neutro',
+                dontDo: 'Nao fazer claims medicos, nao mencionar concorrentes, nao usar filtros pesados',
+                styleRef: 'Estilo @skincarebyhyram - casual, educativo, close no produto'
+            },
+
+            init() {
+                // Pre-fill with mock data on load
+                this.generateScripts();
+                this.generateCaptions();
+                this.searchHashtags();
+
+                // GSAP entrance
+                gsap.from('.gradient-text', { opacity: 0, y: 20, duration: 0.8, ease: 'power3.out' });
+            },
+
+            selectTool(id) {
+                this.activeTool = id;
+                gsap.fromTo(this.$refs.toolContent, { opacity: 0.5, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+            },
+
+            showToast(message, type = 'info') {
+                const id = ++this.toastId;
+                this.toasts.push({ id, message, type, leaving: false });
+                setTimeout(() => {
+                    const t = this.toasts.find(t => t.id === id);
+                    if (t) t.leaving = true;
+                    setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 300);
+                }, 2500);
+            },
+
+            copyText(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    this.showToast('Copiado para a area de transferencia!', 'success');
+                }).catch(() => {
+                    this.showToast('Copiado!', 'success');
+                });
+            },
+
+            // --- Script Generator ---
+            get filteredScripts() {
+                if (this.scriptFilter === 'all') return this.scriptResults;
+                const hookNum = parseInt(this.scriptFilter.split('-')[1]);
+                return this.scriptResults.filter(s => s.hook === hookNum);
+            },
+
+            generateScripts() {
+                this.scriptLoading = true;
+                this.scriptResults = [];
+                setTimeout(() => {
+                    const hooks = [
+                        'Gente, eu nao acreditei quando vi o resultado em 7 dias!',
+                        'Se voce tem manchas no rosto, para tudo e assiste esse video.',
+                        'Eu testei o produto mais hypado do TikTok e olha no que deu...'
+                    ];
+                    const bodies = [
+                        'Esse serum de Vitamina C tem 20% de concentracao pura, que e o padrao ouro pra clareamento. A textura e levinha, absorve rapido e nao deixa oleoso. Em 7 dias minhas manchas de sol ja clarearam visivelmente.',
+                        'Eu ja testei MUITOS serums e esse e diferente porque e 100% natural e vegano. A formula penetra na pele sem ressecar e o resultado aparece rapido. Minha pele ficou mais luminosa logo na primeira semana.',
+                        'O segredo ta na formula: Vitamina C pura + ingredientes naturais que trabalham juntos. Nao e desses produtos que voce usa 3 meses e nao ve nada. Aqui o resultado e real e rapido.'
+                    ];
+                    const ctas = [
+                        'Link na bio pra voce garantir o seu! Os primeiros 50 tem frete gratis.',
+                        'Comenta "EU QUERO" que eu te mando o link direto! Vai acabar rapido.',
+                        'Salva esse video pra nao esquecer e segue pra mais dicas de skincare que funcionam de verdade!'
+                    ];
+
+                    const results = [];
+                    for (let h = 0; h < 3; h++) {
+                        for (let b = 0; b < 3; b++) {
+                            for (let c = 0; c < 3; c++) {
+                                results.push({
+                                    hook: h + 1, body: b + 1, cta: c + 1,
+                                    hookText: hooks[h], bodyText: bodies[b], ctaText: ctas[c]
+                                });
+                            }
+                        }
+                    }
+                    this.scriptResults = results;
+                    this.scriptLoading = false;
+                    this.showToast('27 roteiros gerados com sucesso!', 'success');
+                }, 1800);
+            },
+
+            // --- Caption Generator ---
+            generateCaptions() {
+                this.captionLoading = true;
+                this.captionResults = [];
+                setTimeout(() => {
+                    this.captionResults = [
+                        {
+                            text: 'Gente, 7 dias usando Vitamina C e minha pele MUDOU completamente! Swiipa pro lado pra ver o antes e depois. Nao e filtro, e resultado real de um serum que custa menos de R$50.',
+                            hashtags: ['skincare','vitaminac','antesedepois','cuidadoscomapele','pelesaudavel','glowup','rotinaskincare']
+                        },
+                        {
+                            text: 'POV: voce descobre que Vitamina C muda o jogo da sua pele e agora nao consegue parar de falar sobre isso pra todo mundo.\n\nResultado REAL em 7 dias. Sem filtro, sem edicao.',
+                            hashtags: ['povtiktok','skincarebrasil','vitaminacserum','manchasnorosto','peledossonhos','dicadeskincare']
+                        },
+                        {
+                            text: 'To chocada com esse antes e depois! 7 dias de Vitamina C e minhas manchas de sol sumiram. O serum e natural, vegano e nao custa uma fortuna. Quem quer o link?',
+                            hashtags: ['antesedepois7dias','serumfacial','clareamentodepele','skincareacessivel','vegano','crueltyfree']
+                        },
+                        {
+                            text: 'Descobre comigo: sera que Vitamina C realmente funciona?\n\nTestei por 7 dias e filmei TUDO. O resultado ta nesse video.\n\nSpoiler: funcionou DEMAIS.',
+                            hashtags: ['testeproduto','reviewhonesto','skincaretiktok','vitamicac20','pelesemmancha','glownatural']
+                        },
+                        {
+                            text: 'Se alguem tivesse me falado que um serum de Vitamina C ia mudar minha pele assim, eu nao teria acreditado. Mas ta ai a prova! 7 dias, resultado real. Link na bio!',
+                            hashtags: ['skincarereal','produtoquefunciona','rotinafacial','dicadebeleza','pelediva','cuidadodiario']
+                        }
+                    ];
+                    this.captionLoading = false;
+                    this.showToast('5 legendas geradas!', 'success');
+                }, 1500);
+            },
+
+            // --- Thumbnail ---
+            applyThumbTemplate(tpl) {
+                this.thumbForm.title = tpl.title;
+                this.thumbForm.subtitle = tpl.subtitle;
+                this.thumbForm.background = tpl.background;
+                this.thumbForm.textColor = tpl.textColor;
+                this.thumbForm.fontSize = tpl.fontSize;
+                this.showToast('Template aplicado!', 'success');
+            },
+
+            // --- Calendar ---
+            get calendarDays() {
+                const firstDay = new Date(this.calendarYear, this.calendarMonth, 1).getDay();
+                const daysInMonth = new Date(this.calendarYear, this.calendarMonth + 1, 0).getDate();
+                const daysInPrevMonth = new Date(this.calendarYear, this.calendarMonth, 0).getDate();
+                const today = new Date();
+                const days = [];
+
+                // Previous month
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    days.push({ key: 'p' + i, num: daysInPrevMonth - i, isCurrentMonth: false, isToday: false, events: [], bestTime: null });
+                }
+                // Current month
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const isToday = d === today.getDate() && this.calendarMonth === today.getMonth() && this.calendarYear === today.getFullYear();
+                    const events = this.calendarEvents.filter(e => e.day === d);
+                    days.push({ key: 'c' + d, num: d, isCurrentMonth: true, isToday, events, bestTime: this.bestTimes[d] || null });
+                }
+                // Next month fill
+                const remaining = 42 - days.length;
+                for (let i = 1; i <= remaining; i++) {
+                    days.push({ key: 'n' + i, num: i, isCurrentMonth: false, isToday: false, events: [], bestTime: null });
+                }
+                return days;
+            },
+
+            // --- Hashtag Research ---
+            searchHashtags() {
+                this.hashtagLoading = true;
+                this.hashtagResults = [];
+                this.hashtagForm.lastSearch = this.hashtagForm.topic;
+                setTimeout(() => {
+                    this.hashtagResults = [
+                        {
+                            category: 'trending',
+                            label: 'Em Alta (Alta Competicao)',
+                            tags: [
+                                { name: 'skincare', reach: '12.5B', competition: 92 },
+                                { name: 'vitaminac', reach: '890M', competition: 78 },
+                                { name: 'glowup', reach: '2.1B', competition: 85 },
+                                { name: 'rotinaskincare', reach: '450M', competition: 75 },
+                                { name: 'cuidadoscomapele', reach: '320M', competition: 72 },
+                            ]
+                        },
+                        {
+                            category: 'medium',
+                            label: 'Competicao Media',
+                            tags: [
+                                { name: 'serumvitaminac', reach: '45M', competition: 55 },
+                                { name: 'antesedepois7dias', reach: '28M', competition: 48 },
+                                { name: 'skincareacessivel', reach: '18M', competition: 42 },
+                                { name: 'pelesemmancha', reach: '22M', competition: 50 },
+                                { name: 'dicadeskincare', reach: '35M', competition: 58 },
+                            ]
+                        },
+                        {
+                            category: 'niche',
+                            label: 'Nicho (Baixa Competicao)',
+                            tags: [
+                                { name: 'vitaminacpura20', reach: '1.2M', competition: 15 },
+                                { name: 'serumnatural', reach: '3.5M', competition: 28 },
+                                { name: 'skincarevegano', reach: '5.8M', competition: 32 },
+                                { name: 'clareamentonatural', reach: '2.1M', competition: 22 },
+                                { name: 'peledossonhos', reach: '4.3M', competition: 35 },
+                            ]
+                        }
+                    ];
+                    this.hashtagLoading = false;
+                    this.showToast('15 hashtags encontradas!', 'success');
+                }, 1400);
+            },
+
+            toggleFavoriteTag(name) {
+                const idx = this.favoriteHashtags.indexOf(name);
+                if (idx > -1) {
+                    this.favoriteHashtags.splice(idx, 1);
+                } else {
+                    this.favoriteHashtags.push(name);
+                    this.showToast('#' + name + ' adicionada aos favoritos!', 'success');
+                }
+            },
+
+            copyAllHashtags() {
+                const all = this.hashtagResults.flatMap(g => g.tags.map(t => '#' + t.name));
+                this.copyText(all.join(' '));
+            },
+
+            // --- Brief Builder ---
+            exportBrief() {
+                const text = `BRIEFING DE VIDEO — BRANDLY\n================================\n\nMARCA: ${this.briefForm.brandName}\nPRODUTO: ${this.briefForm.productName}\nCATEGORIA: ${this.briefForm.category}\n\nDESCRICAO:\n${this.briefForm.productDesc}\n\nPUBLICO-ALVO: ${this.briefForm.targetAudience}\nMENSAGEM PRINCIPAL: ${this.briefForm.mainMessage}\nTOM: ${this.briefForm.tone}\n\nDEVE MENCIONAR:\n${this.briefForm.mustMention}\n\nFORMATO: ${this.briefForm.format}\nDURACAO: ${this.briefForm.duration}\nCENARIO: ${this.briefForm.setting}\n\nNAO FAZER:\n${this.briefForm.dontDo}\n\nREFERENCIA DE ESTILO: ${this.briefForm.styleRef}\n\n================================\nGerado por Brandly Platform`;
+                this.copyText(text);
+                this.showToast('Briefing exportado e copiado!', 'success');
+            }
+        }
+    }
+    </script>
+</body>
+</html>

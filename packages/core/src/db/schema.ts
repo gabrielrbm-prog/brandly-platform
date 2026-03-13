@@ -320,6 +320,93 @@ export const socialAccounts = pgTable('social_accounts', {
 ]);
 
 // ============================================
+// CAMPANHAS
+// ============================================
+export const campaignStatusEnum = pgEnum('campaign_status', ['draft', 'active', 'paused', 'completed']);
+export const campaignCreatorStatusEnum = pgEnum('campaign_creator_status', ['invited', 'accepted', 'declined', 'removed']);
+export const campaignVideoStatusEnum = pgEnum('campaign_video_status', ['pending', 'approved', 'rejected']);
+
+export const campaigns = pgTable('campaigns', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  brandId: uuid('brand_id').references(() => brands.id).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  budget: decimal('budget', { precision: 14, scale: 2 }).notNull(),
+  spent: decimal('spent', { precision: 14, scale: 2 }).notNull().default('0'),
+  targetVideos: integer('target_videos').notNull(),
+  status: campaignStatusEnum('status').notNull().default('draft'),
+  briefing: text('briefing'),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('campaigns_brand_idx').on(table.brandId),
+  index('campaigns_status_idx').on(table.status),
+  index('campaigns_dates_idx').on(table.startDate, table.endDate),
+]);
+
+export const campaignCreators = pgTable('campaign_creators', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  campaignId: uuid('campaign_id').references(() => campaigns.id).notNull(),
+  creatorId: uuid('creator_id').references(() => users.id).notNull(),
+  status: campaignCreatorStatusEnum('status').notNull().default('invited'),
+  assignedAt: timestamp('assigned_at').defaultNow().notNull(),
+}, (table) => [
+  index('campaign_creators_campaign_idx').on(table.campaignId),
+  index('campaign_creators_creator_idx').on(table.creatorId),
+]);
+
+export const campaignVideos = pgTable('campaign_videos', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  campaignId: uuid('campaign_id').references(() => campaigns.id).notNull(),
+  videoId: uuid('video_id').references(() => videos.id).notNull(),
+  status: campaignVideoStatusEnum('status').notNull().default('pending'),
+}, (table) => [
+  index('campaign_videos_campaign_idx').on(table.campaignId),
+  index('campaign_videos_video_idx').on(table.videoId),
+]);
+
+// ============================================
+// INTEGRACOES EXTERNAS
+// ============================================
+export const integrationProviderEnum = pgEnum('integration_provider', ['tiktok', 'instagram', 'youtube']);
+
+export const integrations = pgTable('integrations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  provider: integrationProviderEnum('provider').notNull(),
+  providerUserId: varchar('provider_user_id', { length: 255 }).notNull(),
+  accessToken: text('access_token').notNull(),
+  refreshToken: text('refresh_token'),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+  connectedAt: timestamp('connected_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'),
+}, (table) => [
+  index('integrations_user_idx').on(table.userId),
+  index('integrations_provider_idx').on(table.provider),
+]);
+
+// ============================================
+// GERACOES DE CONTEUDO IA
+// ============================================
+export const contentGenerationTypeEnum = pgEnum('content_generation_type', ['script', 'caption', 'hashtags', 'video_analysis']);
+
+export const contentGenerations = pgTable('content_generations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  type: contentGenerationTypeEnum('type').notNull(),
+  input: jsonb('input').$type<Record<string, unknown>>().notNull(),
+  output: jsonb('output').$type<Record<string, unknown>>().notNull(),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  tokensUsed: integer('tokens_used').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('content_generations_user_idx').on(table.userId),
+  index('content_generations_type_idx').on(table.type),
+]);
+
+// ============================================
 // ROTEIROS IA
 // ============================================
 export const scripts = pgTable('scripts', {

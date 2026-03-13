@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brandly — Dashboard de Marcas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { bg: '#0A0A0A', card: '#111111', border: '#1E1E1E', hover: '#1A1A1A' },
+        primary: { DEFAULT: '#667EEA', light: '#8B9CF7', dark: '#4C63D2' },
+        accent: { DEFAULT: '#764BA2', light: '#9B6FC4' },
+      }
+    }
+  }
+}
+</script>
+<style>
+[x-cloak]{display:none!important}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#0A0A0A}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#555}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#0A0A0A;color:#E5E5E5}
+.gradient-text{background:linear-gradient(135deg,#667EEA,#764BA2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.gradient-border{border:1px solid transparent;background-clip:padding-box;position:relative}
+.gradient-border::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(135deg,#667EEA33,#764BA233);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.pulse-dot{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body x-data="dashboard()" x-cloak>
+
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 bottom-0 w-64 bg-brand-card border-r border-brand-border z-40 flex flex-col">
+  <div class="p-6 border-b border-brand-border">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold gradient-text">Brandly</h1>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Painel da Marca</p>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+    <template x-for="item in navItems" :key="item.id">
+      <button @click="currentPage=item.id" :class="currentPage===item.id?'bg-primary/10 text-primary border-primary/30':'text-gray-400 border-transparent hover:bg-brand-hover hover:text-gray-200'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border">
+        <span x-html="item.icon" class="w-5 h-5 flex-shrink-0"></span>
+        <span x-text="item.label"></span>
+        <span x-show="item.badge" x-text="item.badge" class="ml-auto text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full"></span>
+      </button>
+    </template>
+  </nav>
+  <div class="p-4 border-t border-brand-border">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white">YH</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium truncate">Yav Health</p>
+        <p class="text-[11px] text-gray-500">Plano Premium</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="ml-64 min-h-screen">
+  <!-- HEADER -->
+  <header class="sticky top-0 z-30 bg-brand-bg/80 backdrop-blur-xl border-b border-brand-border px-8 py-4 flex items-center justify-between">
+    <div>
+      <h2 class="text-xl font-bold" x-text="navItems.find(n=>n.id===currentPage)?.label"></h2>
+      <p class="text-sm text-gray-500">13 de Março, 2026</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="relative">
+        <input type="text" placeholder="Buscar..." class="bg-brand-card border border-brand-border rounded-lg pl-9 pr-4 py-2 text-sm text-gray-300 w-64 focus:outline-none focus:border-primary/50">
+        <svg class="w-4 h-4 text-gray-500 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+      <button class="relative p-2 text-gray-400 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full pulse-dot"></span>
+      </button>
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white cursor-pointer">YH</div>
+    </div>
+  </header>
+
+  <div class="p-8">
+    <!-- OVERVIEW -->
+    <div x-show="currentPage==='overview'" x-transition class="fade-in">
+      <!-- KPIs -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <template x-for="kpi in kpis" :key="kpi.label">
+          <div class="bg-brand-card rounded-xl border border-brand-border p-5 gradient-border">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs text-gray-500 uppercase tracking-wider" x-text="kpi.label"></span>
+              <span :class="kpi.trend>0?'text-emerald-400':'text-red-400'" class="text-xs font-medium" x-text="(kpi.trend>0?'+':'')+kpi.trend+'%'"></span>
+            </div>
+            <p class="text-2xl font-bold" x-text="kpi.value"></p>
+          </div>
+        </template>
+      </div>
+      <!-- Charts row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2 bg-brand-card rounded-xl border border-brand-border p-6">
+          <h3 class="text-sm font-semibold mb-4">Receita — Últimos 6 Meses</h3>
+          <canvas id="revenueChart" height="220"></canvas>
+        </div>
+        <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+          <h3 class="text-sm font-semibold mb-4">Status das Campanhas</h3>
+          <canvas id="campaignPieChart" height="220"></canvas>
+        </div>
+      </div>
+      <!-- Top creators + activity -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-brand-card rounded-xl border border-brand-border p-6">
+          <h3 class="text-sm font-semibold mb-4">Top Creators por Performance</h3>
+          <table class="w-full text-sm">
+            <thead><tr class="text-gray-500 text-xs uppercase"><th class="text-left pb-3">Creator</th><th class="text-left pb-3">Nível</th><th class="text-right pb-3">Vídeos</th><th class="text-right pb-3">Views</th><th class="text-right pb-3">Vendas</th></tr></thead>
+            <tbody>
+              <template x-for="c in topCreators" :key="c.name">
+                <tr class="border-t border-brand-border">
+                  <td class="py-3 flex items-center gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" :style="'background:'+c.color" x-text="c.initials"></div><span x-text="c.name"></span></td>
+                  <td><span class="px-2 py-0.5 rounded text-xs" :class="levelClass(c.level)" x-text="c.level"></span></td>
+                  <td class="text-right" x-text="c.videos"></td>
+                  <td class="text-right" x-text="formatNum(c.views)"></td>
+                  <td class="text-right text-emerald-400" x-text="'R$ '+formatNum(c.sales)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+          <h3 class="text-sm font-semibold mb-4">Atividade Recente</h3>
+          <div class="space-y-4">
+            <template x-for="a in activities" :key="a.id">
+              <div class="flex gap-3">
+                <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" :class="a.dotColor"></div>
+                <div>
+                  <p class="text-sm" x-text="a.text"></p>
+                  <p class="text-xs text-gray-500" x-text="a.time"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATORS -->
+    <div x-show="currentPage==='creators'" x-transition class="fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex gap-3">
+          <input type="text" x-model="creatorSearch" placeholder="Buscar creator..." class="bg-brand-card border border-brand-border rounded-lg px-4 py-2 text-sm w-64 focus:outline-none focus:border-primary/50">
+          <select x-model="creatorLevelFilter" class="bg-brand-card border border-brand-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50">
+            <option value="">Todos os Níveis</option>
+            <option>Seed</option><option>Spark</option><option>Flow</option><option>Iconic</option><option>Vision</option><option>Empire</option><option>Infinity</option>
+          </select>
+          <select x-model="creatorStatusFilter" class="bg-brand-card border border-brand-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary/50">
+            <option value="">Todos os Status</option>
+            <option value="active">Ativo</option><option value="pending">Pendente</option><option value="inactive">Inativo</option>
+          </select>
+        </div>
+        <span class="text-sm text-gray-500" x-text="filteredCreators.length+' creators'"></span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <template x-for="c in filteredCreators" :key="c.id">
+          <div class="bg-brand-card rounded-xl border border-brand-border p-5 gradient-border hover:border-primary/20 transition cursor-pointer" @click="selectedCreator=c;showCreatorModal=true">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white" :style="'background:'+c.color" x-text="c.initials"></div>
+                <div>
+                  <p class="font-semibold" x-text="c.name"></p>
+                  <p class="text-xs text-gray-500" x-text="'@'+c.handle"></p>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold" :class="statusClass(c.status)" x-text="statusLabel(c.status)"></span>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="px-2 py-0.5 rounded text-xs" :class="levelClass(c.level)" x-text="c.level"></span>
+              <span class="text-xs text-gray-500" x-text="c.followers+' seguidores'"></span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="bg-brand-bg rounded-lg p-2"><p class="text-lg font-bold" x-text="c.videos"></p><p class="text-[10px] text-gray-500">Vídeos</p></div>
+              <div class="bg-brand-bg rounded-lg p-2"><p class="text-lg font-bold" x-text="formatNum(c.views)"></p><p class="text-[10px] text-gray-500">Views</p></div>
+              <div class="bg-brand-bg rounded-lg p-2"><p class="text-lg font-bold text-emerald-400" x-text="formatNum(c.sales)"></p><p class="text-[10px] text-gray-500">Vendas</p></div>
+            </div>
+            <div x-show="c.status==='pending'" class="mt-4 flex gap-2">
+              <button @click.stop="c.status='active'" class="flex-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium py-2 rounded-lg hover:bg-emerald-500/30 transition">Aprovar</button>
+              <button @click.stop="c.status='inactive'" class="flex-1 bg-red-500/20 text-red-400 text-xs font-medium py-2 rounded-lg hover:bg-red-500/30 transition">Rejeitar</button>
+            </div>
+          </div>
+        </template>
+      </div>
+      <!-- Creator Modal -->
+      <div x-show="showCreatorModal" x-transition.opacity class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showCreatorModal=false">
+        <div x-show="showCreatorModal" x-transition class="bg-brand-card rounded-2xl border border-brand-border w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
+          <template x-if="selectedCreator">
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-4">
+                  <div class="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white" :style="'background:'+selectedCreator.color" x-text="selectedCreator.initials"></div>
+                  <div>
+                    <h3 class="text-lg font-bold" x-text="selectedCreator.name"></h3>
+                    <p class="text-sm text-gray-500" x-text="'@'+selectedCreator.handle"></p>
+                  </div>
+                </div>
+                <button @click="showCreatorModal=false" class="text-gray-500 hover:text-white"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+              </div>
+              <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-brand-bg rounded-lg p-3"><p class="text-xs text-gray-500">Nível</p><p class="font-semibold" x-text="selectedCreator.level"></p></div>
+                <div class="bg-brand-bg rounded-lg p-3"><p class="text-xs text-gray-500">Status</p><p class="font-semibold capitalize" x-text="statusLabel(selectedCreator.status)"></p></div>
+                <div class="bg-brand-bg rounded-lg p-3"><p class="text-xs text-gray-500">Total Vídeos</p><p class="font-semibold" x-text="selectedCreator.videos"></p></div>
+                <div class="bg-brand-bg rounded-lg p-3"><p class="text-xs text-gray-500">Total Views</p><p class="font-semibold" x-text="formatNum(selectedCreator.views)"></p></div>
+                <div class="bg-brand-bg rounded-lg p-3"><p class="text-xs text-gray-500">Vendas</p><p class="font-semibold text-emerald-400" x-text="'R$ '+formatNum(selectedCreator.sales)"></p></div>
+                <div class="bg-brand-bg rounded-lg p-3"><p class="text-xs text-gray-500">Seguidores</p><p class="font-semibold" x-text="selectedCreator.followers"></p></div>
+              </div>
+              <h4 class="text-sm font-semibold mb-3">Histórico de Performance (6 meses)</h4>
+              <div class="space-y-2">
+                <template x-for="m in ['Out','Nov','Dez','Jan','Fev','Mar']" :key="m">
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-500 w-8" x-text="m"></span>
+                    <div class="flex-1 bg-brand-bg rounded-full h-2"><div class="bg-gradient-to-r from-primary to-accent h-2 rounded-full" :style="'width:'+Math.floor(Math.random()*60+40)+'%'"></div></div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMPAIGNS -->
+    <div x-show="currentPage==='campaigns'" x-transition class="fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex gap-2">
+          <template x-for="s in ['all','active','draft','paused','completed']" :key="s">
+            <button @click="campaignFilter=s" :class="campaignFilter===s?'bg-primary text-white':'bg-brand-card text-gray-400 border border-brand-border'" class="px-4 py-2 rounded-lg text-sm font-medium transition" x-text="s==='all'?'Todas':s==='active'?'Ativas':s==='draft'?'Rascunho':s==='paused'?'Pausadas':'Concluídas'"></button>
+          </template>
+        </div>
+        <button @click="showNewCampaign=!showNewCampaign" class="bg-gradient-to-r from-primary to-accent text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">+ Nova Campanha</button>
+      </div>
+      <!-- New campaign form -->
+      <div x-show="showNewCampaign" x-transition class="bg-brand-card rounded-xl border border-brand-border p-6 mb-6">
+        <h3 class="text-sm font-semibold mb-4">Criar Nova Campanha</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="text-xs text-gray-500 block mb-1">Nome da Campanha</label><input type="text" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50" placeholder="Ex: Lançamento Verão 2026"></div>
+          <div><label class="text-xs text-gray-500 block mb-1">Orçamento (R$)</label><input type="number" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50" placeholder="50000"></div>
+          <div><label class="text-xs text-gray-500 block mb-1">Meta de Vídeos</label><input type="number" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50" placeholder="200"></div>
+          <div><label class="text-xs text-gray-500 block mb-1">Data de Início</label><input type="date" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"></div>
+          <div><label class="text-xs text-gray-500 block mb-1">Data de Término</label><input type="date" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"></div>
+          <div><label class="text-xs text-gray-500 block mb-1">Categoria</label>
+            <select class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"><option>Saúde & Bem-estar</option><option>Beleza</option><option>Tecnologia</option><option>Energia</option><option>Moda</option></select>
+          </div>
+          <div class="md:col-span-2"><label class="text-xs text-gray-500 block mb-1">Briefing</label><textarea class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50 h-24" placeholder="Descreva os requisitos do conteúdo..."></textarea></div>
+        </div>
+        <div class="flex justify-end gap-3 mt-4">
+          <button @click="showNewCampaign=false" class="px-5 py-2 rounded-lg text-sm text-gray-400 hover:text-white transition">Cancelar</button>
+          <button @click="showNewCampaign=false" class="bg-gradient-to-r from-primary to-accent text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">Criar Campanha</button>
+        </div>
+      </div>
+      <!-- Campaign list -->
+      <div class="space-y-4">
+        <template x-for="cp in filteredCampaigns" :key="cp.id">
+          <div class="bg-brand-card rounded-xl border border-brand-border p-6 gradient-border">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <div class="flex items-center gap-3 mb-1">
+                  <h4 class="font-semibold" x-text="cp.name"></h4>
+                  <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold" :class="campaignStatusClass(cp.status)" x-text="campaignStatusLabel(cp.status)"></span>
+                </div>
+                <p class="text-xs text-gray-500" x-text="cp.dates"></p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-semibold" x-text="'R$ '+formatNum(cp.budget)"></p>
+                <p class="text-xs text-gray-500">Orçamento</p>
+              </div>
+            </div>
+            <div class="mb-4">
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500" x-text="cp.videosDelivered+'/'+cp.videosTarget+' vídeos'"></span>
+                <span class="text-primary" x-text="Math.round(cp.videosDelivered/cp.videosTarget*100)+'%'"></span>
+              </div>
+              <div class="w-full bg-brand-bg rounded-full h-2"><div class="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all" :style="'width:'+Math.round(cp.videosDelivered/cp.videosTarget*100)+'%'"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4 text-xs text-gray-500">
+                <span x-text="cp.creators+' creators'"></span>
+                <span x-text="formatNum(cp.views)+' views'"></span>
+                <span class="text-emerald-400" x-text="'R$ '+formatNum(cp.spent)+' gasto'"></span>
+              </div>
+              <button class="text-xs text-primary hover:text-primary-light transition">Ver Detalhes →</button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- VIDEOS -->
+    <div x-show="currentPage==='videos'" x-transition class="fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex gap-2">
+          <template x-for="s in ['all','approved','pending','rejected']" :key="s">
+            <button @click="videoFilter=s" :class="videoFilter===s?'bg-primary text-white':'bg-brand-card text-gray-400 border border-brand-border'" class="px-4 py-2 rounded-lg text-sm font-medium transition" x-text="s==='all'?'Todos':s==='approved'?'Aprovados':s==='pending'?'Pendentes':'Rejeitados'"></button>
+          </template>
+        </div>
+        <span class="text-sm text-gray-500" x-text="filteredVideos.length+' vídeos'"></span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <template x-for="v in filteredVideos" :key="v.id">
+          <div class="bg-brand-card rounded-xl border border-brand-border overflow-hidden gradient-border">
+            <div class="aspect-video bg-brand-bg relative flex items-center justify-center">
+              <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center"><svg class="w-8 h-8 text-white/60" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+              <span class="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] uppercase font-bold" :class="videoStatusClass(v.status)" x-text="videoStatusLabel(v.status)"></span>
+              <span class="absolute bottom-2 right-2 text-xs bg-black/60 px-2 py-0.5 rounded" x-text="v.duration"></span>
+            </div>
+            <div class="p-4">
+              <p class="font-medium text-sm mb-1" x-text="v.title"></p>
+              <p class="text-xs text-gray-500 mb-3" x-text="v.creator+' • '+v.campaign"></p>
+              <div class="flex items-center justify-between text-xs text-gray-400">
+                <span x-text="formatNum(v.views)+' views'"></span>
+                <span x-text="v.engagement+'% eng.'"></span>
+                <span class="text-emerald-400" x-text="v.conversions+' conv.'"></span>
+              </div>
+              <div x-show="v.status==='pending'" class="mt-3 flex gap-2">
+                <button @click="v.status='approved'" class="flex-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium py-2 rounded-lg hover:bg-emerald-500/30 transition">Aprovar</button>
+                <button @click="v.status='rejected'" class="flex-1 bg-red-500/20 text-red-400 text-xs font-medium py-2 rounded-lg hover:bg-red-500/30 transition">Rejeitar</button>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- TIKTOK SHOP -->
+    <div x-show="currentPage==='tiktok'" x-transition class="fade-in">
+      <div class="flex items-center gap-3 mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+        <div class="w-3 h-3 bg-emerald-400 rounded-full pulse-dot"></div>
+        <span class="text-sm text-emerald-400 font-medium">TikTok Shop conectado — sincronizado há 5 minutos</span>
+      </div>
+      <!-- TikTok KPIs -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <template x-for="k in tiktokKpis" :key="k.label">
+          <div class="bg-brand-card rounded-xl border border-brand-border p-5 gradient-border">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2" x-text="k.label"></p>
+            <p class="text-2xl font-bold" x-text="k.value"></p>
+            <p class="text-xs mt-1" :class="k.trend>0?'text-emerald-400':'text-red-400'" x-text="(k.trend>0?'↑':'↓')+' '+Math.abs(k.trend)+'% vs mês anterior'"></p>
+          </div>
+        </template>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2 bg-brand-card rounded-xl border border-brand-border p-6">
+          <h3 class="text-sm font-semibold mb-4">GMV — Últimos 30 Dias</h3>
+          <canvas id="gmvChart" height="200"></canvas>
+        </div>
+        <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+          <h3 class="text-sm font-semibold mb-4">Comissões por Tipo</h3>
+          <canvas id="commissionChart" height="200"></canvas>
+        </div>
+      </div>
+      <!-- Products table -->
+      <div class="bg-brand-card rounded-xl border border-brand-border p-6 mb-8">
+        <h3 class="text-sm font-semibold mb-4">Performance de Produtos</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-gray-500 text-xs uppercase"><th class="text-left pb-3">Produto</th><th class="text-right pb-3">Preço</th><th class="text-right pb-3">Vendidos</th><th class="text-right pb-3">Receita</th><th class="text-right pb-3">Conversão</th><th class="text-right pb-3">Trending</th></tr></thead>
+            <tbody>
+              <template x-for="p in tiktokProducts" :key="p.name">
+                <tr class="border-t border-brand-border">
+                  <td class="py-3 font-medium" x-text="p.name"></td>
+                  <td class="text-right" x-text="'R$ '+p.price"></td>
+                  <td class="text-right" x-text="formatNum(p.sold)"></td>
+                  <td class="text-right text-emerald-400" x-text="'R$ '+formatNum(p.revenue)"></td>
+                  <td class="text-right" x-text="p.conversion+'%'"></td>
+                  <td class="text-right"><span :class="p.trending?'text-emerald-400':'text-gray-500'" x-text="p.trending?'↑ Alta':'→ Estável'"></span></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Creator Attribution -->
+      <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+        <h3 class="text-sm font-semibold mb-4">Atribuição por Creator</h3>
+        <div class="space-y-3">
+          <template x-for="ca in creatorAttribution" :key="ca.name">
+            <div class="flex items-center gap-4">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" :style="'background:'+ca.color" x-text="ca.initials"></div>
+              <div class="flex-1">
+                <div class="flex justify-between text-sm mb-1"><span x-text="ca.name"></span><span class="text-emerald-400" x-text="'R$ '+formatNum(ca.revenue)"></span></div>
+                <div class="w-full bg-brand-bg rounded-full h-1.5"><div class="bg-gradient-to-r from-primary to-accent h-1.5 rounded-full" :style="'width:'+ca.percent+'%'"></div></div>
+              </div>
+              <span class="text-xs text-gray-500 w-12 text-right" x-text="ca.percent+'%'"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCIAL -->
+    <div x-show="currentPage==='financial'" x-transition class="fade-in">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+        <div class="bg-brand-card rounded-xl border border-brand-border p-5 gradient-border">
+          <p class="text-xs text-gray-500 uppercase mb-2">Total Pago (Mês)</p>
+          <p class="text-2xl font-bold">R$ 187.450</p>
+          <p class="text-xs text-emerald-400 mt-1">+12% vs mês anterior</p>
+        </div>
+        <div class="bg-brand-card rounded-xl border border-brand-border p-5 gradient-border">
+          <p class="text-xs text-gray-500 uppercase mb-2">Comissões Pendentes</p>
+          <p class="text-2xl font-bold text-yellow-400">R$ 23.890</p>
+          <p class="text-xs text-gray-500 mt-1">Pagamento em 5 dias</p>
+        </div>
+        <div class="bg-brand-card rounded-xl border border-brand-border p-5 gradient-border">
+          <p class="text-xs text-gray-500 uppercase mb-2">ROI Médio</p>
+          <p class="text-2xl font-bold text-emerald-400">4.2x</p>
+          <p class="text-xs text-emerald-400 mt-1">+0.3x vs mês anterior</p>
+        </div>
+      </div>
+      <div class="bg-brand-card rounded-xl border border-brand-border p-6 mb-8">
+        <h3 class="text-sm font-semibold mb-4">Resumo Mensal</h3>
+        <canvas id="financialChart" height="200"></canvas>
+      </div>
+      <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold">Histórico de Pagamentos</h3>
+          <button class="bg-brand-bg border border-brand-border px-4 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition">Exportar CSV ↓</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-gray-500 text-xs uppercase"><th class="text-left pb-3">Data</th><th class="text-left pb-3">Creator</th><th class="text-left pb-3">Tipo</th><th class="text-right pb-3">Valor</th><th class="text-right pb-3">Status</th></tr></thead>
+            <tbody>
+              <template x-for="pay in payments" :key="pay.id">
+                <tr class="border-t border-brand-border">
+                  <td class="py-3 text-gray-400" x-text="pay.date"></td>
+                  <td class="py-3" x-text="pay.creator"></td>
+                  <td class="py-3 text-gray-400" x-text="pay.type"></td>
+                  <td class="py-3 text-right font-medium" x-text="'R$ '+formatNum(pay.amount)"></td>
+                  <td class="py-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold" :class="pay.status==='paid'?'bg-emerald-500/20 text-emerald-400':'bg-yellow-500/20 text-yellow-400'" x-text="pay.status==='paid'?'Pago':'Pendente'"></span></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div x-show="currentPage==='settings'" x-transition class="fade-in">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Brand profile -->
+          <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+            <h3 class="text-sm font-semibold mb-4">Perfil da Marca</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label class="text-xs text-gray-500 block mb-1">Nome da Marca</label><input type="text" value="Yav Health" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"></div>
+              <div><label class="text-xs text-gray-500 block mb-1">CNPJ</label><input type="text" value="12.345.678/0001-90" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"></div>
+              <div><label class="text-xs text-gray-500 block mb-1">E-mail</label><input type="email" value="contato@yavhealth.com" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"></div>
+              <div><label class="text-xs text-gray-500 block mb-1">Telefone</label><input type="text" value="(11) 99876-5432" class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"></div>
+              <div class="md:col-span-2"><label class="text-xs text-gray-500 block mb-1">Descrição</label><textarea class="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50 h-20">Marca de saúde e bem-estar focada em suplementação premium e natural.</textarea></div>
+            </div>
+            <div class="flex justify-end mt-4"><button class="bg-gradient-to-r from-primary to-accent text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">Salvar Alterações</button></div>
+          </div>
+          <!-- API Keys -->
+          <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+            <h3 class="text-sm font-semibold mb-4">Chaves de API</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-brand-bg rounded-lg">
+                <div><p class="text-sm font-medium">Produção</p><p class="text-xs text-gray-500 font-mono">brd_live_••••••••••••k8f2</p></div>
+                <div class="flex gap-2">
+                  <button class="text-xs text-primary hover:text-primary-light transition">Copiar</button>
+                  <button class="text-xs text-red-400 hover:text-red-300 transition">Revogar</button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-brand-bg rounded-lg">
+                <div><p class="text-sm font-medium">Teste</p><p class="text-xs text-gray-500 font-mono">brd_test_••••••••••••m3j7</p></div>
+                <div class="flex gap-2">
+                  <button class="text-xs text-primary hover:text-primary-light transition">Copiar</button>
+                  <button class="text-xs text-red-400 hover:text-red-300 transition">Revogar</button>
+                </div>
+              </div>
+            </div>
+            <button class="mt-4 bg-brand-bg border border-brand-border px-4 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition">+ Gerar Nova Chave</button>
+          </div>
+          <!-- Notifications -->
+          <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+            <h3 class="text-sm font-semibold mb-4">Preferências de Notificação</h3>
+            <div class="space-y-4">
+              <template x-for="n in notifPrefs" :key="n.label">
+                <div class="flex items-center justify-between">
+                  <div><p class="text-sm" x-text="n.label"></p><p class="text-xs text-gray-500" x-text="n.desc"></p></div>
+                  <button @click="n.on=!n.on" :class="n.on?'bg-primary':'bg-gray-700'" class="w-11 h-6 rounded-full relative transition-colors">
+                    <span :class="n.on?'translate-x-5':'translate-x-1'" class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+                  </button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <!-- Team -->
+        <div>
+          <div class="bg-brand-card rounded-xl border border-brand-border p-6">
+            <h3 class="text-sm font-semibold mb-4">Equipe</h3>
+            <div class="space-y-3">
+              <template x-for="t in teamMembers" :key="t.name">
+                <div class="flex items-center justify-between p-3 bg-brand-bg rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" :style="'background:'+t.color" x-text="t.initials"></div>
+                    <div><p class="text-sm font-medium" x-text="t.name"></p><p class="text-xs text-gray-500" x-text="t.role"></p></div>
+                  </div>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-primary/20 text-primary" x-text="t.access"></span>
+                </div>
+              </template>
+            </div>
+            <button class="mt-4 w-full bg-brand-bg border border-brand-border py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition">+ Convidar Membro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function dashboard(){
+  return {
+    currentPage:'overview',
+    creatorSearch:'',
+    creatorLevelFilter:'',
+    creatorStatusFilter:'',
+    campaignFilter:'all',
+    videoFilter:'all',
+    showNewCampaign:false,
+    showCreatorModal:false,
+    selectedCreator:null,
+    navItems:[
+      {id:'overview',label:'Visão Geral',badge:null,icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>'},
+      {id:'creators',label:'Creators',badge:'3',icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>'},
+      {id:'campaigns',label:'Campanhas',badge:null,icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>'},
+      {id:'videos',label:'Vídeos',badge:'5',icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>'},
+      {id:'tiktok',label:'TikTok Shop',badge:null,icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>'},
+      {id:'financial',label:'Financeiro',badge:null,icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'},
+      {id:'settings',label:'Configurações',badge:null,icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>'},
+    ],
+    kpis:[
+      {label:'Total Creators',value:'1.247',trend:18},
+      {label:'Campanhas Ativas',value:'12',trend:8},
+      {label:'Total Views',value:'4.8M',trend:23},
+      {label:'Receita',value:'R$ 892K',trend:15},
+      {label:'ROI',value:'4.2x',trend:7},
+    ],
+    topCreators:[
+      {name:'Carolina Mendes',initials:'CM',color:'#667EEA',level:'Vision',videos:342,views:2840000,sales:89400},
+      {name:'Rafael Costa',initials:'RC',color:'#764BA2',level:'Iconic',videos:287,views:1920000,sales:67200},
+      {name:'Juliana Alves',initials:'JA',color:'#E667A0',level:'Flow',videos:198,views:1450000,sales:45800},
+      {name:'Pedro Henrique',initials:'PH',color:'#F59E0B',level:'Spark',videos:156,views:980000,sales:32100},
+      {name:'Marina Silva',initials:'MS',color:'#10B981',level:'Flow',videos:134,views:870000,sales:28900},
+    ],
+    activities:[
+      {id:1,text:'Carolina Mendes enviou 3 novos vídeos',time:'Há 12 min',dotColor:'bg-primary'},
+      {id:2,text:'Campanha "Verão Saudável" atingiu 80% da meta',time:'Há 45 min',dotColor:'bg-emerald-400'},
+      {id:3,text:'Novo creator aguardando aprovação: @lucas.fit',time:'Há 1h',dotColor:'bg-yellow-400'},
+      {id:4,text:'Pagamento de R$ 15.200 processado',time:'Há 2h',dotColor:'bg-purple-400'},
+      {id:5,text:'Vídeo rejeitado: briefing não atendido #V-892',time:'Há 3h',dotColor:'bg-red-400'},
+      {id:6,text:'Rafael Costa subiu para nível Iconic',time:'Há 5h',dotColor:'bg-blue-400'},
+    ],
+    creators:[
+      {id:1,name:'Carolina Mendes',handle:'carolmendes',initials:'CM',color:'#667EEA',level:'Vision',status:'active',followers:'78.4K',videos:342,views:2840000,sales:89400},
+      {id:2,name:'Rafael Costa',handle:'rafaelcosta',initials:'RC',color:'#764BA2',level:'Iconic',status:'active',followers:'52.1K',videos:287,views:1920000,sales:67200},
+      {id:3,name:'Juliana Alves',handle:'jualves',initials:'JA',color:'#E667A0',level:'Flow',status:'active',followers:'34.8K',videos:198,views:1450000,sales:45800},
+      {id:4,name:'Pedro Henrique',handle:'pedrofit',initials:'PH',color:'#F59E0B',level:'Spark',status:'active',followers:'21.3K',videos:156,views:980000,sales:32100},
+      {id:5,name:'Marina Silva',handle:'marinasilva',initials:'MS',color:'#10B981',level:'Flow',status:'active',followers:'28.9K',videos:134,views:870000,sales:28900},
+      {id:6,name:'Lucas Ferreira',handle:'lucas.fit',initials:'LF',color:'#3B82F6',level:'Seed',status:'pending',followers:'15.2K',videos:0,views:0,sales:0},
+      {id:7,name:'Amanda Reis',handle:'amandareis',initials:'AR',color:'#EC4899',level:'Seed',status:'pending',followers:'8.7K',videos:0,views:0,sales:0},
+      {id:8,name:'Thiago Martins',handle:'thiagom',initials:'TM',color:'#8B5CF6',level:'Seed',status:'pending',followers:'12.1K',videos:0,views:0,sales:0},
+      {id:9,name:'Beatriz Souza',handle:'beasouza',initials:'BS',color:'#F97316',level:'Spark',status:'inactive',followers:'5.4K',videos:42,views:120000,sales:3200},
+      {id:10,name:'Gabriel Oliveira',handle:'gabrieloliveira',initials:'GO',color:'#14B8A6',level:'Empire',status:'active',followers:'145K',videos:520,views:5200000,sales:156000},
+      {id:11,name:'Fernanda Lima',handle:'fernandalima',initials:'FL',color:'#A855F7',level:'Iconic',status:'active',followers:'67.2K',videos:310,views:2100000,sales:71500},
+      {id:12,name:'Diego Santos',handle:'diegosantos',initials:'DS',color:'#06B6D4',level:'Infinity',status:'active',followers:'210K',videos:890,views:12400000,sales:342000},
+    ],
+    campaigns:[
+      {id:1,name:'Lançamento Verão Saudável',status:'active',dates:'01 Jan — 31 Mar 2026',budget:85000,spent:62300,videosTarget:250,videosDelivered:198,creators:18,views:3200000},
+      {id:2,name:'Detox Janeiro',status:'completed',dates:'01 Jan — 31 Jan 2026',budget:35000,spent:34800,videosTarget:100,videosDelivered:100,creators:12,views:1800000},
+      {id:3,name:'Linha Premium Colágeno',status:'active',dates:'15 Fev — 15 Abr 2026',budget:120000,spent:45600,videosTarget:400,videosDelivered:152,creators:25,views:2100000},
+      {id:4,name:'Campanha Dia da Mulher',status:'completed',dates:'01 Mar — 08 Mar 2026',budget:25000,spent:24900,videosTarget:80,videosDelivered:80,creators:15,views:950000},
+      {id:5,name:'Energia Natural Pack',status:'draft',dates:'01 Abr — 30 Jun 2026',budget:95000,spent:0,videosTarget:300,videosDelivered:0,creators:0,views:0},
+      {id:6,name:'Imunidade Total',status:'paused',dates:'01 Fev — 30 Abr 2026',budget:60000,spent:18200,videosTarget:200,videosDelivered:61,creators:8,views:540000},
+    ],
+    videos:[
+      {id:1,title:'Rotina matinal com Yav Health',creator:'Carolina Mendes',campaign:'Verão Saudável',status:'approved',duration:'0:32',views:245000,engagement:8.4,conversions:312},
+      {id:2,title:'Desafio 7 dias colágeno',creator:'Rafael Costa',campaign:'Linha Premium Colágeno',status:'approved',duration:'0:45',views:189000,engagement:7.2,conversions:198},
+      {id:3,title:'Review honesto suplementos',creator:'Juliana Alves',campaign:'Verão Saudável',status:'pending',duration:'0:28',views:0,engagement:0,conversions:0},
+      {id:4,title:'Antes e depois 30 dias',creator:'Pedro Henrique',campaign:'Detox Janeiro',status:'approved',duration:'0:38',views:420000,engagement:12.1,conversions:567},
+      {id:5,title:'Minha experiência com detox',creator:'Marina Silva',campaign:'Detox Janeiro',status:'rejected',duration:'0:55',views:0,engagement:0,conversions:0},
+      {id:6,title:'Unboxing kit creator Brandly',creator:'Carolina Mendes',campaign:'Verão Saudável',status:'pending',duration:'0:41',views:0,engagement:0,conversions:0},
+      {id:7,title:'Como tomo meus suplementos',creator:'Gabriel Oliveira',campaign:'Linha Premium Colágeno',status:'approved',duration:'0:35',views:580000,engagement:9.8,conversions:445},
+      {id:8,title:'Treino + suplementação',creator:'Fernanda Lima',campaign:'Verão Saudável',status:'pending',duration:'0:29',views:0,engagement:0,conversions:0},
+      {id:9,title:'Rotina noturna de skincare',creator:'Diego Santos',campaign:'Linha Premium Colágeno',status:'approved',duration:'0:42',views:890000,engagement:11.3,conversions:723},
+      {id:10,title:'Dica rápida de energia',creator:'Rafael Costa',campaign:'Energia Natural Pack',status:'pending',duration:'0:22',views:0,engagement:0,conversions:0},
+      {id:11,title:'Comparativo de colágenos',creator:'Juliana Alves',campaign:'Linha Premium Colágeno',status:'pending',duration:'0:50',views:0,engagement:0,conversions:0},
+      {id:12,title:'Minha stack de suplementos',creator:'Pedro Henrique',campaign:'Verão Saudável',status:'approved',duration:'0:37',views:310000,engagement:6.9,conversions:201},
+    ],
+    tiktokKpis:[
+      {label:'GMV Total',value:'R$ 1.24M',trend:28},
+      {label:'Pedidos',value:'8.432',trend:19},
+      {label:'Ticket Médio',value:'R$ 147',trend:5},
+      {label:'Taxa de Conversão',value:'3.8%',trend:-2},
+    ],
+    tiktokProducts:[
+      {name:'Colágeno Premium 500g',price:'189,90',sold:2340,revenue:443766,conversion:4.2,trending:true},
+      {name:'Kit Detox 30 dias',price:'247,00',sold:1820,revenue:449540,conversion:3.9,trending:true},
+      {name:'Whey Protein Natural',price:'159,90',sold:1560,revenue:249444,conversion:3.1,trending:false},
+      {name:'Multivitamínico Daily',price:'89,90',sold:980,revenue:88102,conversion:2.8,trending:false},
+      {name:'Ômega 3 Premium',price:'119,90',sold:870,revenue:104313,conversion:2.5,trending:true},
+    ],
+    creatorAttribution:[
+      {name:'Diego Santos',initials:'DS',color:'#06B6D4',revenue:342000,percent:28},
+      {name:'Gabriel Oliveira',initials:'GO',color:'#14B8A6',revenue:156000,percent:13},
+      {name:'Carolina Mendes',initials:'CM',color:'#667EEA',revenue:89400,percent:7},
+      {name:'Fernanda Lima',initials:'FL',color:'#A855F7',revenue:71500,percent:6},
+      {name:'Rafael Costa',initials:'RC',color:'#764BA2',revenue:67200,percent:5},
+    ],
+    payments:[
+      {id:1,date:'13/03/2026',creator:'Carolina Mendes',type:'Comissão Direta',amount:4520,status:'paid'},
+      {id:2,date:'13/03/2026',creator:'Diego Santos',type:'Bônus Infinito',amount:8900,status:'paid'},
+      {id:3,date:'12/03/2026',creator:'Rafael Costa',type:'Comissão Direta',amount:3210,status:'paid'},
+      {id:4,date:'12/03/2026',creator:'Gabriel Oliveira',type:'Bônus Equiparação',amount:2340,status:'pending'},
+      {id:5,date:'11/03/2026',creator:'Juliana Alves',type:'Pagamento por Vídeo',amount:1000,status:'paid'},
+      {id:6,date:'11/03/2026',creator:'Pedro Henrique',type:'Comissão Direta',amount:1890,status:'paid'},
+      {id:7,date:'10/03/2026',creator:'Fernanda Lima',type:'Bônus Infinito',amount:5670,status:'pending'},
+      {id:8,date:'10/03/2026',creator:'Marina Silva',type:'Pagamento por Vídeo',amount:800,status:'paid'},
+      {id:9,date:'09/03/2026',creator:'Carolina Mendes',type:'Bônus Global',amount:1200,status:'paid'},
+      {id:10,date:'09/03/2026',creator:'Diego Santos',type:'Comissão Direta',amount:12400,status:'paid'},
+    ],
+    notifPrefs:[
+      {label:'Novos vídeos enviados',desc:'Receber notificação quando um creator enviar vídeo',on:true},
+      {label:'Aplicações de creators',desc:'Receber notificação de novas candidaturas',on:true},
+      {label:'Metas de campanha',desc:'Alertas quando campanhas atingem marcos',on:true},
+      {label:'Relatórios semanais',desc:'Resumo de performance por e-mail',on:false},
+      {label:'Alertas financeiros',desc:'Notificar sobre pagamentos e comissões',on:true},
+    ],
+    teamMembers:[
+      {name:'Ana Beatriz',initials:'AB',color:'#667EEA',role:'Gerente de Marketing',access:'Admin'},
+      {name:'Carlos Eduardo',initials:'CE',color:'#764BA2',role:'Analista de Dados',access:'Editor'},
+      {name:'Mariana Costa',initials:'MC',color:'#10B981',role:'Gestora de Creators',access:'Editor'},
+      {name:'Felipe Almeida',initials:'FA',color:'#F59E0B',role:'Financeiro',access:'Viewer'},
+    ],
+    get filteredCreators(){
+      return this.creators.filter(c=>{
+        if(this.creatorSearch && !c.name.toLowerCase().includes(this.creatorSearch.toLowerCase()) && !c.handle.toLowerCase().includes(this.creatorSearch.toLowerCase())) return false;
+        if(this.creatorLevelFilter && c.level!==this.creatorLevelFilter) return false;
+        if(this.creatorStatusFilter && c.status!==this.creatorStatusFilter) return false;
+        return true;
+      });
+    },
+    get filteredCampaigns(){
+      if(this.campaignFilter==='all') return this.campaigns;
+      return this.campaigns.filter(c=>c.status===this.campaignFilter);
+    },
+    get filteredVideos(){
+      if(this.videoFilter==='all') return this.videos;
+      return this.videos.filter(v=>v.status===this.videoFilter);
+    },
+    formatNum(n){
+      if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+      if(n>=1000) return (n/1000).toFixed(n>=10000?0:1)+'K';
+      return n.toLocaleString('pt-BR');
+    },
+    levelClass(l){
+      const m={Seed:'bg-gray-700 text-gray-300',Spark:'bg-yellow-500/20 text-yellow-400',Flow:'bg-blue-500/20 text-blue-400',Iconic:'bg-purple-500/20 text-purple-400',Vision:'bg-indigo-500/20 text-indigo-400',Empire:'bg-emerald-500/20 text-emerald-400',Infinity:'bg-gradient-to-r from-primary/30 to-accent/30 text-white'};
+      return m[l]||'bg-gray-700 text-gray-300';
+    },
+    statusClass(s){return s==='active'?'bg-emerald-500/20 text-emerald-400':s==='pending'?'bg-yellow-500/20 text-yellow-400':'bg-red-500/20 text-red-400'},
+    statusLabel(s){return s==='active'?'Ativo':s==='pending'?'Pendente':'Inativo'},
+    campaignStatusClass(s){return s==='active'?'bg-emerald-500/20 text-emerald-400':s==='draft'?'bg-gray-500/20 text-gray-400':s==='paused'?'bg-yellow-500/20 text-yellow-400':'bg-blue-500/20 text-blue-400'},
+    campaignStatusLabel(s){return s==='active'?'Ativa':s==='draft'?'Rascunho':s==='paused'?'Pausada':'Concluída'},
+    videoStatusClass(s){return s==='approved'?'bg-emerald-500/20 text-emerald-400':s==='pending'?'bg-yellow-500/20 text-yellow-400':'bg-red-500/20 text-red-400'},
+    videoStatusLabel(s){return s==='approved'?'Aprovado':s==='pending'?'Pendente':'Rejeitado'},
+    initCharts(){
+      const gridColor='rgba(255,255,255,0.05)';
+      const defaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#999',font:{size:11}}}}};
+      // Revenue chart
+      new Chart(document.getElementById('revenueChart'),{type:'line',data:{labels:['Out','Nov','Dez','Jan','Fev','Mar'],datasets:[{label:'Receita (R$)',data:[420000,510000,580000,670000,780000,892000],borderColor:'#667EEA',backgroundColor:'rgba(102,126,234,0.1)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#667EEA'},{label:'Gastos (R$)',data:[180000,210000,240000,280000,310000,350000],borderColor:'#764BA2',backgroundColor:'rgba(118,75,162,0.1)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#764BA2'}]},options:{...defaults,scales:{x:{ticks:{color:'#666'},grid:{color:gridColor}},y:{ticks:{color:'#666',callback:v=>'R$ '+(v/1000)+'K'},grid:{color:gridColor}}}}});
+      // Campaign pie
+      new Chart(document.getElementById('campaignPieChart'),{type:'doughnut',data:{labels:['Ativas','Concluídas','Rascunho','Pausadas'],datasets:[{data:[2,2,1,1],backgroundColor:['#10B981','#3B82F6','#6B7280','#F59E0B'],borderWidth:0}]},options:{...defaults,cutout:'65%'}});
+      // Init others on page change
+      this.$watch('currentPage',v=>{setTimeout(()=>{if(v==='tiktok') this.initTiktokCharts();if(v==='financial') this.initFinancialCharts();},100)});
+    },
+    initTiktokCharts(){
+      if(this._tiktokInit) return; this._tiktokInit=true;
+      const gridColor='rgba(255,255,255,0.05)';
+      const days=Array.from({length:30},(_,i)=>i+1);
+      const gmvData=days.map(()=>Math.floor(Math.random()*25000+30000));
+      new Chart(document.getElementById('gmvChart'),{type:'bar',data:{labels:days.map(d=>d+''),datasets:[{label:'GMV Diário (R$)',data:gmvData,backgroundColor:'rgba(102,126,234,0.6)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#999',font:{size:11}}}},scales:{x:{ticks:{color:'#666',maxTicksLimit:15},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#666',callback:v=>'R$ '+(v/1000)+'K'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+      new Chart(document.getElementById('commissionChart'),{type:'doughnut',data:{labels:['Direta','Bônus Infinito','Equiparação','Global'],datasets:[{data:[45,35,12,8],backgroundColor:['#667EEA','#764BA2','#10B981','#F59E0B'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{labels:{color:'#999',font:{size:11}}}}}});
+    },
+    initFinancialCharts(){
+      if(this._finInit) return; this._finInit=true;
+      new Chart(document.getElementById('financialChart'),{type:'bar',data:{labels:['Out','Nov','Dez','Jan','Fev','Mar'],datasets:[{label:'Receita (R$)',data:[420000,510000,580000,670000,780000,892000],backgroundColor:'rgba(102,126,234,0.7)',borderRadius:4},{label:'Pagamentos (R$)',data:[120000,145000,168000,152000,175000,187450],backgroundColor:'rgba(118,75,162,0.7)',borderRadius:4},{label:'Lucro Líquido (R$)',data:[300000,365000,412000,518000,605000,704550],backgroundColor:'rgba(16,185,129,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#999',font:{size:11}}}},scales:{x:{ticks:{color:'#666'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#666',callback:v=>'R$ '+(v/1000)+'K'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+    },
+    init(){this.$nextTick(()=>this.initCharts())}
+  }
+}
+</script>
+</body>
+</html>

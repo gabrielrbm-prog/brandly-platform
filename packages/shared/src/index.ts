@@ -3,4 +3,7 @@ export * from './types/product.js';
 export * from './types/level.js';
 export * from './types/sale.js';
 export * from './types/bonus.js';
+export * from './types/campaign.js';
+export * from './types/analytics.js';
+export * from './types/integration.js';
 export * from './constants.js';

@@ -194,6 +194,35 @@ export const shadows = {
     shadowRadius: 8,
     elevation: 8,
   },
+  // Glow effects (inspired by FlowPilot)
+  glowPrimary: {
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  glowPrimarySubtle: {
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  glowSuccess: {
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  glowDanger: {
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
 } as const;
 
 // ─── Animation Durations ───

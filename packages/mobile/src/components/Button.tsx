@@ -1,12 +1,18 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { colors, borderRadius, fontSize, fontWeight, spacing, layout } from '../lib/theme';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { colors, borderRadius, fontSize, fontWeight, spacing, layout, shadows } from '../lib/theme';
+import { springConfig, glowShadow } from '../lib/animations';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -20,6 +26,7 @@ interface ButtonProps {
   disabled?: boolean;
   fullWidth?: boolean;
   icon?: React.ReactNode;
+  glow?: boolean;
 }
 
 const variantMap: Record<Variant, { bg: string; text: string; border?: string }> = {
@@ -45,41 +52,68 @@ export default function Button({
   disabled = false,
   fullWidth = false,
   icon,
+  glow = false,
 }: ButtonProps) {
   const v = variantMap[variant];
   const s = sizeMap[size];
   const isDisabled = disabled || loading;
 
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  const tap = Gesture.Tap()
+    .enabled(!isDisabled)
+    .onBegin(() => {
+      scale.value = withSpring(0.97, springConfig);
+      opacity.value = withSpring(0.85, springConfig);
+    })
+    .onFinalize(() => {
+      scale.value = withSpring(1, springConfig);
+      opacity.value = withSpring(1, springConfig);
+    })
+    .onEnd(() => {
+      onPress();
+    })
+    .runOnJS(true);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: isDisabled ? 0.5 : opacity.value,
+  }));
+
+  const showGlow = glow || variant === 'primary';
+
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        {
-          height: s.height,
-          paddingHorizontal: s.px,
-          borderRadius: borderRadius.md,
-          backgroundColor: v.bg,
-          borderColor: v.border ?? 'transparent',
-          borderWidth: v.border ? 1.5 : 0,
-          opacity: isDisabled ? 0.5 : pressed ? 0.8 : 1,
-          alignItems: 'center' as const,
-          justifyContent: 'center' as const,
-          alignSelf: fullWidth ? ('stretch' as const) : ('flex-start' as const),
-        },
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={v.text} size="small" />
-      ) : (
-        <View style={styles.content}>
-          {icon && <View style={styles.icon}>{icon}</View>}
-          <Text style={{ color: v.text, fontSize: s.fs, fontWeight: fontWeight.semibold }}>
-            {title}
-          </Text>
-        </View>
-      )}
-    </Pressable>
+    <GestureDetector gesture={tap}>
+      <Animated.View
+        style={[
+          {
+            height: s.height,
+            paddingHorizontal: s.px,
+            borderRadius: borderRadius.md,
+            backgroundColor: v.bg,
+            borderColor: v.border ?? 'transparent',
+            borderWidth: v.border ? 1.5 : 0,
+            alignItems: 'center' as const,
+            justifyContent: 'center' as const,
+            alignSelf: fullWidth ? ('stretch' as const) : ('flex-start' as const),
+          },
+          showGlow && !isDisabled ? glowShadow : shadows.sm,
+          animatedStyle,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={v.text} size="small" />
+        ) : (
+          <View style={styles.content}>
+            {icon && <View style={styles.icon}>{icon}</View>}
+            <Text style={{ color: v.text, fontSize: s.fs, fontWeight: fontWeight.semibold }}>
+              {title}
+            </Text>
+          </View>
+        )}
+      </Animated.View>
+    </GestureDetector>
   );
 }
 

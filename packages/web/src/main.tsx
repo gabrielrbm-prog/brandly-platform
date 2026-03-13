@@ -6,9 +6,11 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import App from '@/App';
 import '@/index.css';
 
+const base = import.meta.env.BASE_URL || '/app/';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename="/app">
+    <BrowserRouter basename={base.replace(/\/$/, '')}>
       <ThemeProvider>
         <AuthProvider>
           <App />

@@ -94,15 +94,15 @@ export default function Profile() {
             {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">{user?.name}</h2>
-            <div className="flex items-center gap-1.5 text-sm text-gray-400">
+            <h2 className="text-xl font-bold themed-text">{user?.name}</h2>
+            <div className="flex items-center gap-1.5 text-sm themed-text-secondary">
               <Mail className="w-3.5 h-3.5" />
               {user?.email}
             </div>
             {user?.referralCode && (
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="primary">{String(user.referralCode)}</Badge>
-                <button onClick={copyCode} className="text-gray-500 hover:text-white transition-colors">
+                <button onClick={copyCode} className="themed-text-muted hover:themed-text transition-colors">
                   {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </div>
@@ -112,7 +112,7 @@ export default function Profile() {
 
         {/* Glow Menu — navegacao rapida */}
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Acesso Rapido</p>
+          <p className="text-xs font-semibold themed-text-muted uppercase tracking-wider mb-3">Acesso Rapido</p>
           <div className="overflow-x-auto -mx-4 px-4 pb-2 no-scrollbar">
             <GlowMenu
               items={GLOW_ITEMS}
@@ -124,19 +124,19 @@ export default function Profile() {
 
         {/* Menu links — lista completa */}
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Menu</p>
+          <p className="text-xs font-semibold themed-text-muted uppercase tracking-wider mb-3">Menu</p>
           <div className="space-y-2">
             {LIST_ITEMS.map((item) => (
               <button
                 key={item.to}
                 onClick={() => navigate(item.to)}
-                className="w-full flex items-center gap-3 bg-surface rounded-xl border border-gray-800 p-3 hover:bg-surface-light transition-colors"
+                className="w-full flex items-center gap-3 themed-surface rounded-xl themed-border p-3 hover:themed-surface-light transition-colors"
               >
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
                   <item.icon className="w-4 h-4" style={{ color: item.color }} />
                 </div>
-                <span className="flex-1 text-sm font-medium text-white text-left">{item.label}</span>
-                <ChevronRight className="w-4 h-4 text-gray-500" />
+                <span className="flex-1 text-sm font-medium themed-text text-left">{item.label}</span>
+                <ChevronRight className="w-4 h-4 themed-text-muted" />
               </button>
             ))}
           </div>

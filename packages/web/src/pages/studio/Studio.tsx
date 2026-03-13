@@ -77,7 +77,7 @@ export default function Studio() {
     <PageContainer title="Studio IA">
       <div className="space-y-6">
         {/* Tabs */}
-        <div className="flex gap-2 bg-surface-card rounded-xl p-1 border border-gray-800">
+        <div className="flex gap-2 themed-surface-card rounded-xl p-1 themed-border">
           {[
             { key: 'generate' as Tab, label: 'Gerar Roteiros', icon: Sparkles },
             { key: 'library' as Tab, label: 'Biblioteca', icon: BookOpen },
@@ -86,7 +86,7 @@ export default function Studio() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === t.key ? 'bg-brand-primary/15 text-brand-primary-light' : 'text-gray-400 hover:text-white'
+                tab === t.key ? 'bg-brand-primary/15 text-brand-primary-light' : 'themed-text-secondary hover:themed-text'
               }`}
             >
               <t.icon className="w-4 h-4" />
@@ -99,11 +99,11 @@ export default function Studio() {
           <div className="space-y-4">
             {/* Brand selector */}
             <Card>
-              <label className="text-sm font-semibold text-gray-400 flex items-center gap-1 mb-3">
+              <label className="text-sm font-semibold themed-text-secondary flex items-center gap-1 mb-3">
                 <Tag className="w-3 h-3" /> Selecione a Marca
               </label>
               {loading ? <SkeletonCard /> : myBrands.length === 0 ? (
-                <p className="text-sm text-gray-500">Conecte-se a uma marca primeiro.</p>
+                <p className="text-sm themed-text-muted">Conecte-se a uma marca primeiro.</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {myBrands.map((b) => (
@@ -113,7 +113,7 @@ export default function Studio() {
                       className={`px-4 py-2 rounded-full text-sm border transition-colors ${
                         selectedBrand?.id === b.id
                           ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light font-semibold'
-                          : 'bg-surface-light border-gray-700 text-gray-400'
+                          : 'themed-surface-light themed-border themed-text-secondary'
                       }`}
                     >
                       {b.name}
@@ -130,12 +130,12 @@ export default function Studio() {
             {/* Generated scripts */}
             {scripts.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-300">Roteiros Gerados ({scripts.length})</h3>
+                <h3 className="text-sm font-semibold themed-text-secondary">Roteiros Gerados ({scripts.length})</h3>
                 {scripts.map((s, i) => (
                   <Card glowing key={s.id}>
                     <div className="flex items-start justify-between mb-2">
                       <Badge variant="primary">#{i + 1}</Badge>
-                      <button onClick={() => copyScript(s)} className="text-gray-400 hover:text-white transition-colors">
+                      <button onClick={() => copyScript(s)} className="themed-text-secondary hover:themed-text transition-colors">
                         {copiedId === s.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                       </button>
                     </div>
@@ -152,22 +152,22 @@ export default function Studio() {
         ) : (
           <div className="space-y-3">
             {library.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">Nenhum roteiro salvo ainda. Gere roteiros primeiro.</p>
+              <p className="text-center themed-text-muted py-8">Nenhum roteiro salvo ainda. Gere roteiros primeiro.</p>
             ) : (
               library.map((s) => (
                 <Card key={s.id}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-brand-primary-light" />
-                      <span className="text-xs text-gray-500">{new Date(s.createdAt).toLocaleDateString('pt-BR')}</span>
+                      <span className="text-xs themed-text-muted">{new Date(s.createdAt).toLocaleDateString('pt-BR')}</span>
                       {s.isUsed && <Badge variant="success">Usado</Badge>}
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => copyScript(s)} className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5">
+                      <button onClick={() => copyScript(s)} className="p-1.5 rounded-lg themed-text-secondary hover:themed-text hover:bg-white/5">
                         {copiedId === s.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                       </button>
                       {!s.isUsed && (
-                        <button onClick={() => markUsed(s.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10">
+                        <button onClick={() => markUsed(s.id)} className="p-1.5 rounded-lg themed-text-secondary hover:text-emerald-400 hover:bg-emerald-500/10">
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       )}

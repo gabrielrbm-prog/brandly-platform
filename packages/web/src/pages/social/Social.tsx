@@ -48,10 +48,10 @@ export default function Social() {
         {accounts.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
-              <Share2 className="w-8 h-8 text-gray-500" />
+              <Share2 className="w-8 h-8 themed-text-muted" />
             </div>
-            <p className="text-lg font-bold text-white mb-1">Nenhuma conta conectada</p>
-            <p className="text-sm text-gray-400">Conecte Instagram ou TikTok para acompanhar suas metricas.</p>
+            <p className="text-lg font-bold themed-text mb-1">Nenhuma conta conectada</p>
+            <p className="text-sm themed-text-secondary">Conecte Instagram ou TikTok para acompanhar suas metricas.</p>
           </div>
         ) : (
           accounts.map((acc) => {
@@ -64,7 +64,7 @@ export default function Social() {
                       {acc.platform === 'instagram' ? <Instagram className="w-5 h-5" style={{ color }} /> : <span style={{ color }} className="text-sm font-bold">TT</span>}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">{acc.username ?? acc.platform}</p>
+                      <p className="text-sm font-semibold themed-text">{acc.username ?? acc.platform}</p>
                       <Badge variant={acc.status === 'connected' ? 'success' : 'warning'}>{acc.status}</Badge>
                     </div>
                   </div>
@@ -72,13 +72,13 @@ export default function Social() {
                     <button
                       onClick={() => handleSync(acc.platform)}
                       disabled={syncing === acc.platform}
-                      className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                      className="p-2 rounded-lg themed-text-secondary hover:themed-text hover:bg-white/5 transition-colors disabled:opacity-50"
                     >
                       <RefreshCw className={`w-4 h-4 ${syncing === acc.platform ? 'animate-spin' : ''}`} />
                     </button>
                     <button
                       onClick={() => handleDisconnect(acc.platform)}
-                      className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      className="p-2 rounded-lg themed-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
                     >
                       <Unlink className="w-4 h-4" />
                     </button>
@@ -92,16 +92,16 @@ export default function Social() {
                     { label: 'Views', value: formatNumber(acc.avgViews), icon: Eye },
                     { label: 'Engajamento', value: `${(acc.engagementRate * 100).toFixed(1)}%`, icon: TrendingUp },
                   ].map((stat) => (
-                    <div key={stat.label} className="bg-surface-light rounded-lg p-3 text-center">
-                      <stat.icon className="w-3.5 h-3.5 text-gray-500 mx-auto mb-1" />
-                      <p className="text-sm font-bold text-white">{stat.value}</p>
-                      <p className="text-xs text-gray-500">{stat.label}</p>
+                    <div key={stat.label} className="themed-surface-light rounded-lg p-3 text-center">
+                      <stat.icon className="w-3.5 h-3.5 themed-text-muted mx-auto mb-1" />
+                      <p className="text-sm font-bold themed-text">{stat.value}</p>
+                      <p className="text-xs themed-text-muted">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {acc.lastSyncAt && (
-                  <p className="text-xs text-gray-500 mt-3">
+                  <p className="text-xs themed-text-muted mt-3">
                     Ultima sync: {new Date(acc.lastSyncAt).toLocaleDateString('pt-BR')}
                   </p>
                 )}

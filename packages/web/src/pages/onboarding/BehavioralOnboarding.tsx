@@ -54,7 +54,7 @@ export default function BehavioralOnboarding() {
   if (questions.length === 0) {
     return (
       <div className="min-h-screen bg-surface-bg flex items-center justify-center">
-        <p className="text-gray-400">Nenhuma pergunta encontrada.</p>
+        <p className="themed-text-secondary">Nenhuma pergunta encontrada.</p>
       </div>
     );
   }
@@ -66,11 +66,11 @@ export default function BehavioralOnboarding() {
   return (
     <div className="min-h-screen bg-surface-bg flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b themed-border">
         <div className="flex items-center gap-2 mb-3">
           <Brain className="w-5 h-5 text-brand-primary" />
-          <span className="text-sm font-semibold text-gray-300">Perfil Comportamental</span>
-          <span className="text-xs text-gray-500 ml-auto">{current + 1}/{questions.length}</span>
+          <span className="text-sm font-semibold themed-text-secondary">Perfil Comportamental</span>
+          <span className="text-xs themed-text-muted ml-auto">{current + 1}/{questions.length}</span>
         </div>
         <ProgressBar value={current + 1} max={questions.length} color="#7C3AED" />
       </div>
@@ -78,8 +78,8 @@ export default function BehavioralOnboarding() {
       {/* Question */}
       <div className="flex-1 flex flex-col justify-center p-6 max-w-lg mx-auto w-full">
         <p className="text-xs font-semibold text-brand-primary-light uppercase tracking-wider mb-2">{q.category}</p>
-        <h2 className="text-xl font-bold text-white mb-2">{q.question}</h2>
-        {q.subtitle && <p className="text-sm text-gray-400 mb-6">{q.subtitle}</p>}
+        <h2 className="text-xl font-bold themed-text mb-2">{q.question}</h2>
+        {q.subtitle && <p className="text-sm themed-text-secondary mb-6">{q.subtitle}</p>}
 
         {/* Options */}
         {(q.type === 'single' || q.type === 'swipe') && q.options && (
@@ -91,7 +91,7 @@ export default function BehavioralOnboarding() {
                 className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
                   answers[q.id] === opt.value
                     ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light'
-                    : 'bg-surface border-gray-700 text-gray-300 hover:border-gray-600'
+                    : 'themed-surface themed-border themed-text-secondary hover:border-gray-600'
                 }`}
               >
                 {opt.emoji && <span className="mr-2">{opt.emoji}</span>}
@@ -112,7 +112,7 @@ export default function BehavioralOnboarding() {
                   className={`w-full text-left px-4 py-3 rounded-xl border transition-colors flex items-center gap-2 ${
                     selected
                       ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light'
-                      : 'bg-surface border-gray-700 text-gray-300 hover:border-gray-600'
+                      : 'themed-surface themed-border themed-text-secondary hover:border-gray-600'
                   }`}
                 >
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
@@ -138,7 +138,7 @@ export default function BehavioralOnboarding() {
               onChange={(e) => setAnswer(q.id, Number(e.target.value))}
               className="w-full accent-brand-primary"
             />
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs themed-text-muted">
               <span>{q.sliderConfig.minLabel}</span>
               <span className="text-brand-primary-light font-bold">{answers[q.id] ?? '—'}</span>
               <span>{q.sliderConfig.maxLabel}</span>
@@ -155,7 +155,7 @@ export default function BehavioralOnboarding() {
                 className={`px-3 py-3 rounded-xl border text-center transition-colors ${
                   answers[q.id] === opt.value
                     ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light'
-                    : 'bg-surface border-gray-700 text-gray-300 hover:border-gray-600'
+                    : 'themed-surface themed-border themed-text-secondary hover:border-gray-600'
                 }`}
               >
                 {opt.emoji && <span className="block text-2xl mb-1">{opt.emoji}</span>}
@@ -167,7 +167,7 @@ export default function BehavioralOnboarding() {
       </div>
 
       {/* Navigation */}
-      <div className="p-4 border-t border-gray-800 flex justify-between gap-3">
+      <div className="p-4 border-t themed-border flex justify-between gap-3">
         <Button
           variant="ghost"
           onClick={() => setCurrent(Math.max(0, current - 1))}

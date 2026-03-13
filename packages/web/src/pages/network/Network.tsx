@@ -86,7 +86,7 @@ export default function Network() {
             </div>
             <div>
               <p className="text-lg font-bold" style={{ color: levelColor }}>{level?.current ?? 'Seed'}</p>
-              {level?.nextLevel && <p className="text-xs text-gray-500">Proximo: {level.nextLevel}</p>}
+              {level?.nextLevel && <p className="text-xs themed-text-muted">Proximo: {level.nextLevel}</p>}
             </div>
           </div>
           {reqs && (
@@ -98,8 +98,8 @@ export default function Network() {
               ].map((r) => (
                 <div key={r.label}>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-400">{r.label}</span>
-                    <span className="text-gray-300 font-medium">{r.current}/{r.required}</span>
+                    <span className="themed-text-secondary">{r.label}</span>
+                    <span className="themed-text-secondary font-medium">{r.current}/{r.required}</span>
                   </div>
                   <ProgressBar value={r.current} max={r.required} color={levelColor} />
                 </div>
@@ -119,7 +119,7 @@ export default function Network() {
         {/* Bonuses */}
         {stats?.bonuses && (
           <Card glowing>
-            <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold themed-text-secondary mb-3 flex items-center gap-2">
               <Award className="w-4 h-4 text-amber-400" /> Bonus do Periodo
             </h3>
             <div className="space-y-2">
@@ -129,13 +129,13 @@ export default function Network() {
                 { label: 'Equiparacao', value: stats.bonuses.matching },
                 { label: 'Global', value: stats.bonuses.global },
               ].map((b) => (
-                <div key={b.label} className="flex justify-between items-center bg-surface-light rounded-lg px-3 py-2">
-                  <span className="text-sm text-gray-400">{b.label}</span>
-                  <span className="text-sm font-bold text-white">R$ {b.value}</span>
+                <div key={b.label} className="flex justify-between items-center themed-surface-light rounded-lg px-3 py-2">
+                  <span className="text-sm themed-text-secondary">{b.label}</span>
+                  <span className="text-sm font-bold themed-text">R$ {b.value}</span>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-gray-800">
-                <span className="text-sm font-semibold text-gray-300">Total</span>
+              <div className="flex justify-between pt-2 border-t themed-border">
+                <span className="text-sm font-semibold themed-text-secondary">Total</span>
                 <span className="text-lg font-bold text-emerald-400">R$ {stats.bonuses.total}</span>
               </div>
             </div>
@@ -144,9 +144,9 @@ export default function Network() {
 
         {/* Referral link */}
         <Card>
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">Link de Indicacao</h3>
+          <h3 className="text-sm font-semibold themed-text-secondary mb-3">Link de Indicacao</h3>
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-surface-light rounded-xl px-4 py-3 text-sm text-gray-300 truncate border border-gray-700">
+            <div className="flex-1 themed-surface-light rounded-xl px-4 py-3 text-sm themed-text-secondary truncate themed-border">
               {referralLink || 'Carregando...'}
             </div>
             <button
@@ -160,21 +160,21 @@ export default function Network() {
 
         {/* Direct members */}
         <div>
-          <h3 className="text-lg font-bold text-white mb-3">Membros Diretos</h3>
+          <h3 className="text-lg font-bold themed-text mb-3">Membros Diretos</h3>
           {members.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">Nenhum membro direto ainda.</p>
+            <p className="text-center themed-text-muted py-8">Nenhum membro direto ainda.</p>
           ) : (
             <div className="space-y-2">
               {members.map((m) => (
-                <div key={m.id} className="flex items-center gap-3 bg-surface rounded-xl border border-gray-800 p-3">
+                <div key={m.id} className="flex items-center gap-3 themed-surface rounded-xl themed-border p-3">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-primary to-brand-primary-light flex items-center justify-center text-xs font-bold text-white">
                     {m.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{m.name}</p>
+                    <p className="text-sm font-medium themed-text truncate">{m.name}</p>
                     <Badge variant={m.status === 'active' ? 'success' : 'default'}>{m.level}</Badge>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-500" />
+                  <ChevronRight className="w-4 h-4 themed-text-muted" />
                 </div>
               ))}
             </div>

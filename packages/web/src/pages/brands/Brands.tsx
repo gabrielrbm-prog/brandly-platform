@@ -76,16 +76,16 @@ export default function Brands() {
             <ShoppingBag className="w-5 h-5 text-brand-primary-light" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Conectadas</p>
-            <p className="text-xl font-bold text-white">{myBrands.length}</p>
+            <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide">Conectadas</p>
+            <p className="text-xl font-bold themed-text">{myBrands.length}</p>
           </div>
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-2 bg-surface rounded-xl border border-gray-700 px-4 py-2.5">
-          <Search className="w-4 h-4 text-gray-500" />
+        <div className="flex items-center gap-2 themed-surface rounded-xl themed-border px-4 py-2.5">
+          <Search className="w-4 h-4 themed-text-muted" />
           <input
-            className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none text-sm"
+            className="flex-1 bg-transparent themed-text placeholder-gray-500 outline-none text-sm"
             placeholder="Buscar marcas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -101,7 +101,7 @@ export default function Brands() {
               className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                 category === c
                   ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light'
-                  : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                  : 'themed-border themed-text-secondary hover:border-gray-600'
               }`}
             >
               {CATEGORY_LABELS[c]}
@@ -121,7 +121,7 @@ export default function Brands() {
                       <Star className="w-5 h-5" style={{ color: catColor }} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">{brand.name}</p>
+                      <p className="text-sm font-semibold themed-text">{brand.name}</p>
                       <Badge>{brand.category}</Badge>
                     </div>
                   </div>
@@ -130,13 +130,13 @@ export default function Brands() {
                     className={`p-2 rounded-lg transition-colors ${
                       brand.isConnected
                         ? 'bg-emerald-500/10 text-emerald-400'
-                        : 'bg-surface-light text-gray-400 hover:text-white'
+                        : 'themed-surface-light themed-text-secondary hover:themed-text'
                     }`}
                   >
                     {brand.isConnected ? <CheckCircle className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 line-clamp-2">{brand.description}</p>
+                <p className="text-xs themed-text-muted line-clamp-2">{brand.description}</p>
               </Card>
             );
           })}

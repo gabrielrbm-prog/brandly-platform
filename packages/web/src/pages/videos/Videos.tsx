@@ -117,7 +117,7 @@ export default function Videos() {
         <div className="rounded-2xl border border-brand-primary/15 bg-gradient-to-br from-[#1E1040] to-surface p-5 relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-brand-primary/10 blur-2xl" />
           <div className="flex justify-between items-center mb-4">
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Progresso Diario</span>
+            <span className="text-sm font-semibold themed-text-secondary uppercase tracking-wide">Progresso Diario</span>
             <div className="flex items-center gap-1.5 bg-amber-500/10 rounded-full px-3 py-1">
               <Sun className="w-3 h-3 text-amber-400" />
               <span className="text-xs font-semibold text-amber-400">Hoje</span>
@@ -128,21 +128,21 @@ export default function Videos() {
             <div className="w-24 h-24 rounded-full border-[3px] border-brand-primary/20 flex items-center justify-center bg-black/30">
               <div className="text-center">
                 <span className="text-3xl font-extrabold" style={{ color: progressColor }}>{count}</span>
-                <span className="text-xs text-gray-400">/ {max}</span>
-                <p className="text-xs text-gray-500">videos</p>
+                <span className="text-xs themed-text-secondary">/ {max}</span>
+                <p className="text-xs themed-text-muted">videos</p>
               </div>
             </div>
             <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /><span className="font-bold text-white">{summary?.approved ?? 0}</span><span className="text-xs text-gray-500">aprovados</span></div>
-              <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-amber-400" /><span className="font-bold text-white">{summary?.pending ?? 0}</span><span className="text-xs text-gray-500">pendentes</span></div>
-              <div className="flex items-center gap-2"><XCircle className="w-4 h-4 text-red-400" /><span className="font-bold text-white">{summary?.rejected ?? 0}</span><span className="text-xs text-gray-500">rejeitados</span></div>
+              <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /><span className="font-bold themed-text">{summary?.approved ?? 0}</span><span className="text-xs themed-text-muted">aprovados</span></div>
+              <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-amber-400" /><span className="font-bold themed-text">{summary?.pending ?? 0}</span><span className="text-xs themed-text-muted">pendentes</span></div>
+              <div className="flex items-center gap-2"><XCircle className="w-4 h-4 text-red-400" /><span className="font-bold themed-text">{summary?.rejected ?? 0}</span><span className="text-xs themed-text-muted">rejeitados</span></div>
             </div>
           </div>
 
           <ProgressBar value={pct} color={progressColor} />
           <div className="flex items-center gap-1.5 mt-3">
             <DollarSign className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-sm text-gray-400">Ganhos hoje: </span>
+            <span className="text-sm themed-text-secondary">Ganhos hoje: </span>
             <span className="text-sm font-bold text-amber-400">R$ {(count * 10).toFixed(2)}</span>
           </div>
         </div>
@@ -155,17 +155,17 @@ export default function Videos() {
         {/* Videos list */}
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-lg font-bold text-white">Videos Enviados</h3>
+            <h3 className="text-lg font-bold themed-text">Videos Enviados</h3>
             <Badge variant="primary">{videos.length}</Badge>
           </div>
 
           {videos.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
-                <Film className="w-8 h-8 text-gray-500" />
+                <Film className="w-8 h-8 themed-text-muted" />
               </div>
-              <p className="text-lg font-bold text-white mb-1">Nenhum video ainda</p>
-              <p className="text-sm text-gray-400 mb-4">Envie seu primeiro video e comece a ganhar R$10 por aprovacao!</p>
+              <p className="text-lg font-bold themed-text mb-1">Nenhum video ainda</p>
+              <p className="text-sm themed-text-secondary mb-4">Envie seu primeiro video e comece a ganhar R$10 por aprovacao!</p>
               <Button variant="outline" onClick={openModal}>Enviar agora</Button>
             </div>
           ) : (
@@ -175,18 +175,18 @@ export default function Videos() {
                 return (
                   <div
                     key={v.id}
-                    className="rounded-xl border border-gray-800 bg-surface p-4"
+                    className="rounded-xl themed-border themed-surface p-4"
                     style={{ borderLeftWidth: 3, borderLeftColor: st.variant === 'success' ? '#10B981' : st.variant === 'warning' ? '#F59E0B' : '#EF4444' }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <st.icon className="w-4 h-4 shrink-0" style={{ color: st.variant === 'success' ? '#10B981' : st.variant === 'warning' ? '#F59E0B' : '#EF4444' }} />
-                        <span className="font-semibold text-white truncate">{v.brandName}</span>
+                        <span className="font-semibold themed-text truncate">{v.brandName}</span>
                       </div>
                       <Badge variant={st.variant}>{st.label}</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-gray-500">
+                      <div className="flex items-center gap-1 themed-text-muted">
                         <Calendar className="w-3 h-3" />
                         <span className="text-xs">{formatDate(v.createdAt)}</span>
                       </div>
@@ -204,16 +204,16 @@ export default function Videos() {
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/70" onClick={() => setModalOpen(false)} />
-          <div className="relative w-full max-w-md bg-surface rounded-t-2xl sm:rounded-2xl border border-gray-800 p-6 mx-0 sm:mx-4">
-            <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white">
+          <div className="relative w-full max-w-md themed-surface rounded-t-2xl sm:rounded-2xl themed-border p-6 mx-0 sm:mx-4">
+            <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 themed-text-muted hover:themed-text">
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2 mb-5">
               <Video className="w-5 h-5 text-brand-primary" />
-              <h3 className="text-xl font-bold text-white">Enviar Video</h3>
+              <h3 className="text-xl font-bold themed-text">Enviar Video</h3>
             </div>
 
-            <label className="text-sm font-semibold text-gray-400 flex items-center gap-1 mb-2">
+            <label className="text-sm font-semibold themed-text-secondary flex items-center gap-1 mb-2">
               <Tag className="w-3 h-3" /> Marca
             </label>
             <div className="flex flex-wrap gap-2 mb-4">
@@ -224,7 +224,7 @@ export default function Videos() {
                   className={`px-4 py-2 rounded-full text-sm border transition-colors ${
                     selectedBrand?.id === b.id
                       ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light font-semibold'
-                      : 'bg-surface-light border-gray-700 text-gray-400 hover:border-gray-600'
+                      : 'themed-surface-light themed-border themed-text-secondary hover:border-gray-600'
                   }`}
                 >
                   {b.name}
@@ -240,7 +240,7 @@ export default function Videos() {
               onChange={(e) => setVideoUrl(e.target.value)}
             />
 
-            <label className="text-sm font-semibold text-gray-400 block mt-4 mb-2">Plataforma</label>
+            <label className="text-sm font-semibold themed-text-secondary block mt-4 mb-2">Plataforma</label>
             <div className="grid grid-cols-3 gap-2 mb-5">
               {(['tiktok', 'instagram', 'youtube'] as Platform[]).map((p) => (
                 <button
@@ -249,7 +249,7 @@ export default function Videos() {
                   className={`py-2 rounded-xl text-sm border text-center transition-colors ${
                     platform === p
                       ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light font-semibold'
-                      : 'bg-surface-light border-gray-700 text-gray-400'
+                      : 'themed-surface-light themed-border themed-text-secondary'
                   }`}
                 >
                   {p === 'tiktok' ? 'TikTok' : p === 'instagram' ? 'Instagram' : 'YouTube'}
@@ -260,7 +260,7 @@ export default function Videos() {
             <Button onClick={handleSubmit} loading={submitting} icon={<Send className="w-4 h-4" />} className="w-full">
               Enviar
             </Button>
-            <button onClick={() => setModalOpen(false)} className="w-full py-3 text-center text-gray-400 text-sm mt-2 hover:text-white transition-colors">
+            <button onClick={() => setModalOpen(false)} className="w-full py-3 text-center themed-text-secondary text-sm mt-2 hover:themed-text transition-colors">
               Cancelar
             </button>
           </div>

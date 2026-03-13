@@ -27,7 +27,7 @@ export default function BehavioralResult() {
       <div className="min-h-screen bg-surface-bg flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-400">Analisando seu perfil...</p>
+          <p className="themed-text-secondary">Analisando seu perfil...</p>
         </div>
       </div>
     );
@@ -37,7 +37,7 @@ export default function BehavioralResult() {
     return (
       <div className="min-h-screen bg-surface-bg flex items-center justify-center p-6">
         <div className="text-center">
-          <p className="text-gray-400 mb-4">Nenhum resultado encontrado.</p>
+          <p className="themed-text-secondary mb-4">Nenhum resultado encontrado.</p>
           <Button onClick={() => navigate('/onboarding')} icon={<ArrowRight className="w-4 h-4" />}>
             Fazer avaliacao
           </Button>
@@ -52,15 +52,15 @@ export default function BehavioralResult() {
         {/* Header */}
         <div className="text-center space-y-3">
           <span className="text-6xl">{result.archetypeEmoji}</span>
-          <h1 className="text-2xl font-bold text-white">{result.title}</h1>
+          <h1 className="text-2xl font-bold themed-text">{result.title}</h1>
           <Badge variant="primary" className="text-base px-4 py-1">{result.archetype}</Badge>
-          <p className="text-sm text-gray-400">{result.shortDescription}</p>
+          <p className="text-sm themed-text-secondary">{result.shortDescription}</p>
         </div>
 
         {/* Readiness score */}
         <Card glowing>
           <div className="text-center">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Nivel de Prontidao</p>
+            <p className="text-xs font-semibold themed-text-secondary uppercase tracking-wider mb-2">Nivel de Prontidao</p>
             <div className="relative w-24 h-24 mx-auto mb-2">
               <svg width="96" height="96" className="-rotate-90">
                 <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
@@ -72,7 +72,7 @@ export default function BehavioralResult() {
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">{result.readinessScore.toFixed(1)}</span>
+                <span className="text-2xl font-bold themed-text">{result.readinessScore.toFixed(1)}</span>
               </div>
             </div>
             <Badge variant="primary">{result.level}</Badge>
@@ -83,7 +83,7 @@ export default function BehavioralResult() {
         <Card>
           <div className="flex items-center gap-2 mb-3">
             <Star className="w-4 h-4 text-amber-400" />
-            <h3 className="text-sm font-semibold text-gray-300">Seus Pontos Fortes</h3>
+            <h3 className="text-sm font-semibold themed-text-secondary">Seus Pontos Fortes</h3>
           </div>
           <div className="space-y-2">
             {result.strengths.map((s, i) => (
@@ -99,7 +99,7 @@ export default function BehavioralResult() {
         <Card glowing accent="#7C3AED">
           <div className="flex items-center gap-2 mb-2">
             <Zap className="w-4 h-4 text-brand-primary-light" />
-            <h3 className="text-sm font-semibold text-gray-300">Superpoder</h3>
+            <h3 className="text-sm font-semibold themed-text-secondary">Superpoder</h3>
           </div>
           <p className="text-sm text-gray-300">{result.superpower}</p>
         </Card>
@@ -108,7 +108,7 @@ export default function BehavioralResult() {
         <Card>
           <div className="flex items-center gap-2 mb-2">
             <Palette className="w-4 h-4 text-pink-400" />
-            <h3 className="text-sm font-semibold text-gray-300">Estilo de Conteudo</h3>
+            <h3 className="text-sm font-semibold themed-text-secondary">Estilo de Conteudo</h3>
           </div>
           <p className="text-sm text-gray-300 mb-3">{result.contentStyle}</p>
           <div className="flex flex-wrap gap-2">
@@ -122,7 +122,7 @@ export default function BehavioralResult() {
         <Card>
           <div className="flex items-center gap-2 mb-2">
             <ShoppingBag className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-semibold text-gray-300">Produtos Ideais</h3>
+            <h3 className="text-sm font-semibold themed-text-secondary">Produtos Ideais</h3>
           </div>
           <div className="flex flex-wrap gap-2">
             {result.productMatch.map((p) => (

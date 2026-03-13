@@ -40,7 +40,7 @@ export default function Community() {
     <PageContainer title="Comunidade">
       <div className="space-y-6">
         {/* Tabs */}
-        <div className="flex gap-2 bg-surface-card rounded-xl p-1 border border-gray-800">
+        <div className="flex gap-2 themed-surface-card rounded-xl p-1 themed-border">
           {[
             { key: 'ranking' as Tab, label: 'Ranking', icon: Trophy },
             { key: 'lives' as Tab, label: 'Lives', icon: Radio },
@@ -50,7 +50,7 @@ export default function Community() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === t.key ? 'bg-brand-primary/15 text-brand-primary-light' : 'text-gray-400 hover:text-white'
+                tab === t.key ? 'bg-brand-primary/15 text-brand-primary-light' : 'themed-text-secondary hover:themed-text'
               }`}
             >
               <t.icon className="w-4 h-4" />
@@ -62,26 +62,26 @@ export default function Community() {
         {tab === 'ranking' && (
           <div className="space-y-2">
             {ranking.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">Nenhum dado de ranking disponivel.</p>
+              <p className="text-center themed-text-muted py-8">Nenhum dado de ranking disponivel.</p>
             ) : (
               ranking.map((entry) => (
-                <div key={entry.position} className="flex items-center gap-3 bg-surface rounded-xl border border-gray-800 p-3">
+                <div key={entry.position} className="flex items-center gap-3 themed-surface rounded-xl themed-border p-3">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
                     entry.position <= 3 ? '' : 'bg-gray-800'
                   }`} style={entry.position <= 3 ? { backgroundColor: `${MEDAL_COLORS[entry.position - 1]}20` } : {}}>
                     {entry.position <= 3 ? (
                       <Medal className="w-5 h-5" style={{ color: MEDAL_COLORS[entry.position - 1] }} />
                     ) : (
-                      <span className="text-sm font-bold text-gray-500">#{entry.position}</span>
+                      <span className="text-sm font-bold themed-text-muted">#{entry.position}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{entry.name}</p>
+                    <p className="text-sm font-medium themed-text truncate">{entry.name}</p>
                     <Badge variant="primary">{entry.level}</Badge>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-white">{entry.score}</p>
-                    <p className="text-xs text-gray-500">pontos</p>
+                    <p className="text-sm font-bold themed-text">{entry.score}</p>
+                    <p className="text-xs themed-text-muted">pontos</p>
                   </div>
                 </div>
               ))
@@ -92,17 +92,17 @@ export default function Community() {
         {tab === 'lives' && (
           <div className="space-y-3">
             {lives.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">Nenhuma live programada.</p>
+              <p className="text-center themed-text-muted py-8">Nenhuma live programada.</p>
             ) : (
               lives.map((live) => (
                 <Card key={live.id}>
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-sm font-semibold text-white">{live.title}</h3>
+                    <h3 className="text-sm font-semibold themed-text">{live.title}</h3>
                     <Badge variant={live.status === 'live' ? 'danger' : live.status === 'upcoming' ? 'info' : 'default'}>
                       {live.status === 'live' ? 'AO VIVO' : live.status === 'upcoming' ? 'Em breve' : 'Encerrada'}
                     </Badge>
                   </div>
-                  <p className="text-xs text-gray-500">Host: {live.host} | {new Date(live.date).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-xs themed-text-muted">Host: {live.host} | {new Date(live.date).toLocaleDateString('pt-BR')}</p>
                 </Card>
               ))
             )}
@@ -112,12 +112,12 @@ export default function Community() {
         {tab === 'cases' && (
           <div className="space-y-3">
             {cases.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">Nenhum case publicado ainda.</p>
+              <p className="text-center themed-text-muted py-8">Nenhum case publicado ainda.</p>
             ) : (
               cases.map((c) => (
                 <Card key={c.id}>
-                  <p className="text-sm font-semibold text-white mb-1">{c.title}</p>
-                  <p className="text-xs text-gray-400 mb-2">por {c.name}</p>
+                  <p className="text-sm font-semibold themed-text mb-1">{c.title}</p>
+                  <p className="text-xs themed-text-secondary mb-2">por {c.name}</p>
                   <p className="text-sm text-gray-300">{c.description}</p>
                 </Card>
               ))

@@ -95,24 +95,24 @@ export default function Financial() {
         {/* Earnings breakdown */}
         {earnings && (
           <Card glowing>
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">Ganhos do Mes</h3>
+            <h3 className="text-sm font-semibold themed-text-secondary mb-3">Ganhos do Mes</h3>
             <div className="space-y-3">
               {[
                 { label: 'Videos', count: earnings.videos.count, amount: earnings.videos.amount, color: '#3B82F6', icon: Video },
                 { label: 'Comissoes', count: earnings.commissions.count, amount: earnings.commissions.amount, color: '#7C3AED', icon: Users },
                 { label: 'Bonus', count: earnings.bonuses.count, amount: earnings.bonuses.amount, color: '#F59E0B', icon: Award },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between bg-surface-light rounded-xl p-3">
+                <div key={item.label} className="flex items-center justify-between themed-surface-light rounded-xl p-3">
                   <div className="flex items-center gap-2">
                     <item.icon className="w-4 h-4" style={{ color: item.color }} />
-                    <span className="text-sm text-gray-300">{item.label}</span>
+                    <span className="text-sm themed-text-secondary">{item.label}</span>
                     <Badge variant="default">{item.count}x</Badge>
                   </div>
-                  <span className="text-sm font-bold text-white">{fmt(item.amount)}</span>
+                  <span className="text-sm font-bold themed-text">{fmt(item.amount)}</span>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-gray-800">
-                <span className="text-sm font-semibold text-gray-300">Total</span>
+              <div className="flex justify-between pt-2 border-t themed-border">
+                <span className="text-sm font-semibold themed-text-secondary">Total</span>
                 <span className="text-lg font-bold text-emerald-400">{fmt(earnings.total)}</span>
               </div>
             </div>
@@ -121,22 +121,22 @@ export default function Financial() {
 
         {/* Transactions */}
         <div>
-          <h3 className="text-lg font-bold text-white mb-3">Historico</h3>
+          <h3 className="text-lg font-bold themed-text mb-3">Historico</h3>
           {transactions.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">Nenhuma transacao ainda.</p>
+            <p className="text-center themed-text-muted py-8">Nenhuma transacao ainda.</p>
           ) : (
             <div className="space-y-2">
               {transactions.map((tx) => {
                 const Icon = TYPE_ICONS[tx.type] ?? DollarSign;
                 const isWithdrawal = tx.type === 'withdrawal';
                 return (
-                  <div key={tx.id} className="flex items-center gap-3 bg-surface rounded-xl border border-gray-800 p-3">
+                  <div key={tx.id} className="flex items-center gap-3 themed-surface rounded-xl themed-border p-3">
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isWithdrawal ? 'bg-red-500/10' : 'bg-emerald-500/10'}`}>
                       <Icon className="w-4 h-4" style={{ color: isWithdrawal ? '#EF4444' : '#10B981' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{tx.description}</p>
-                      <p className="text-xs text-gray-500">{fmtDate(tx.date)}</p>
+                      <p className="text-sm font-medium themed-text truncate">{tx.description}</p>
+                      <p className="text-xs themed-text-muted">{fmtDate(tx.date)}</p>
                     </div>
                     <span className={`text-sm font-bold ${isWithdrawal ? 'text-red-400' : 'text-emerald-400'}`}>
                       {isWithdrawal ? '-' : '+'}{fmt(tx.amount)}
@@ -153,13 +153,13 @@ export default function Financial() {
       {showWithdraw && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/70" onClick={() => setShowWithdraw(false)} />
-          <div className="relative w-full max-w-md bg-surface rounded-t-2xl sm:rounded-2xl border border-gray-800 p-6 mx-0 sm:mx-4">
-            <button onClick={() => setShowWithdraw(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
-            <h3 className="text-xl font-bold text-white mb-5">Saque PIX</h3>
+          <div className="relative w-full max-w-md themed-surface rounded-t-2xl sm:rounded-2xl themed-border p-6 mx-0 sm:mx-4">
+            <button onClick={() => setShowWithdraw(false)} className="absolute top-4 right-4 themed-text-muted hover:themed-text"><X className="w-5 h-5" /></button>
+            <h3 className="text-xl font-bold themed-text mb-5">Saque PIX</h3>
             <div className="space-y-4">
               <Input label="Chave PIX" icon={<CreditCard className="w-4 h-4" />} placeholder="CPF, email, celular ou chave aleatoria" value={pixKey} onChange={(e) => setPixKey(e.target.value)} />
               <Input label="Valor" icon={<DollarSign className="w-4 h-4" />} placeholder="0.00" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <p className="text-xs text-gray-500">Disponivel: {fmt(balance?.available ?? 0)}</p>
+              <p className="text-xs themed-text-muted">Disponivel: {fmt(balance?.available ?? 0)}</p>
               <Button onClick={handleWithdraw} loading={withdrawing} icon={<Send className="w-4 h-4" />} className="w-full">Solicitar</Button>
             </div>
           </div>

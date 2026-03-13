@@ -173,18 +173,18 @@ export default function Dashboard() {
                 <p className="text-lg font-bold text-emerald-400">
                   {((monthly?.approvalRate ?? 0) * 100).toFixed(0)}%
                 </p>
-                <p className="text-xs text-gray-500">Aprovacao</p>
+                <p className="text-xs themed-text-muted">Aprovacao</p>
               </div>
               <div>
                 <DollarSign className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
                 <p className="text-lg font-bold text-emerald-400">
                   R$ {(monthly?.totalEarnings ?? 0).toFixed(0)}
                 </p>
-                <p className="text-xs text-gray-500">Total</p>
+                <p className="text-xs themed-text-muted">Total</p>
               </div>
             </div>
             {monthly?.earningsBreakdown && (
-              <div className="bg-surface-light rounded-xl p-3 space-y-2">
+              <div className="themed-surface-light rounded-xl p-3 space-y-2">
                 {[
                   { label: 'Videos', value: monthly.earningsBreakdown.videos, color: '#3B82F6' },
                   { label: 'Comissoes', value: monthly.earningsBreakdown.commissions, color: '#7C3AED' },
@@ -193,9 +193,9 @@ export default function Dashboard() {
                   <div key={item.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-sm text-gray-400">{item.label}</span>
+                      <span className="text-sm themed-text-secondary">{item.label}</span>
                     </div>
-                    <span className="text-sm font-semibold text-white">
+                    <span className="text-sm font-semibold themed-text">
                       R$ {(item.value ?? 0).toFixed(2)}
                     </span>
                   </div>
@@ -213,7 +213,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-lg font-bold" style={{ color: levelColor }}>{levelName}</p>
-              <p className="text-xs text-gray-500">{progressPct.toFixed(0)}% para o proximo nivel</p>
+              <p className="text-xs themed-text-muted">{progressPct.toFixed(0)}% para o proximo nivel</p>
             </div>
           </div>
           <ProgressBar value={progressPct} color={levelColor} />
@@ -227,11 +227,11 @@ export default function Dashboard() {
                 <Briefcase className="w-5 h-5 text-brand-primary-light" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Marcas Conectadas</p>
-                <p className="text-xl font-bold text-white">{data?.activeBrands ?? 0}</p>
+                <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide">Marcas Conectadas</p>
+                <p className="text-xl font-bold themed-text">{data?.activeBrands ?? 0}</p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-500" />
+            <ChevronRight className="w-5 h-5 themed-text-muted" />
           </div>
         </Card>
       </div>

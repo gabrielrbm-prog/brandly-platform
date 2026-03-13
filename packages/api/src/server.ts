@@ -15,6 +15,7 @@ import { networkRoutes } from './routes/network.js';
 import { courseRoutes } from './routes/courses.js';
 import { communityRoutes } from './routes/community.js';
 import { socialRoutes } from './routes/social.js';
+import { adminPanelRoutes } from './routes/admin-panel.js';
 
 const app = Fastify({
   logger: {
@@ -52,6 +53,9 @@ async function start() {
   // Auxiliares
   await app.register(userRoutes, { prefix: '/api/users' });
   await app.register(saleRoutes, { prefix: '/api/sales' });
+
+  // Admin Panel (HTML)
+  await app.register(adminPanelRoutes, { prefix: '/admin' });
 
   const port = Number(process.env.PORT ?? 3000);
   const host = process.env.HOST ?? '0.0.0.0';

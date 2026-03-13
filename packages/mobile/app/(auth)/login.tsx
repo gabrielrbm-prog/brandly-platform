@@ -11,8 +11,19 @@ import {
   ScrollView,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
-import { colors, fontSize, fontWeight, spacing, borderRadius } from '@/lib/theme';
+import {
+  colors,
+  colorAlpha,
+  fontSize,
+  fontWeight,
+  spacing,
+  borderRadius,
+  shadows,
+  layout,
+} from '@/lib/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -22,6 +33,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   async function handleLogin() {
     if (!email.trim() || !password.trim()) {
@@ -51,52 +64,113 @@ export default function LoginScreen() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Glow orb decorativo */}
+        <View style={styles.glowOrb} pointerEvents="none" />
+
+        {/* Header com logo */}
         <View style={styles.header}>
-          <Text style={styles.logo}>Brandly</Text>
+          <View style={styles.logoContainer}>
+            <LinearGradient
+              colors={[colors.primary, colors.primaryLight]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.logoGradient}
+            >
+              <Feather name="zap" size={28} color={colors.text} />
+            </LinearGradient>
+            <Text style={styles.logo}>Brandly</Text>
+          </View>
+          <Text style={styles.tagline}>Profissao Creator</Text>
           <Text style={styles.subtitle}>Entre na sua conta</Text>
         </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {/* Erro */}
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Feather name="alert-circle" size={14} color={colors.danger} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
 
+        {/* Formulario */}
         <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={email}
-            onChangeText={setEmail}
-          />
+          {/* Campo Email */}
+          <View style={[styles.inputWrapper, emailFocused && styles.inputWrapperFocused]}>
+            <Feather
+              name="mail"
+              size={18}
+              color={emailFocused ? colors.primaryLight : colors.textMuted}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => setEmailFocused(true)}
+              onBlur={() => setEmailFocused(false)}
+            />
+          </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor={colors.textMuted}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          {/* Campo Senha */}
+          <View style={[styles.inputWrapper, passwordFocused && styles.inputWrapperFocused]}>
+            <Feather
+              name="lock"
+              size={18}
+              color={passwordFocused ? colors.primaryLight : colors.textMuted}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Senha"
+              placeholderTextColor={colors.textMuted}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
+            />
+          </View>
 
+          {/* Botao Entrar */}
           <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={isLoading}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
+            style={[styles.buttonShadow, isLoading && styles.buttonDisabled]}
           >
-            {isLoading ? (
-              <ActivityIndicator color={colors.text} />
-            ) : (
-              <Text style={styles.buttonText}>Entrar</Text>
-            )}
+            <LinearGradient
+              colors={
+                isLoading
+                  ? [colors.primaryDark, colors.primaryDark]
+                  : [colors.primary, colors.primaryLight]
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.button}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors.text} />
+              ) : (
+                <>
+                  <Text style={styles.buttonText}>Entrar</Text>
+                  <Feather name="arrow-right" size={18} color={colors.text} />
+                </>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
+        {/* Link Cadastro */}
         <Link href="/(auth)/register" asChild>
           <TouchableOpacity style={styles.linkContainer}>
             <Text style={styles.linkText}>
-              Nao tem conta? <Text style={styles.linkHighlight}>Cadastre-se</Text>
+              Nao tem conta?{' '}
+              <Text style={styles.linkHighlight}>Cadastre-se gratuitamente</Text>
             </Text>
           </TouchableOpacity>
         </Link>
@@ -116,55 +190,132 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xxl,
   },
+
+  // Glow orb decorativo
+  glowOrb: {
+    position: 'absolute',
+    top: -80,
+    left: '50%',
+    marginLeft: -120,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: colorAlpha.primary15,
+    // blur simulado com opacidade em camadas
+  },
+
+  // Header
   header: {
     alignItems: 'center',
     marginBottom: spacing.xl + spacing.sm,
   },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  logoGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.glowPrimarySubtle,
+  },
   logo: {
     fontSize: fontSize.hero,
-    fontWeight: fontWeight.bold,
+    fontWeight: fontWeight.extrabold,
     color: colors.text,
-    marginBottom: spacing.sm,
+    letterSpacing: -1,
+  },
+  tagline: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.primaryLight,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: fontSize.md,
     color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
-  error: {
-    color: colors.danger,
-    fontSize: fontSize.sm,
-    textAlign: 'center',
+
+  // Erro
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colorAlpha.danger10,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     marginBottom: spacing.md,
   },
+  errorText: {
+    color: colors.danger,
+    fontSize: fontSize.sm,
+    flex: 1,
+  },
+
+  // Formulario
   form: {
     gap: spacing.md,
   },
-  input: {
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md - 2,
+    height: layout.inputHeight + 4,
+  },
+  inputWrapperFocused: {
+    borderColor: colors.primary,
+    backgroundColor: colorAlpha.primary10,
+    ...shadows.glowPrimarySubtle,
+  },
+  inputIcon: {
+    marginRight: spacing.sm,
+  },
+  input: {
+    flex: 1,
     fontSize: fontSize.md,
     color: colors.text,
+    height: '100%',
   },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+
+  // Botao
+  buttonShadow: {
+    borderRadius: borderRadius.lg,
     marginTop: spacing.sm,
+    ...shadows.glowPrimary,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
+  button: {
+    borderRadius: borderRadius.lg,
+    height: layout.buttonHeightLg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
   buttonText: {
     color: colors.text,
     fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 0.5,
   },
+
+  // Link
   linkContainer: {
     marginTop: spacing.lg,
     alignItems: 'center',
@@ -174,7 +325,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
   },
   linkHighlight: {
-    color: colors.primary,
+    color: colors.primaryLight,
     fontWeight: fontWeight.semibold,
   },
 });

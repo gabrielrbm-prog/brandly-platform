@@ -11,8 +11,20 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { networkApi } from '@/lib/api';
-import { borderRadius, colorAlpha, colors, fontSize, layout, spacing } from '@/lib/theme';
+import {
+  borderRadius,
+  colorAlpha,
+  colors,
+  fontSize,
+  fontWeight,
+  layout,
+  levelColors,
+  shadows,
+  spacing,
+} from '@/lib/theme';
 import AnimatedListItem, { FadeInView } from '@/components/AnimatedList';
 import { SkeletonCard } from '@/components/Skeleton';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,12 +48,12 @@ function formatCurrency(value: number): string {
 }
 
 const MENU_ITEMS = [
-  { label: 'Studio IA', icon: '✨', route: '/(tabs)/studio' },
-  { label: 'Marcas', icon: '💼', route: '/(tabs)/brands' },
-  { label: 'Social', icon: '📊', route: '/(tabs)/social' },
-  { label: 'Formacao', icon: '🎓', route: '/(tabs)/courses' },
-  { label: 'Comunidade', icon: '👥', route: '/(tabs)/community' },
-  { label: 'Meu Perfil Creator', icon: '🧠', route: '/behavioral-result' },
+  { label: 'Studio IA', icon: 'zap' as const, route: '/(tabs)/studio', color: colors.accent },
+  { label: 'Marcas', icon: 'briefcase' as const, route: '/(tabs)/brands', color: colors.info },
+  { label: 'Social', icon: 'bar-chart-2' as const, route: '/(tabs)/social', color: colors.success },
+  { label: 'Formacao', icon: 'book-open' as const, route: '/(tabs)/courses', color: colors.primaryLight },
+  { label: 'Comunidade', icon: 'users' as const, route: '/(tabs)/community', color: colors.cyan },
+  { label: 'Meu Perfil Creator', icon: 'target' as const, route: '/behavioral-result', color: colors.accentLight },
 ] as const;
 
 export default function ProfileScreen() {
@@ -120,6 +132,8 @@ export default function ProfileScreen() {
   const totalEarnings = (user?.totalEarnings as number) ?? 0;
   const networkSize = (user?.networkSize as number) ?? 0;
 
+  const levelColor = levelColors[userLevel] ?? colors.primary;
+
   return (
     <ScrollView
       style={styles.container}
@@ -134,90 +148,155 @@ export default function ProfileScreen() {
     >
       {/* Avatar & User Info */}
       <FadeInView>
-      <View style={styles.profileHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{getInitials(userName)}</Text>
-        </View>
-        <Text style={styles.userName}>{userName}</Text>
-        <Text style={styles.userEmail}>{userEmail}</Text>
-        <Text style={styles.userRole}>{userRole}</Text>
+        <LinearGradient
+          colors={[colorAlpha.primary20, 'transparent']}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.profileHeader}
+        >
+          {/* Avatar com borda de nivel */}
+          <View style={[styles.avatarOuter, { borderColor: levelColor }]}>
+            <View style={[styles.avatarGlow, { shadowColor: levelColor }]}>
+              <LinearGradient
+                colors={[colors.primary, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.avatar}
+              >
+                <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+              </LinearGradient>
+            </View>
+          </View>
 
-        {/* Level Badge */}
-        <View style={styles.levelBadge}>
-          <Text style={styles.levelBadgeText}>{userLevel}</Text>
-        </View>
-      </View>
+          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userEmail}>{userEmail}</Text>
+          <Text style={styles.userRole}>{userRole}</Text>
+
+          {/* Badge de nivel com cor do nivel */}
+          <View style={[styles.levelBadge, { borderColor: levelColor, backgroundColor: `${levelColor}22` }]}>
+            <View style={[styles.levelDot, { backgroundColor: levelColor }]} />
+            <Text style={[styles.levelBadgeText, { color: levelColor }]}>{userLevel}</Text>
+          </View>
+        </LinearGradient>
       </FadeInView>
 
-      {/* Referral Code */}
-      {referral?.code && (
-        <AnimatedListItem index={0}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Codigo de Indicacao</Text>
-          <View style={styles.referralRow}>
-            <Text style={styles.referralCode}>{referral.code}</Text>
-            <Pressable style={styles.copyButton} onPress={handleCopyCode}>
-              <Text style={styles.copyButtonText}>
-                {copied ? 'Copiado!' : 'Copiar'}
-              </Text>
-            </Pressable>
+      {/* Stats Row */}
+      <AnimatedListItem index={0}>
+        <View style={styles.statsRow}>
+          {/* Videos */}
+          <View style={styles.statItem}>
+            <View style={[styles.statIconWrapper, { backgroundColor: colorAlpha.accent10 }]}>
+              <Feather name="video" size={16} color={colors.accent} />
+            </View>
+            <Text style={styles.statValue}>{totalVideos}</Text>
+            <Text style={styles.statLabel}>Videos</Text>
+          </View>
+
+          <View style={styles.statDivider} />
+
+          {/* Ganhos */}
+          <View style={styles.statItem}>
+            <View style={[styles.statIconWrapper, { backgroundColor: colorAlpha.success10 }]}>
+              <Feather name="dollar-sign" size={16} color={colors.success} />
+            </View>
+            <Text style={styles.statValue}>{formatCurrency(totalEarnings)}</Text>
+            <Text style={styles.statLabel}>Ganhos</Text>
+          </View>
+
+          <View style={styles.statDivider} />
+
+          {/* Rede */}
+          <View style={styles.statItem}>
+            <View style={[styles.statIconWrapper, { backgroundColor: colorAlpha.info10 }]}>
+              <Feather name="users" size={16} color={colors.info} />
+            </View>
+            <Text style={styles.statValue}>{networkSize}</Text>
+            <Text style={styles.statLabel}>Rede</Text>
           </View>
         </View>
+      </AnimatedListItem>
+
+      {/* Referral Code Card */}
+      {referral?.code && (
+        <AnimatedListItem index={1}>
+          <View style={styles.referralCard}>
+            <LinearGradient
+              colors={[colorAlpha.primary15, colorAlpha.accent10]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.referralGradientBg}
+            />
+            <View style={styles.referralHeader}>
+              <Feather name="share-2" size={16} color={colors.primaryLight} />
+              <Text style={styles.referralTitle}>Codigo de Indicacao</Text>
+            </View>
+            <Text style={styles.referralSubtitle}>
+              Convide amigos e ganhe bonus em cada venda da sua rede
+            </Text>
+            <View style={styles.referralRow}>
+              <View style={styles.referralCodeBox}>
+                <Text style={styles.referralCode}>{referral.code}</Text>
+              </View>
+              <Pressable
+                style={[styles.copyButton, copied && styles.copyButtonSuccess]}
+                onPress={handleCopyCode}
+              >
+                <Feather
+                  name={copied ? 'check' : 'copy'}
+                  size={14}
+                  color={copied ? colors.success : colors.text}
+                />
+                <Text style={[styles.copyButtonText, copied && styles.copyButtonTextSuccess]}>
+                  {copied ? 'Copiado!' : 'Copiar'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
         </AnimatedListItem>
       )}
 
-      {/* Stats Row */}
-      <AnimatedListItem index={1}>
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{totalVideos}</Text>
-          <Text style={styles.statLabel}>Videos</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{formatCurrency(totalEarnings)}</Text>
-          <Text style={styles.statLabel}>Ganhos</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{networkSize}</Text>
-          <Text style={styles.statLabel}>Rede</Text>
-        </View>
-      </View>
-      </AnimatedListItem>
-
       {/* Menu Items */}
       <AnimatedListItem index={2}>
-      <View style={styles.card}>
-        {MENU_ITEMS.map((item, index) => (
-          <Pressable
-            key={item.label}
-            style={[
-              styles.menuItem,
-              index < MENU_ITEMS.length - 1 && styles.menuItemBorder,
-            ]}
-            onPress={() => {
-              router.push(item.route as any);
-            }}
-          >
-            <Text style={styles.menuIcon}>{item.icon}</Text>
-            <Text style={styles.menuLabel}>{item.label}</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </Pressable>
-        ))}
-      </View>
+        <View style={styles.menuCard}>
+          {MENU_ITEMS.map((item, index) => (
+            <Pressable
+              key={item.label}
+              style={({ pressed }) => [
+                styles.menuItem,
+                index < MENU_ITEMS.length - 1 && styles.menuItemBorder,
+                pressed && styles.menuItemPressed,
+              ]}
+              onPress={() => {
+                router.push(item.route as any);
+              }}
+            >
+              <View style={[styles.menuIconCircle, { backgroundColor: `${item.color}18` }]}>
+                <Feather name={item.icon} size={18} color={item.color} />
+              </View>
+              <Text style={styles.menuLabel}>{item.label}</Text>
+              <Feather name="chevron-right" size={16} color={colors.textMuted} />
+            </Pressable>
+          ))}
+        </View>
       </AnimatedListItem>
 
-      {/* Logout Button */}
+      {/* Logout Button — outline, discreto */}
       <Pressable
-        style={[styles.logoutButton, loggingOut && { opacity: 0.5 }]}
+        style={({ pressed }) => [
+          styles.logoutButton,
+          loggingOut && { opacity: 0.5 },
+          pressed && styles.logoutButtonPressed,
+        ]}
         onPress={handleLogout}
         disabled={loggingOut}
       >
         {loggingOut ? (
-          <ActivityIndicator color={colors.text} size="small" />
+          <ActivityIndicator color={colors.danger} size="small" />
         ) : (
-          <Text style={styles.logoutButtonText}>Sair</Text>
+          <>
+            <Feather name="log-out" size={16} color={colors.textMuted} />
+            <Text style={styles.logoutButtonText}>Sair da conta</Text>
+          </>
         )}
       </Pressable>
     </ScrollView>
@@ -230,40 +309,48 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    padding: spacing.md,
     paddingBottom: spacing.xxl,
     gap: spacing.md,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
   // Profile Header
   profileHeader: {
     alignItems: 'center',
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.md,
+  },
+  avatarOuter: {
+    width: layout.avatarLg + 8,
+    height: layout.avatarLg + 8,
+    borderRadius: (layout.avatarLg + 8) / 2,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  avatarGlow: {
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
   },
   avatar: {
     width: layout.avatarLg,
     height: layout.avatarLg,
     borderRadius: layout.avatarLg / 2,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
   },
   avatarText: {
     color: colors.text,
     fontSize: fontSize.xxl,
-    fontWeight: '700',
+    fontWeight: fontWeight.bold,
   },
   userName: {
     color: colors.text,
     fontSize: fontSize.xl,
-    fontWeight: '700',
+    fontWeight: fontWeight.bold,
   },
   userEmail: {
     color: colors.textSecondary,
@@ -277,126 +364,195 @@ const styles = StyleSheet.create({
   },
   levelBadge: {
     marginTop: spacing.sm,
-    backgroundColor: colorAlpha.primary30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.primary,
+  },
+  levelDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   levelBadgeText: {
-    color: colors.primaryLight,
     fontSize: fontSize.sm,
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
   },
 
-  // Card
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-  },
-  cardTitle: {
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
-  },
-
-  // Referral
-  referralRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  referralCode: {
-    flex: 1,
-    color: colors.text,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  copyButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  copyButtonText: {
-    color: colors.text,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-
-  // Stats
+  // Stats Row
   statsRow: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
+    marginHorizontal: spacing.md,
+    paddingVertical: spacing.md,
     alignItems: 'center',
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
+    gap: spacing.xs,
+  },
+  statIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xxs,
   },
   statValue: {
     color: colors.text,
     fontSize: fontSize.md,
-    fontWeight: '700',
+    fontWeight: fontWeight.bold,
   },
   statLabel: {
     color: colors.textSecondary,
     fontSize: fontSize.xs,
-    marginTop: spacing.xs,
   },
   statDivider: {
     width: layout.dividerHeight,
-    height: layout.iconLg,
+    height: 48,
     backgroundColor: colors.border,
   },
 
+  // Referral Card
+  referralCard: {
+    marginHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    padding: spacing.md,
+    overflow: 'hidden',
+    ...shadows.glowPrimarySubtle,
+  },
+  referralGradientBg: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: borderRadius.lg,
+  },
+  referralHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  referralTitle: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+  },
+  referralSubtitle: {
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    marginBottom: spacing.md,
+    lineHeight: 20,
+  },
+  referralRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  referralCodeBox: {
+    flex: 1,
+    backgroundColor: colorAlpha.white10,
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  referralCode: {
+    color: colors.text,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+    letterSpacing: 2,
+  },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    ...shadows.glowPrimarySubtle,
+  },
+  copyButtonSuccess: {
+    backgroundColor: colorAlpha.success20,
+    borderWidth: 1,
+    borderColor: colors.success,
+  },
+  copyButtonText: {
+    color: colors.text,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+  },
+  copyButtonTextSuccess: {
+    color: colors.success,
+  },
+
   // Menu
+  menuCard: {
+    marginHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
   },
   menuItemBorder: {
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  menuIcon: {
-    fontSize: fontSize.lg,
-    marginRight: spacing.md,
+  menuItemPressed: {
+    backgroundColor: colorAlpha.primary10,
+  },
+  menuIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   menuLabel: {
     flex: 1,
     color: colors.text,
     fontSize: fontSize.md,
-    fontWeight: '500',
-  },
-  menuArrow: {
-    color: colors.textMuted,
-    fontSize: fontSize.xl,
-    fontWeight: '300',
+    fontWeight: fontWeight.medium,
   },
 
-  // Logout
+  // Logout — outline discreto
   logoutButton: {
-    backgroundColor: colors.danger,
-    borderRadius: borderRadius.md,
-    height: layout.buttonHeight,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    backgroundColor: 'transparent',
+  },
+  logoutButtonPressed: {
+    backgroundColor: colorAlpha.danger10,
+    borderColor: colors.danger,
   },
   logoutButtonText: {
-    color: colors.text,
-    fontSize: fontSize.md,
-    fontWeight: '600',
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
   },
 });

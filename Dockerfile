@@ -7,6 +7,7 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/core/package.json packages/core/
 COPY packages/bonus-engine/package.json packages/bonus-engine/
 COPY packages/api/package.json packages/api/
+COPY packages/web/package.json packages/web/
 
 RUN npm install
 

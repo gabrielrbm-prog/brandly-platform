@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Brandly transforma qualquer pessoa em Creator Profissional com renda garantida de R$100/dia produzindo conteudo para marcas ja contratadas.">
+  <meta name="theme-color" content="#7C3AED">
+  <meta property="og:title" content="Brandly | Profissao Creator">
+  <meta property="og:description" content="Ganhe R$100/dia criando videos para marcas. Sem depender de vendas ou seguidores.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Brandly | Profissao Creator</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['Space Grotesk', 'sans-serif'],
+            body: ['Inter', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            accent: { DEFAULT: '#7C3AED', hover: '#9061F0', dim: '#5B21B6' },
+            surface: { 0: '#050508', 1: '#0A0A0F', 2: '#0F0F14', 3: '#16161D', 4: '#1E1E28' },
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --accent: #7C3AED;
+      --accent-hover: color-mix(in srgb, var(--accent), white 15%);
+      --accent-dim: color-mix(in srgb, var(--accent), black 30%);
+      --accent-glow: color-mix(in srgb, var(--accent), transparent 70%);
+      --accent-glow-md: color-mix(in srgb, var(--accent), transparent 55%);
+      --accent-border: color-mix(in srgb, var(--accent), transparent 80%);
+      --accent-glass: color-mix(in srgb, var(--accent), transparent 97%);
+      --bg-0: #050508;
+      --bg-1: #0A0A0F;
+      --bg-2: #0F0F14;
+      --bg-3: #16161D;
+      --bg-4: #1E1E28;
+      --text-1: #F5F0E8;
+      --text-2: #B0AAA0;
+      --text-3: #7A7468;
+      --border-subtle: rgba(255,255,255,0.05);
+      --font-heading: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --section-py: clamp(80px, 12vh, 160px);
+      --max-width: 1280px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-0);
+      color: var(--text-1);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:0.35;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    /* Scroll progress */
+    .scroll-progress { position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),#00DFFF);z-index:100;width:0%;transition:none; }
+
+    /* Typography helpers */
+    .gradient-text { background:linear-gradient(135deg,var(--accent),#00DFFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+    .heading-fade { color: var(--text-1); }
+    .text-secondary { color: var(--text-2); }
+    .section-label {
+      font-family:var(--font-heading);font-size:0.75rem;font-weight:600;
+      letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);
+      display:inline-block;
+    }
+    .py-section { padding-top: var(--section-py); padding-bottom: var(--section-py); }
+
+    /* Buttons */
+    .btn-primary {
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 32px;border-radius:12px;font-weight:600;font-size:0.95rem;
+      background:var(--accent);color:#fff;
+      transition:all 0.3s ease;cursor:pointer;text-decoration:none;
+      box-shadow:0 0 30px var(--accent-glow);
+    }
+    .btn-primary:hover { background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 0 50px var(--accent-glow-md); }
+    .btn-outline {
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 32px;border-radius:12px;font-weight:600;font-size:0.95rem;
+      border:1.5px solid rgba(255,255,255,0.12);color:var(--text-2);
+      transition:all 0.3s ease;cursor:pointer;text-decoration:none;background:transparent;
+    }
+    .btn-outline:hover { border-color:var(--accent-border);color:var(--text-1);transform:translateY(-2px); }
+
+    /* Glass cards */
+    .glass {
+      background:rgba(15,15,20,0.5);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      border:1px solid rgba(255,255,255,0.06);
+      transition:border-color 0.4s,transform 0.4s,box-shadow 0.4s;
+    }
+    .glass:hover { border-color:var(--accent-border);transform:translateY(-4px);box-shadow:0 20px 50px rgba(124,58,237,0.06); }
+
+    /* Nav */
+    #navbar { background:transparent;transition:all 0.3s ease; }
+    #navbar.scrolled { background:rgba(5,5,8,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04); }
+    .nav-link { color:var(--text-3);font-size:0.875rem;font-weight:500;transition:color 0.3s;text-decoration:none; }
+    .nav-link:hover { color:var(--text-1); }
+
+    /* Hamburger */
+    .hamburger span { display:block;width:20px;height:1.5px;background:var(--text-2);transition:all 0.3s; }
+    .hamburger.active span:nth-child(1) { transform:rotate(45deg) translate(4px,4px); }
+    .hamburger.active span:nth-child(2) { opacity:0; }
+    .hamburger.active span:nth-child(3) { transform:rotate(-45deg) translate(4px,-4px); }
+    .mobile-menu { max-height:0;overflow:hidden;transition:max-height 0.4s ease; }
+    .mobile-menu.open { max-height:400px; }
+
+    /* Ticker */
+    .ticker-track { display:flex;width:max-content;animation:ticker 40s linear infinite; }
+    @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* Hero orbs */
+    .hero-orb { position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;opacity:0.4; }
+
+    /* Divider */
+    .divider { height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.2),rgba(0,223,255,0.15),transparent); }
+
+    /* Counter */
+    .counter { font-family:var(--font-heading);font-weight:700; }
+
+    /* Steps connector */
+    .step-connector { position:absolute;top:24px;left:50%;width:100%;height:2px;background:linear-gradient(90deg,var(--accent),rgba(0,223,255,0.3));opacity:0.3; }
+
+    /* FAQ */
+    .faq-answer { max-height:0;overflow:hidden;transition:max-height 0.4s ease; }
+    .faq-answer.open { max-height:300px; }
+    .faq-chevron { transition:transform 0.3s; }
+    .faq-chevron.open { transform:rotate(180deg); }
+
+    /* Rotating border */
+    @property --ba { syntax:'<angle>';initial-value:0deg;inherits:false; }
+    .rot-border { position:relative;border-radius:16px;overflow:hidden; }
+    .rot-border::before {
+      content:'';position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
+      background:conic-gradient(from var(--ba),transparent 60%,var(--accent) 80%,transparent 100%);
+      animation:bs 4s linear infinite;
+    }
+    .rot-border::after { content:'';position:absolute;inset:1px;border-radius:inherit;background:var(--bg-2);z-index:-1; }
+    @keyframes bs { to { --ba:360deg; } }
+
+    /* Comparison table */
+    .comparison-old { color:#EF4444;opacity:0.7; }
+    .comparison-new { color:#10B981; }
+
+    /* Reveal */
+    .reveal { opacity:0;transform:translateY(40px); }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity:1;transform:none; }
+      .ticker-track { animation:none; }
+      .rot-border::before { animation:none; }
+      html { scroll-behavior: auto; }
+    }
+
+    /* Focus visible */
+    :focus-visible { outline:2px solid var(--accent);outline-offset:3px;border-radius:4px; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .btn-primary, .btn-outline { padding:12px 24px;font-size:0.875rem;width:100%;text-align:center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ===== NAV ===== -->
+  <nav class="fixed top-0 left-0 w-full z-50" id="navbar">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2" aria-label="Brandly">
+        <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" class="h-8 w-auto" />
+        <span class="font-heading text-lg font-semibold">Brandly</span>
+      </a>
+      <div class="hidden lg:flex items-center gap-8">
+        <a href="#como-funciona" class="nav-link">Como Funciona</a>
+        <a href="#sistema-scale" class="nav-link">Sistema SCALE</a>
+        <a href="#depoimentos" class="nav-link">Depoimentos</a>
+        <a href="#preco" class="nav-link">Investimento</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="#preco" class="hidden sm:inline-flex btn-primary text-sm">Quero ser Creator</a>
+        <button class="hamburger lg:hidden flex flex-col gap-[5px] p-2" id="hamburgerBtn" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="mobile-menu lg:hidden px-5 pb-4" id="mobileMenu">
+      <div class="flex flex-col gap-3 pt-4 border-t border-white/5">
+        <a href="#como-funciona" class="text-sm py-2 text-secondary">Como Funciona</a>
+        <a href="#sistema-scale" class="text-sm py-2 text-secondary">Sistema SCALE</a>
+        <a href="#depoimentos" class="text-sm py-2 text-secondary">Depoimentos</a>
+        <a href="#preco" class="text-sm py-2 text-secondary">Investimento</a>
+        <a href="#faq" class="text-sm py-2 text-secondary">FAQ</a>
+        <a href="#preco" class="btn-primary text-sm !py-3 mt-2 text-center">Quero ser Creator</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="relative min-h-screen flex items-center justify-center overflow-hidden" id="hero">
+    <div class="hero-orb" style="width:600px;height:600px;background:var(--accent);top:-200px;right:-200px;"></div>
+    <div class="hero-orb" style="width:400px;height:400px;background:#00DFFF;bottom:-150px;left:-150px;opacity:0.25;"></div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 pt-28 pb-20 text-center">
+      <span class="section-label mb-6 inline-block hero-badge" style="opacity:0">Profissao Creator Brandly</span>
+      <h1 class="font-heading text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-tight mb-6">
+        <span class="hero-line block overflow-hidden"><span class="hero-line-inner block heading-fade">Crie conteudo.</span></span>
+        <span class="hero-line block overflow-hidden"><span class="hero-line-inner block gradient-text">Receba todo dia.</span></span>
+      </h1>
+      <p class="text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto text-secondary hero-desc" style="opacity:0">
+        Ganhe <strong class="text-white">R$100/dia garantido</strong> produzindo 10 videos para marcas ja contratadas. Sem depender de vendas, seguidores ou algoritmo.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4 hero-ctas" style="opacity:0">
+        <a href="#preco" class="btn-primary magnetic">Quero ser Creator Profissional</a>
+        <a href="#como-funciona" class="btn-outline magnetic">Veja como funciona</a>
+      </div>
+
+      <div class="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto hero-stats" style="opacity:0">
+        <div class="text-center">
+          <div class="font-heading text-2xl sm:text-3xl font-bold gradient-text counter" data-target="847">0</div>
+          <div class="text-xs text-secondary mt-1">Creators ativos</div>
+        </div>
+        <div class="text-center">
+          <div class="font-heading text-2xl sm:text-3xl font-bold gradient-text counter" data-target="50">0</div>
+          <div class="text-xs text-secondary mt-1">Marcas parceiras</div>
+        </div>
+        <div class="text-center">
+          <div class="font-heading text-2xl sm:text-3xl font-bold text-white">R$100</div>
+          <div class="text-xs text-secondary mt-1">Por dia garantido</div>
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[var(--bg-0)] to-transparent z-10"></div>
+  </section>
+
+  <!-- ===== TICKER (marcas parceiras) ===== -->
+  <section class="py-6 overflow-hidden border-y border-white/5">
+    <div class="ticker-track">
+      <div class="flex items-center gap-16 px-8">
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">YAV HEALTH</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">NATIVE</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">FOKA</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">ETF</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">CONECTAR ENERGY</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">VYVA</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">+44 MARCAS</span>
+      </div>
+      <div class="flex items-center gap-16 px-8">
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">YAV HEALTH</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">NATIVE</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">FOKA</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">ETF</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">CONECTAR ENERGY</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">VYVA</span>
+        <span class="text-sm font-semibold tracking-wider whitespace-nowrap opacity-30">+44 MARCAS</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROBLEM (o vilao) ===== -->
+  <section class="py-section" id="problema">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-16">
+        <span class="section-label mb-4 block reveal">O problema</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight reveal">
+          87% dos creators brasileiros ganham<br><span class="gradient-text">menos de R$500 por mes</span>
+        </h2>
+        <p class="text-secondary mt-4 max-w-2xl mx-auto reveal">
+          O modelo atual de afiliacao e publi avulsa esta quebrado. Voce cria, divulga, torca — e talvez ganhe algo.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6 reveal">
+        <!-- Modelo antigo -->
+        <div class="glass rounded-2xl p-8 border-red-500/10">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 text-lg">&#10005;</div>
+            <h3 class="font-heading text-lg font-semibold text-red-400">Modelo Tradicional</h3>
+          </div>
+          <ul class="space-y-3 text-sm text-secondary">
+            <li class="flex items-start gap-3"><span class="comparison-old mt-0.5">&#x2717;</span> Paga APENAS quando voce vende</li>
+            <li class="flex items-start gap-3"><span class="comparison-old mt-0.5">&#x2717;</span> Voce busca marcas sozinha</li>
+            <li class="flex items-start gap-3"><span class="comparison-old mt-0.5">&#x2717;</span> Renda de R$0 a R$4k — aleatorio</li>
+            <li class="flex items-start gap-3"><span class="comparison-old mt-0.5">&#x2717;</span> Curso pronto, sem acompanhamento</li>
+            <li class="flex items-start gap-3"><span class="comparison-old mt-0.5">&#x2717;</span> 100% do risco e seu</li>
+            <li class="flex items-start gap-3"><span class="comparison-old mt-0.5">&#x2717;</span> Precisa seguidores e portfolio</li>
+          </ul>
+        </div>
+        <!-- Brandly -->
+        <div class="rot-border">
+          <div class="glass rounded-2xl p-8 relative z-10" style="background:var(--bg-2);">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-lg">&#10003;</div>
+              <h3 class="font-heading text-lg font-semibold text-emerald-400">Modelo Brandly</h3>
+            </div>
+            <ul class="space-y-3 text-sm">
+              <li class="flex items-start gap-3"><span class="comparison-new mt-0.5">&#x2713;</span> Paga por PRODUCAO (venda e bonus extra)</li>
+              <li class="flex items-start gap-3"><span class="comparison-new mt-0.5">&#x2713;</span> 50+ marcas pre-contratadas prontas</li>
+              <li class="flex items-start gap-3"><span class="comparison-new mt-0.5">&#x2713;</span> R$100/dia garantido = R$3.000/mes base</li>
+              <li class="flex items-start gap-3"><span class="comparison-new mt-0.5">&#x2713;</span> Formacao + lives diarias + comunidade</li>
+              <li class="flex items-start gap-3"><span class="comparison-new mt-0.5">&#x2713;</span> Risco zero pra voce</li>
+              <li class="flex items-start gap-3"><span class="comparison-new mt-0.5">&#x2713;</span> Zero seguidores necessarios</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== COMO FUNCIONA (3 passos do Miller) ===== -->
+  <section class="py-section" id="como-funciona">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-16">
+        <span class="section-label mb-4 block reveal">Como funciona</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight reveal">
+          3 passos para se tornar<br><span class="gradient-text">Creator Profissional</span>
+        </h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8 relative">
+        <!-- Passo 1 -->
+        <div class="text-center reveal">
+          <div class="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-6">
+            <span class="font-heading text-2xl font-bold gradient-text">1</span>
+          </div>
+          <h3 class="font-heading text-xl font-semibold mb-3">Entre</h3>
+          <p class="text-secondary text-sm leading-relaxed">
+            Faca sua inscricao e acesse o Sistema SCALE. Voce recebe formacao completa + acesso ao app com IA.
+          </p>
+        </div>
+        <!-- Passo 2 -->
+        <div class="text-center reveal">
+          <div class="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-6">
+            <span class="font-heading text-2xl font-bold gradient-text">2</span>
+          </div>
+          <h3 class="font-heading text-xl font-semibold mb-3">Produza</h3>
+          <p class="text-secondary text-sm leading-relaxed">
+            Grave 10 videos por dia com roteiros prontos da IA para marcas ja contratadas. Tempo total: ~1 hora.
+          </p>
+        </div>
+        <!-- Passo 3 -->
+        <div class="text-center reveal">
+          <div class="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-6">
+            <span class="font-heading text-2xl font-bold gradient-text">3</span>
+          </div>
+          <h3 class="font-heading text-xl font-semibold mb-3">Receba</h3>
+          <p class="text-secondary text-sm leading-relaxed">
+            R$100 cai na sua conta em 24h apos aprovacao. Todo dia. Mais comissoes extras quando seus videos geram vendas.
+          </p>
+        </div>
+      </div>
+      <div class="text-center mt-12 reveal">
+        <a href="#preco" class="btn-primary magnetic">Comecar agora</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== SISTEMA SCALE (features) ===== -->
+  <section class="py-section" id="sistema-scale">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-16">
+        <span class="section-label mb-4 block reveal">Sistema SCALE</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight reveal">
+          Tudo que voce precisa em<br><span class="gradient-text">um unico ecossistema</span>
+        </h2>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6 text-2xl">&#127891;</div>
+          <h3 class="text-lg font-semibold mb-3">Formacao Profissional</h3>
+          <p class="text-secondary text-sm leading-relaxed">De zero a creator profissional em 3 semanas. Comunicacao, producao acelerada (tecnica 3x3x2), e marca pessoal.</p>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6 text-2xl">&#129302;</div>
+          <h3 class="text-lg font-semibold mb-3">IA de Roteiros</h3>
+          <p class="text-secondary text-sm leading-relaxed">3 ganchos x 3 corpos x 3 CTAs = 27 combinacoes unicas. Roteiros validados prontos. So ler e gravar.</p>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6 text-2xl">&#9889;</div>
+          <h3 class="text-lg font-semibold mb-3">Edicao em 30 segundos</h3>
+          <p class="text-secondary text-sm leading-relaxed">IA remove pausas, adiciona legendas sincronizadas e ajusta enquadramento automaticamente. 10 videos em 5 minutos.</p>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6 text-2xl">&#127915;</div>
+          <h3 class="text-lg font-semibold mb-3">50+ Marcas Contratadas</h3>
+          <p class="text-secondary text-sm leading-relaxed">Voce nao busca marcas. Elas ja estao contratadas, com briefings prontos. Escolha, grave e envie.</p>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6 text-2xl">&#128200;</div>
+          <h3 class="text-lg font-semibold mb-3">Dashboard de Metricas</h3>
+          <p class="text-secondary text-sm leading-relaxed">Videos aprovados, engajamento, conversoes, ganhos detalhados. Insights automaticos sobre o que performa melhor.</p>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6 text-2xl">&#128101;</div>
+          <h3 class="text-lg font-semibold mb-3">Comunidade Ativa</h3>
+          <p class="text-secondary text-sm leading-relaxed">Lives diarias, grupo exclusivo com 847+ creators, mentorias para top performers e eventos presenciais.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== METRICAS (autoridade) ===== -->
+  <section class="py-section">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="text-center reveal">
+          <div class="font-heading text-3xl sm:text-4xl font-bold gradient-text counter" data-target="847">0</div>
+          <div class="text-sm text-secondary mt-2">Creators ativos</div>
+        </div>
+        <div class="text-center reveal">
+          <div class="font-heading text-3xl sm:text-4xl font-bold gradient-text">R$100</div>
+          <div class="text-sm text-secondary mt-2">Por dia garantido</div>
+        </div>
+        <div class="text-center reveal">
+          <div class="font-heading text-3xl sm:text-4xl font-bold gradient-text counter" data-target="27">0</div>
+          <div class="text-sm text-secondary mt-2">Roteiros por video</div>
+        </div>
+        <div class="text-center reveal">
+          <div class="font-heading text-3xl sm:text-4xl font-bold gradient-text">30s</div>
+          <div class="text-sm text-secondary mt-2">Edicao por video</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== PROGRESSAO DE CARREIRA ===== -->
+  <section class="py-section">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-16">
+        <span class="section-label mb-4 block reveal">Progressao</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight reveal">
+          De iniciante a <span class="gradient-text">Creator Elite</span>
+        </h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="text-xs font-semibold text-accent uppercase tracking-wider mb-4">Mes 0-3</div>
+          <h3 class="font-heading text-xl font-semibold mb-2">Iniciante</h3>
+          <div class="font-heading text-2xl font-bold text-emerald-400 mb-4">R$3.000<span class="text-sm text-secondary font-normal">/mes</span></div>
+          <ul class="space-y-2 text-sm text-secondary">
+            <li>10 videos/dia = R$100/dia</li>
+            <li>Celular + luz basica</li>
+            <li>100% renda fixa</li>
+          </ul>
+        </div>
+        <div class="glass rounded-xl p-8 reveal border border-accent/20">
+          <div class="text-xs font-semibold text-accent uppercase tracking-wider mb-4">Mes 3-12</div>
+          <h3 class="font-heading text-xl font-semibold mb-2">Profissional</h3>
+          <div class="font-heading text-2xl font-bold text-emerald-400 mb-4">R$8-10k<span class="text-sm text-secondary font-normal">/mes</span></div>
+          <ul class="space-y-2 text-sm text-secondary">
+            <li>3-5 marcas simultaneas</li>
+            <li>60% fixo + 40% comissao</li>
+            <li>10k-50k seguidores</li>
+          </ul>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="text-xs font-semibold text-accent uppercase tracking-wider mb-4">Mes 12+</div>
+          <h3 class="font-heading text-xl font-semibold mb-2">Elite</h3>
+          <div class="font-heading text-2xl font-bold text-emerald-400 mb-4">R$20-30k+<span class="text-sm text-secondary font-normal">/mes</span></div>
+          <ul class="space-y-2 text-sm text-secondary">
+            <li>Marcas premium</li>
+            <li>30% fixo + 70% comissao</li>
+            <li>Mansao Brandly + eventos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== DEPOIMENTOS ===== -->
+  <section class="py-section" id="depoimentos">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-16">
+        <span class="section-label mb-4 block reveal">Depoimentos</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight reveal">
+          Quem ja vive a <span class="gradient-text">Profissao Creator</span>
+        </h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-sm font-bold">AC</div>
+            <div>
+              <div class="text-sm font-semibold">Ana Carolina</div>
+              <div class="text-xs text-secondary">Creator ha 4 meses</div>
+            </div>
+          </div>
+          <p class="text-sm text-secondary leading-relaxed">"Eu fazia publi de R$300 e ficava meses sem receber nada. Na Brandly, meu primeiro mes ja foram R$3.200 de base. No terceiro, passei de R$6k com comissoes."</p>
+          <div class="mt-4 text-xs text-emerald-400 font-semibold">R$6.200/mes</div>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-sm font-bold">MF</div>
+            <div>
+              <div class="text-sm font-semibold">Mariana Ferraz</div>
+              <div class="text-xs text-secondary">Ex-desempregada</div>
+            </div>
+          </div>
+          <p class="text-sm text-secondary leading-relaxed">"Estava 6 meses sem emprego, morando com minha mae. Em 7 dias na Brandly ja recebi meu primeiro R$100. Hoje faco R$4k/mes e voltei a ter dignidade."</p>
+          <div class="mt-4 text-xs text-emerald-400 font-semibold">R$4.000/mes</div>
+        </div>
+        <div class="glass rounded-xl p-8 reveal">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-sm font-bold">LS</div>
+            <div>
+              <div class="text-sm font-semibold">Leticia Santos</div>
+              <div class="text-xs text-secondary">Mae, 2 filhos</div>
+            </div>
+          </div>
+          <p class="text-sm text-secondary leading-relaxed">"Gravo quando as criancas dormem. 1 hora por dia. R$3.000 certinhos todo mes. Meu marido parou de falar que 'eu fico em casa o dia todo'."</p>
+          <div class="mt-4 text-xs text-emerald-400 font-semibold">R$3.400/mes</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== FRACASSO (salt the oats) ===== -->
+  <section class="py-section">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <h2 class="font-heading text-[clamp(1.5rem,3vw,2.2rem)] leading-tight tracking-tight mb-6 reveal">
+        Se voce nao agir agora...
+      </h2>
+      <div class="space-y-3 text-secondary reveal">
+        <p>Vai continuar criando 30 videos por mes e ganhando R$500-800.</p>
+        <p>Vai continuar aceitando qualquer publi de R$300 por desespero.</p>
+        <p>Vai continuar ouvindo que <em>"isso nao e profissao"</em>.</p>
+        <p class="text-white font-semibold mt-6">91% dos creators desistem no primeiro ano. Voce vai ser estatistica ou excecao?</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== PRICING ===== -->
+  <section class="py-section" id="preco">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-12">
+        <span class="section-label mb-4 block reveal">Investimento</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight reveal">
+          Profissao Creator <span class="gradient-text">Brandly</span>
+        </h2>
+      </div>
+      <div class="rot-border reveal">
+        <div class="rounded-2xl p-8 sm:p-12 relative z-10" style="background:var(--bg-2);">
+          <div class="text-center mb-8">
+            <div class="text-sm text-secondary line-through mb-1">De R$997</div>
+            <div class="font-heading text-5xl font-bold text-white mb-2">12x <span class="gradient-text">R$49,90</span></div>
+            <div class="text-sm text-secondary">ou R$497 a vista</div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4 mb-8 text-sm">
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> Formacao completa (3 modulos)</div>
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> App com IA de roteiros e edicao</div>
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> 50+ marcas pre-contratadas</div>
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> R$100/dia garantido (10 videos)</div>
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> Comunidade + lives diarias</div>
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> Dashboard de metricas</div>
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> Suporte via grupo exclusivo</div>
+            <div class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">&#x2713;</span> Garantia de 30 dias</div>
+          </div>
+
+          <div class="space-y-3 mb-8">
+            <div class="glass rounded-lg p-4 flex items-center gap-3 text-sm">
+              <span class="text-amber-400 text-lg">&#127873;</span>
+              <div><span class="font-semibold text-amber-400">10 primeiros:</span> Kit Creator Fisico (ring light + tripé)</div>
+            </div>
+            <div class="glass rounded-lg p-4 flex items-center gap-3 text-sm">
+              <span class="text-amber-400 text-lg">&#128293;</span>
+              <div><span class="font-semibold text-amber-400">20 primeiros:</span> Pagamento dobrado nos 3 primeiros dias</div>
+            </div>
+            <div class="glass rounded-lg p-4 flex items-center gap-3 text-sm">
+              <span class="text-amber-400 text-lg">&#127775;</span>
+              <div><span class="font-semibold text-amber-400">50 primeiros:</span> Meta reduzida na 1a semana (5 videos/dia)</div>
+            </div>
+          </div>
+
+          <div class="text-center">
+            <a href="#" class="btn-primary magnetic text-lg w-full sm:w-auto justify-center" style="padding:18px 48px;">Quero ser Creator Profissional</a>
+            <p class="text-xs text-secondary mt-4">Garantia incondicional de 30 dias. Se nao funcionar, devolvemos 100%.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== FAQ ===== -->
+  <section class="py-section" id="faq">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-16">
+        <span class="section-label mb-4 block reveal">FAQ</span>
+        <h2 class="font-heading text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight reveal">
+          Perguntas <span class="gradient-text">frequentes</span>
+        </h2>
+      </div>
+      <div class="space-y-3">
+
+        <div class="glass rounded-xl overflow-hidden reveal faq-item">
+          <button class="w-full flex items-center justify-between p-5 sm:p-6 text-left faq-toggle" aria-expanded="false">
+            <span class="text-sm sm:text-base font-medium pr-4">Preciso ter seguidores para comecar?</span>
+            <svg class="faq-chevron w-5 h-5 flex-shrink-0 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer px-5 sm:px-6">
+            <p class="text-sm text-secondary pb-5 leading-relaxed">Nao. Zero seguidores necessarios. Voce produz conteudo UGC para as marcas parceiras — nao precisa de audiencia propria. A marca ja esta contratada e o briefing ja esta pronto.</p>
+          </div>
+        </div>
+
+        <div class="glass rounded-xl overflow-hidden reveal faq-item">
+          <button class="w-full flex items-center justify-between p-5 sm:p-6 text-left faq-toggle" aria-expanded="false">
+            <span class="text-sm sm:text-base font-medium pr-4">Como recebo o pagamento?</span>
+            <svg class="faq-chevron w-5 h-5 flex-shrink-0 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer px-5 sm:px-6">
+            <p class="text-sm text-secondary pb-5 leading-relaxed">Apos a aprovacao dos seus videos (geralmente em 24h), o valor de R$10 por video e creditado na sua conta Brandly. Voce pode sacar a qualquer momento via Pix.</p>
+          </div>
+        </div>
+
+        <div class="glass rounded-xl overflow-hidden reveal faq-item">
+          <button class="w-full flex items-center justify-between p-5 sm:p-6 text-left faq-toggle" aria-expanded="false">
+            <span class="text-sm sm:text-base font-medium pr-4">Quanto tempo por dia preciso dedicar?</span>
+            <svg class="faq-chevron w-5 h-5 flex-shrink-0 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer px-5 sm:px-6">
+            <p class="text-sm text-secondary pb-5 leading-relaxed">Aproximadamente 1 hora e 5 minutos. 1 hora gravando (usando a tecnica 3x3x2 voce grava 10 videos em uma sessao) + 5 minutos de edicao via IA.</p>
+          </div>
+        </div>
+
+        <div class="glass rounded-xl overflow-hidden reveal faq-item">
+          <button class="w-full flex items-center justify-between p-5 sm:p-6 text-left faq-toggle" aria-expanded="false">
+            <span class="text-sm sm:text-base font-medium pr-4">Ja faco conteudo, por que pagar por isso?</span>
+            <svg class="faq-chevron w-5 h-5 flex-shrink-0 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer px-5 sm:px-6">
+            <p class="text-sm text-secondary pb-5 leading-relaxed">Porque a Brandly nao e um curso — e um ecossistema. Voce esta pagando acesso a 50+ marcas contratadas, IA de roteiros e edicao, comunidade ativa e R$100/dia garantido. O investimento se paga em 5 dias de producao.</p>
+          </div>
+        </div>
+
+        <div class="glass rounded-xl overflow-hidden reveal faq-item">
+          <button class="w-full flex items-center justify-between p-5 sm:p-6 text-left faq-toggle" aria-expanded="false">
+            <span class="text-sm sm:text-base font-medium pr-4">E se nao der certo?</span>
+            <svg class="faq-chevron w-5 h-5 flex-shrink-0 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer px-5 sm:px-6">
+            <p class="text-sm text-secondary pb-5 leading-relaxed">Garantia incondicional de 30 dias. Se voce seguir o metodo e nao tiver resultados, devolvemos 100% do seu investimento. Sem perguntas, sem burocracia.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ===== CTA FINAL (manifesto) ===== -->
+  <section class="py-section relative overflow-hidden">
+    <div class="hero-orb" style="width:500px;height:500px;background:var(--accent);bottom:-200px;left:50%;transform:translateX(-50%);opacity:0.3;"></div>
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 text-center relative z-10">
+      <h2 class="font-heading text-[clamp(1.8rem,5vw,3.5rem)] leading-tight tracking-tight mb-6 reveal">
+        Criar conteudo e trabalho.<br><span class="gradient-text">E trabalho merece ser pago.</span>
+      </h2>
+      <p class="text-secondary text-lg mb-10 max-w-xl mx-auto reveal">
+        O mercado de creator economy no Brasil vai explodir. A pergunta nao e <em>se</em> — e <em>quando</em>. E quem vai estar posicionado quando acontecer.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4 reveal">
+        <a href="#preco" class="btn-primary magnetic text-lg" style="padding:18px 48px;">Quero ser Creator Profissional</a>
+      </div>
+      <p class="text-xs text-secondary mt-6 reveal">Vagas limitadas. 50+ marcas esperando. Garantia de 30 dias.</p>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="border-t border-white/5 py-12">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-2">
+          <img src="assets/logos-hq/simbolo-verde-boreal.png" alt="" class="h-6 w-auto" />
+          <span class="font-heading text-sm font-semibold">Brandly</span>
+          <span class="text-xs text-secondary ml-2">Seu branding viral</span>
+        </div>
+        <div class="flex items-center gap-6">
+          <a href="#" class="text-xs text-secondary hover:text-white transition-colors">Termos</a>
+          <a href="#" class="text-xs text-secondary hover:text-white transition-colors">Privacidade</a>
+          <a href="#" class="text-xs text-secondary hover:text-white transition-colors">Contato</a>
+        </div>
+        <div class="text-xs text-secondary">&copy; 2026 Brandly. Todos os direitos reservados.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/SplitText.min.js"></script>
+
+  <script>
+  (function(){
+    function initPage() {
+      if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+      gsap.registerPlugin(ScrollTrigger);
+
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Lenis smooth scroll
+      if (!prefersReduced && typeof Lenis !== 'undefined') {
+        const lenis = new Lenis({ lerp: 0.07, smoothWheel: true });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add(t => lenis.raf(t * 1000));
+        gsap.ticker.lagSmoothing(0);
+      }
+
+      // Scroll progress
+      const progressBar = document.getElementById('scrollProgress');
+      if (progressBar) {
+        ScrollTrigger.create({
+          trigger: document.body,
+          start: 'top top',
+          end: 'bottom bottom',
+          onUpdate: self => { progressBar.style.width = (self.progress * 100) + '%'; }
+        });
+      }
+
+      // Navbar scroll
+      const nav = document.getElementById('navbar');
+      if (nav) {
+        ScrollTrigger.create({
+          start: 80,
+          onUpdate: self => { nav.classList.toggle('scrolled', self.progress > 0); }
+        });
+      }
+
+      // Hamburger
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      if (hamburgerBtn && mobileMenu) {
+        hamburgerBtn.addEventListener('click', () => {
+          hamburgerBtn.classList.toggle('active');
+          mobileMenu.classList.toggle('open');
+        });
+        mobileMenu.querySelectorAll('a').forEach(a => {
+          a.addEventListener('click', () => {
+            hamburgerBtn.classList.remove('active');
+            mobileMenu.classList.remove('open');
+          });
+        });
+      }
+
+      if (prefersReduced) {
+        document.querySelectorAll('.reveal').forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+        document.querySelectorAll('[style*="opacity:0"]').forEach(el => { el.style.opacity = '1'; });
+        return;
+      }
+
+      // Hero timeline
+      const heroTl = gsap.timeline({ delay: 0.3 });
+      heroTl
+        .to('.hero-badge', { opacity: 1, duration: 0.6, ease: 'power2.out' })
+        .from('.hero-line-inner', { y: '110%', duration: 0.9, ease: 'power4.out', stagger: 0.15 }, '-=0.3')
+        .to('.hero-desc', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.4')
+        .to('.hero-ctas', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.3')
+        .to('.hero-stats', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.2');
+
+      // Scroll reveals
+      gsap.utils.toArray('.reveal').forEach(el => {
+        gsap.to(el, {
+          scrollTrigger: { trigger: el, start: 'top 88%' },
+          opacity: 1, y: 0, duration: 0.8, ease: 'power3.out'
+        });
+      });
+
+      // Counters
+      document.querySelectorAll('.counter').forEach(counter => {
+        const target = parseInt(counter.dataset.target);
+        if (!target) return;
+        ScrollTrigger.create({
+          trigger: counter,
+          start: 'top 85%',
+          once: true,
+          onEnter: () => {
+            gsap.to({ val: 0 }, {
+              val: target,
+              duration: 2,
+              ease: 'power2.out',
+              onUpdate: function() { counter.textContent = Math.round(this.targets()[0].val).toLocaleString('pt-BR'); }
+            });
+          }
+        });
+      });
+
+      // Magnetic buttons
+      document.querySelectorAll('.magnetic').forEach(btn => {
+        btn.addEventListener('mousemove', e => {
+          const r = btn.getBoundingClientRect();
+          const dx = e.clientX - r.left - r.width / 2;
+          const dy = e.clientY - r.top - r.height / 2;
+          gsap.to(btn, { x: dx * 0.2, y: dy * 0.2, duration: 0.3, ease: 'power2.out' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1,0.3)' });
+        });
+      });
+
+      // FAQ
+      document.querySelectorAll('.faq-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const answer = btn.nextElementSibling;
+          const chevron = btn.querySelector('.faq-chevron');
+          const isOpen = answer.classList.contains('open');
+
+          document.querySelectorAll('.faq-answer.open').forEach(a => { a.classList.remove('open'); a.style.maxHeight = '0'; });
+          document.querySelectorAll('.faq-chevron.open').forEach(c => c.classList.remove('open'));
+          document.querySelectorAll('.faq-toggle').forEach(t => t.setAttribute('aria-expanded', 'false'));
+
+          if (!isOpen) {
+            answer.classList.add('open');
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+            chevron.classList.add('open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
+
+      // Anchor smooth scroll
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+          const target = document.querySelector(a.getAttribute('href'));
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPage);
+    } else {
+      initPage();
+    }
+  })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Brandly | Profissao Creator",
+    "description": "Ganhe R$100/dia criando videos para marcas ja contratadas. Sem depender de vendas, seguidores ou algoritmo.",
+    "provider": {
+      "@type": "Organization",
+      "name": "Brandly",
+      "description": "Ecossistema de UGC Creators com renda garantida por producao"
+    }
+  }
+  </script>
+</body>
+</html>

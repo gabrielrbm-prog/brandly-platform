@@ -1,5 +1,6 @@
 import { db } from './connection.js';
-import { levels, brands, briefings, courses, lessons } from './schema.js';
+import { levels, brands, briefings, courses, lessons, products, users, liveEvents, successCases } from './schema.js';
+import bcrypt from 'bcryptjs';
 
 /**
  * Seed do banco de dados com dados iniciais.
@@ -102,12 +103,69 @@ async function seed() {
     { courseId: course3[0].id, title: 'Nicho e posicionamento: como se diferenciar', orderIndex: 3, duration: 1500, isPublished: true },
   ]);
 
+  // 6. Produtos para cada marca
+  console.log('  Inserindo produtos...');
+  for (const brand of insertedBrands) {
+    const isPhysical = ['supplements', 'beauty', 'food', 'fashion'].includes(brand.category);
+    await db.insert(products).values([
+      {
+        name: `${brand.name} — Produto Principal`,
+        type: isPhysical ? 'physical' : 'digital',
+        price: isPhysical ? '149.90' : '297.00',
+        brandId: brand.id,
+        commissionPercent: isPhysical ? '15' : '40',
+        status: 'active',
+      },
+      {
+        name: `${brand.name} — Kit Iniciante`,
+        type: isPhysical ? 'physical' : 'digital',
+        price: isPhysical ? '89.90' : '197.00',
+        brandId: brand.id,
+        commissionPercent: isPhysical ? '12' : '35',
+        status: 'active',
+      },
+    ]).onConflictDoNothing();
+  }
+
+  // 7. Admin user
+  console.log('  Inserindo admin user...');
+  const adminHash = await bcrypt.hash('admin123', 10);
+  await db.insert(users).values({
+    name: 'Admin Brandly',
+    email: 'admin@brandly.com.br',
+    passwordHash: adminHash,
+    role: 'admin',
+    referralCode: 'ADMIN001',
+    status: 'active',
+    onboardingCompleted: true,
+  }).onConflictDoNothing();
+
+  // 8. Live Events
+  console.log('  Inserindo live events...');
+  const nextWeek = new Date();
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  const nextMonth = new Date();
+  nextMonth.setDate(nextMonth.getDate() + 30);
+
+  await db.insert(liveEvents).values([
+    { title: 'Live de Boas-Vindas — Conheca o Sistema Brandly', instructorName: 'Gabriel Rubim', scheduledAt: nextWeek },
+    { title: 'Workshop: Seus Primeiros 10 Videos UGC', instructorName: 'Raquel Guerreiro', scheduledAt: nextMonth },
+  ]).onConflictDoNothing();
+
+  // 9. Success Cases
+  console.log('  Inserindo success cases...');
+  await db.insert(successCases).values([
+    { title: 'De 0 a R$3.000/mes em 45 dias', story: 'Carolina comecou sem experiencia e em 45 dias ja estava faturando R$3.000/mes com videos UGC para 3 marcas parceiras. O segredo? Consistencia e a tecnica 3x3x2.', earnings: '3000', isPublished: true },
+    { title: 'Demitida e agora ganhando mais que CLT', story: 'Fernanda foi demitida e encontrou na Brandly uma nova carreira. Em 60 dias conquistou R$4.500/mes produzindo videos para marcas de beleza e suplementos.', earnings: '4500', isPublished: true },
+  ]).onConflictDoNothing();
+
   console.log('\nSeed concluido com sucesso!');
   console.log('  7 niveis de carreira');
-  console.log('  6 marcas parceiras');
+  console.log('  6 marcas parceiras + 12 produtos');
   console.log('  6 briefings');
-  console.log('  3 modulos de formacao');
-  console.log('  10 aulas');
+  console.log('  3 modulos de formacao + 10 aulas');
+  console.log('  1 admin user (admin@brandly.com.br / admin123)');
+  console.log('  2 live events + 2 success cases');
   process.exit(0);
 }
 

@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
+  Animated,
   FlatList,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -57,6 +58,12 @@ export default function BrandsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Modal state
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const slideAnim = useRef(new Animated.Value(400)).current;
+
   const fetchData = useCallback(async () => {
     try {
       setError(null);
@@ -85,9 +92,62 @@ export default function BrandsScreen() {
     fetchData();
   }, [fetchData]);
 
+  const openModal = useCallback((brand: Brand) => {
+    setSelectedBrand(brand);
+    setModalVisible(true);
+    slideAnim.setValue(400);
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      damping: 24,
+      stiffness: 280,
+      useNativeDriver: true,
+    }).start();
+  }, [slideAnim]);
+
+  const closeModal = useCallback(() => {
+    Animated.timing(slideAnim, {
+      toValue: 400,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalVisible(false);
+      setSelectedBrand(null);
+    });
+  }, [slideAnim]);
+
   const handleBrandPress = useCallback((brand: Brand) => {
-    Alert.alert(brand.name, `Detalhes da marca ${brand.name} (em breve)`);
-  }, []);
+    openModal(brand);
+  }, [openModal]);
+
+  const isConnected = useCallback(
+    (brand: Brand) => myBrands.some((b) => b.id === brand.id),
+    [myBrands],
+  );
+
+  const handleConnectToggle = useCallback(async () => {
+    if (!selectedBrand) return;
+    setActionLoading(true);
+    try {
+      if (isConnected(selectedBrand)) {
+        await brandsApi.disconnect(selectedBrand.id);
+      } else {
+        await brandsApi.connect(selectedBrand.id);
+      }
+      // Recarrega a lista sem fechar o modal — atualiza myBrands em background
+      const category = selectedCategory === 'Todas' ? undefined : selectedCategory;
+      const [brandsResult, myBrandsResult] = await Promise.all([
+        brandsApi.list(category) as Promise<Brand[]>,
+        brandsApi.my() as Promise<Brand[]>,
+      ]);
+      setBrands(brandsResult);
+      setMyBrands(myBrandsResult);
+    } catch (err: any) {
+      // Mantém modal aberto e exibe erro inline via state — sem Alert
+      setError(err.message ?? 'Erro ao atualizar marca');
+    } finally {
+      setActionLoading(false);
+    }
+  }, [selectedBrand, selectedCategory, isConnected]);
 
   const getCategoryColor = (category: string): string => {
     const map: Record<string, string> = {
@@ -266,6 +326,19 @@ export default function BrandsScreen() {
     );
   }
 
+  // Derivações do modal para a marca selecionada
+  const modalBrand = selectedBrand;
+  const modalConnected = modalBrand ? isConnected(modalBrand) : false;
+  const modalCatColor = modalBrand ? getCategoryColor(modalBrand.category) : colors.textMuted;
+  const modalCatAlpha = modalBrand ? getCategoryAlpha(modalBrand.category, 0.15) : colorAlpha.muted20;
+  const modalCatIcon: React.ComponentProps<typeof Feather>['name'] =
+    (modalBrand && CATEGORY_ICONS[modalBrand.category]) ?? 'tag';
+  const modalFillPct = modalBrand
+    ? Math.min((modalBrand.creatorsConnected / modalBrand.maxSlots) * 100, 100)
+    : 0;
+  const modalFillColor =
+    modalFillPct > 80 ? colors.danger : modalFillPct > 50 ? colors.warning : colors.success;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
@@ -295,6 +368,156 @@ export default function BrandsScreen() {
           </View>
         }
       />
+
+      {/* Brand Detail Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeModal}
+        statusBarTranslucent
+      >
+        {/* Backdrop */}
+        <Pressable
+          style={[styles.modalBackdrop, { backgroundColor: colors.overlayHeavy }]}
+          onPress={closeModal}
+        >
+          {/* Prevent close when tapping the sheet itself */}
+          <Pressable onPress={() => {}}>
+            <Animated.View
+              style={[
+                styles.modalSheet,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  transform: [{ translateY: slideAnim }],
+                },
+                shadows.lg,
+              ]}
+            >
+              {/* Handle indicator */}
+              <View style={[styles.modalHandle, { backgroundColor: colors.borderLight }]} />
+
+              {/* Close button */}
+              <Pressable
+                style={[styles.modalCloseBtn, { backgroundColor: colorAlpha.muted20 }]}
+                onPress={closeModal}
+                hitSlop={8}
+              >
+                <Feather name="x" size={18} color={colors.textSecondary} />
+              </Pressable>
+
+              {/* Header */}
+              {modalBrand && (
+                <View style={styles.modalHeader}>
+                  {/* Category icon badge */}
+                  <View style={[styles.modalIconBadge, { backgroundColor: modalCatAlpha }]}>
+                    <Feather name={modalCatIcon} size={22} color={modalCatColor} />
+                  </View>
+
+                  <View style={styles.modalTitleBlock}>
+                    {/* Category badge */}
+                    <View style={[styles.modalCategoryBadge, { backgroundColor: modalCatAlpha }]}>
+                      <View style={[styles.modalCategoryDot, { backgroundColor: modalCatColor }]} />
+                      <Text style={[styles.modalCategoryText, { color: modalCatColor }]}>
+                        {modalBrand.category}
+                      </Text>
+                    </View>
+                    <Text style={[styles.modalBrandName, { color: colors.text }]}>
+                      {modalBrand.name}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Divider */}
+              <View style={[styles.modalDivider, { backgroundColor: colors.border }]} />
+
+              {/* Description */}
+              {modalBrand && (
+                <View style={styles.modalBody}>
+                  <Text style={[styles.modalDescriptionLabel, { color: colors.textMuted }]}>
+                    Sobre a marca
+                  </Text>
+                  <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+                    {modalBrand.description}
+                  </Text>
+
+                  {/* Slots section */}
+                  <View style={[styles.modalSlotsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                    <View style={styles.modalSlotsHeader}>
+                      <View style={styles.modalSlotsLabelRow}>
+                        <Feather name="users" size={14} color={colors.textMuted} />
+                        <Text style={[styles.modalSlotsLabel, { color: colors.textMuted }]}>
+                          Vagas de creators
+                        </Text>
+                      </View>
+                      <Text style={[styles.modalSlotsCount, { color: modalFillColor }]}>
+                        {modalBrand.creatorsConnected}/{modalBrand.maxSlots}
+                      </Text>
+                    </View>
+                    <View style={[styles.modalSlotsBarBg, { backgroundColor: colors.border }]}>
+                      <View
+                        style={[
+                          styles.modalSlotsBarFill,
+                          {
+                            width: `${modalFillPct}%` as any,
+                            backgroundColor: modalFillColor,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={[styles.modalSlotsPct, { color: modalFillColor }]}>
+                      {Math.round(modalFillPct)}% preenchido
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Action button */}
+              {modalBrand && (
+                <View style={styles.modalFooter}>
+                  <Pressable
+                    onPress={handleConnectToggle}
+                    disabled={actionLoading}
+                    style={({ pressed }) => [
+                      styles.modalActionBtn,
+                      modalConnected
+                        ? [styles.modalDisconnectBtn, { borderColor: colors.danger }]
+                        : { backgroundColor: colors.primary },
+                      pressed && styles.modalActionBtnPressed,
+                      actionLoading && styles.modalActionBtnDisabled,
+                    ]}
+                  >
+                    {actionLoading ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={modalConnected ? colors.danger : colors.text}
+                      />
+                    ) : (
+                      <>
+                        <Feather
+                          name={modalConnected ? 'user-minus' : 'user-plus'}
+                          size={16}
+                          color={modalConnected ? colors.danger : colors.text}
+                        />
+                        <Text
+                          style={[
+                            styles.modalActionBtnText,
+                            { color: modalConnected ? colors.danger : colors.text },
+                          ]}
+                        >
+                          {modalConnected ? 'Desconectar' : 'Conectar'}
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+              )}
+            </Animated.View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -496,5 +719,162 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: fontSize.sm,
     textAlign: 'center',
+  },
+
+  // Modal
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    paddingBottom: spacing.xxl,
+    minHeight: 380,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: borderRadius.full,
+    alignSelf: 'center',
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  modalIconBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  modalTitleBlock: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  modalCategoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: borderRadius.sm,
+  },
+  modalCategoryDot: {
+    width: 6,
+    height: 6,
+    borderRadius: borderRadius.full,
+  },
+  modalCategoryText: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+  },
+  modalBrandName: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    lineHeight: 28,
+  },
+  modalDivider: {
+    height: layout.dividerHeight,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  modalBody: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  modalDescriptionLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  modalDescription: {
+    fontSize: fontSize.sm,
+    lineHeight: 22,
+  },
+  modalSlotsCard: {
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  modalSlotsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalSlotsLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  modalSlotsLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: '500',
+  },
+  modalSlotsCount: {
+    fontSize: fontSize.sm,
+    fontWeight: '700',
+  },
+  modalSlotsBarBg: {
+    height: layout.progressBarLg,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  modalSlotsBarFill: {
+    height: '100%',
+    borderRadius: borderRadius.full,
+  },
+  modalSlotsPct: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+    textAlign: 'right',
+  },
+  modalFooter: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+  },
+  modalActionBtn: {
+    height: layout.buttonHeight,
+    borderRadius: borderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  modalDisconnectBtn: {
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+  modalActionBtnPressed: {
+    opacity: 0.75,
+  },
+  modalActionBtnDisabled: {
+    opacity: 0.5,
+  },
+  modalActionBtnText: {
+    fontSize: fontSize.md,
+    fontWeight: '600',
   },
 });

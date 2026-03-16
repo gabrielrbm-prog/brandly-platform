@@ -46,7 +46,7 @@ Responda APENAS em JSON valido neste formato exato:
 {
   "hooks": ["hook1", "hook2", "hook3"],
   "bodies": ["body1", "body2", "body3"],
-  "ctas": ["cta1", "cta2"]
+  "ctas": ["cta1", "cta2", "cta3"]
 }`;
 }
 
@@ -110,7 +110,7 @@ export async function generateScripts(
   const provider = options?.provider ?? (process.env.LLM_PROVIDER as LLMProvider) ?? 'claude';
   const hookCount = options?.hooks ?? 3;
   const bodyCount = options?.bodies ?? 3;
-  const ctaCount = options?.ctas ?? 2;
+  const ctaCount = options?.ctas ?? 3;
 
   if (provider === 'openai') {
     if (!process.env.OPENAI_API_KEY) {

@@ -12,6 +12,11 @@ import type {
   VideoAnalysisOutput,
   WebhookPayload,
 } from '@brandly/shared';
+import {
+  generateCaption,
+  generateHashtags,
+  analyzeVideoContent,
+} from '@brandly/core';
 
 // ============================================
 // MOCK DATA — Brazilian market context
@@ -470,19 +475,39 @@ export async function integrationRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     const { brandName, productName, tone = 'casual', platform = 'instagram' } = request.body;
 
-    const mockOutput: ContentGenerationOutput = {
-      id: `gen-caption-${Date.now()}`,
-      type: 'caption',
-      content: `Descobri o ${productName} da ${brandName} e nao vivo mais sem! 🔥\n\nTestei por 30 dias e o resultado fala por si. Se voce busca qualidade de verdade, precisa experimentar.\n\n💰 Link com desconto exclusivo na bio!\n\n#${brandName.toLowerCase().replace(/\s/g, '')} #${productName.toLowerCase().replace(/\s/g, '')} #creatorbrandly #ugc #tiktokmademebuythis`,
-      provider: 'claude',
-      tokensUsed: 178,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      // Chama o servico real (com fallback para mock se a chave nao estiver configurada)
+      const result = await generateCaption({
+        brandName,
+        productName,
+        tone,
+        platform: platform as 'instagram' | 'tiktok',
+      });
 
-    return reply.status(201).send({
-      generation: mockOutput,
-      message: 'Caption gerada com sucesso!',
-    });
+      const output: ContentGenerationOutput = {
+        id: `gen-caption-${Date.now()}`,
+        type: 'caption',
+        // Combina caption + hashtags em um unico campo de conteudo
+        content: `${result.caption}\n\n${result.hashtags.join(' ')}`,
+        provider: 'claude',
+        tokensUsed: result.tokensUsed,
+        createdAt: new Date().toISOString(),
+      };
+
+      return reply.status(201).send({
+        generation: output,
+        caption: result.caption,
+        hashtags: result.hashtags,
+        message: 'Caption gerada com sucesso!',
+        aiPowered: result.tokensUsed > 0,
+      });
+    } catch (err) {
+      app.log.error({ err, brandName, productName }, 'Erro ao gerar caption com IA');
+      return reply.status(500).send({
+        error: 'Falha ao gerar caption',
+        message: err instanceof Error ? err.message : 'Erro desconhecido',
+      });
+    }
   });
 
   // POST /api/integrations/content/generate-hashtags
@@ -492,75 +517,85 @@ export async function integrationRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     const { brandName, productName, platform = 'tiktok' } = request.body;
 
-    const brandTag = brandName.toLowerCase().replace(/\s/g, '');
-    const productTag = productName.toLowerCase().replace(/\s/g, '');
+    try {
+      // Chama o servico real (com fallback para mock se a chave nao estiver configurada)
+      const result = await generateHashtags({
+        brandName,
+        productName,
+        platform: platform as 'instagram' | 'tiktok',
+      });
 
-    const hashtags = platform === 'tiktok'
-      ? [
-          `#${brandTag}`, `#${productTag}`, '#tiktokmademebuythis', '#tiktokshop',
-          '#review', '#recomendo', '#produtosbons', '#rotina',
-          '#creatorbrandly', '#ugcbrasil', '#dicadetiktok',
-          '#fyp', '#parati', '#viral', '#trending',
-        ]
-      : [
-          `#${brandTag}`, `#${productTag}`, '#reels', '#instareview',
-          '#dicadodia', '#produtosfavoritos', '#rotina', '#lifestyle',
-          '#creatorbrandly', '#ugcbrasil', '#conteudodigital',
-          '#influenciadordigital', '#creators', '#parceria',
-        ];
+      const output: ContentGenerationOutput = {
+        id: `gen-hashtags-${Date.now()}`,
+        type: 'hashtags',
+        content: result.hashtags,
+        provider: 'claude',
+        tokensUsed: result.tokensUsed,
+        createdAt: new Date().toISOString(),
+      };
 
-    const mockOutput: ContentGenerationOutput = {
-      id: `gen-hashtags-${Date.now()}`,
-      type: 'hashtags',
-      content: hashtags,
-      provider: 'claude',
-      tokensUsed: 85,
-      createdAt: new Date().toISOString(),
-    };
-
-    return reply.status(201).send({
-      generation: mockOutput,
-      message: `${hashtags.length} hashtags geradas para ${platform}!`,
-    });
+      return reply.status(201).send({
+        generation: output,
+        hashtags: result.hashtags,
+        message: `${result.hashtags.length} hashtags geradas para ${platform}!`,
+        aiPowered: result.tokensUsed > 0,
+      });
+    } catch (err) {
+      app.log.error({ err, brandName, productName }, 'Erro ao gerar hashtags com IA');
+      return reply.status(500).send({
+        error: 'Falha ao gerar hashtags',
+        message: err instanceof Error ? err.message : 'Erro desconhecido',
+      });
+    }
   });
 
   // POST /api/integrations/content/analyze-video
-  app.post<{ Body: VideoAnalysisInput }>('/content/analyze-video', {
+  app.post<{ Body: VideoAnalysisInput & { briefingContext?: string } }>('/content/analyze-video', {
     schema: analyzeVideoSchema,
     preHandler: [app.authenticate],
   }, async (request, reply) => {
-    const { videoUrl, platform } = request.body;
+    const { videoUrl, platform, briefingContext } = request.body as VideoAnalysisInput & { briefingContext?: string };
 
-    const mockAnalysis: VideoAnalysisOutput = {
-      id: `analysis-${Date.now()}`,
-      views: 24_300,
-      likes: 1_890,
-      comments: 234,
-      shares: 89,
-      engagementRate: 9.12,
-      estimatedReach: 45_600,
-      sentiment: 'positive',
-      topCommentThemes: [
-        'Onde comprar?',
-        'Funciona mesmo?',
-        'Quero testar!',
-        'Produto incrivel',
-        'Link por favor',
-      ],
-      recommendations: [
-        'Adicionar CTA mais forte no final do video',
-        'Testar ganchos com pergunta para aumentar retencao',
-        'Postar entre 18h-21h para maior alcance no Brasil',
-        'Responder os 5 primeiros comentarios em ate 30 minutos',
-        'Criar versao com duracao de 15s para melhor performance',
-      ],
-    };
+    try {
+      // Chama o servico real (com fallback para mock se a chave nao estiver configurada)
+      const result = await analyzeVideoContent({
+        videoUrl,
+        platform: platform as 'tiktok' | 'instagram' | 'youtube',
+        briefingContext,
+      });
 
-    return reply.status(200).send({
-      analysis: mockAnalysis,
-      videoUrl,
-      platform,
-      message: 'Analise concluida com sucesso!',
-    });
+      // Monta resposta compativel com VideoAnalysisOutput do shared + campos extras da IA
+      const analysis: VideoAnalysisOutput = {
+        id: `analysis-${Date.now()}`,
+        // Campos de metricas reais nao estao disponiveis via analise de URL — retornam 0
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        engagementRate: 0,
+        estimatedReach: 0,
+        sentiment: result.score >= 70 ? 'positive' : result.score >= 40 ? 'neutral' : 'negative',
+        topCommentThemes: [],
+        recommendations: result.recommendations,
+      };
+
+      return reply.status(200).send({
+        analysis,
+        videoUrl,
+        platform,
+        score: result.score,
+        briefingCompliance: result.briefingCompliance,
+        recommendations: result.recommendations,
+        tokensUsed: result.tokensUsed,
+        aiPowered: result.tokensUsed > 0,
+        message: 'Analise concluida com sucesso!',
+      });
+    } catch (err) {
+      app.log.error({ err, videoUrl, platform }, 'Erro ao analisar video com IA');
+      return reply.status(500).send({
+        error: 'Falha ao analisar video',
+        message: err instanceof Error ? err.message : 'Erro desconhecido',
+      });
+    }
   });
 }

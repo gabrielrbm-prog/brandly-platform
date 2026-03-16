@@ -1,5 +1,7 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyError } from 'fastify';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import fs from 'fs';
@@ -26,6 +28,7 @@ import { campaignRoutes } from './routes/campaigns.js';
 import { analyticsRoutes } from './routes/analytics.js';
 
 const app = Fastify({
+  bodyLimit: 1_048_576, // 1MB max — previne ataques de payload gigante
   logger: {
     level: process.env.LOG_LEVEL ?? 'info',
     transport: process.env.NODE_ENV === 'development'
@@ -35,8 +38,60 @@ const app = Fastify({
 });
 
 async function start() {
-  await app.register(cors, { origin: true });
+  // --- Seguranca: Helmet (headers HTTP) ---
+  // CSP desabilitado pois servimos uma SPA
+  await app.register(helmet, { contentSecurityPolicy: false });
+
+  // --- Seguranca: Rate Limiting global ---
+  await app.register(rateLimit, {
+    max: 100,        // 100 requisicoes por janela
+    timeWindow: '1 minute',
+  });
+
+  // --- Seguranca: Rate limit estrito em rotas de autenticacao (anti-brute-force) ---
+  app.addHook('onRoute', (routeOptions) => {
+    if (routeOptions.url?.startsWith('/api/auth')) {
+      routeOptions.config = {
+        ...routeOptions.config,
+        rateLimit: { max: 10, timeWindow: '1 minute' },
+      };
+    }
+  });
+
+  // --- CORS — whitelist explicita em vez de origin: true ---
+  await app.register(cors, {
+    origin: [
+      'http://localhost:5173',      // web dev (Vite)
+      'http://localhost:8081',      // expo dev
+      'http://localhost:19006',     // expo web
+      'https://api-production-3a6f.up.railway.app',
+      'https://gabrielrbm-prog.github.io',
+      /\.brandly\.com$/,            // dominio customizado futuro
+    ],
+    credentials: true,
+  });
+
+  // --- Plugin de autenticacao JWT ---
   await app.register(authPlugin);
+
+  // --- Tratamento global de erros ---
+  app.setErrorHandler((error: FastifyError, request, reply) => {
+    app.log.error(
+      { err: error, url: request.url, method: request.method },
+      'Erro nao tratado',
+    );
+
+    if (error.statusCode === 429) {
+      return reply
+        .status(429)
+        .send({ error: 'Muitas requisicoes. Tente novamente em alguns minutos.' });
+    }
+
+    const statusCode = error.statusCode ?? 500;
+    reply.status(statusCode).send({
+      error: statusCode >= 500 ? 'Erro interno do servidor' : error.message,
+    });
+  });
 
   // Sprint 1 — Fundacao
   await app.register(healthRoutes, { prefix: '/api' });
@@ -98,6 +153,16 @@ async function start() {
     });
   } else {
     app.log.warn(`Web app NAO encontrado em ${webDistPath} — /app/ desabilitado`);
+  }
+
+  // --- Graceful shutdown ---
+  const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];
+  for (const signal of signals) {
+    process.on(signal, async () => {
+      app.log.info(`${signal} recebido — encerrando servidor...`);
+      await app.close();
+      process.exit(0);
+    });
   }
 
   const port = Number(process.env.PORT ?? 3000);

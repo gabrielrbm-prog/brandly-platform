@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import bcrypt from 'bcryptjs';
 import { db } from '@brandly/core';
-import { users, levels, creatorProfiles } from '@brandly/core';
-import { eq } from 'drizzle-orm';
+import { users, levels, creatorProfiles, passwordResetTokens } from '@brandly/core';
+import { eq, gt, and, isNull } from 'drizzle-orm';
 import crypto from 'crypto';
 
 interface RegisterBody {
@@ -15,6 +15,15 @@ interface RegisterBody {
 interface LoginBody {
   email: string;
   password: string;
+}
+
+interface ForgotPasswordBody {
+  email: string;
+}
+
+interface ResetPasswordBody {
+  token: string;
+  newPassword: string;
 }
 
 function generateReferralCode(): string {
@@ -152,5 +161,86 @@ export async function authRoutes(app: FastifyInstance) {
     }
 
     return { user };
+  });
+
+  // POST /api/auth/forgot-password
+  app.post<{ Body: ForgotPasswordBody }>('/forgot-password', async (request, reply) => {
+    const { email } = request.body;
+
+    if (!email) {
+      return reply.status(400).send({ error: 'email e obrigatorio' });
+    }
+
+    // Resposta generica independente de o email existir ou nao (evita enumeracao de usuarios)
+    const resposta = { message: 'Se o email existir, enviaremos instrucoes de recuperacao.' };
+
+    const [user] = await db.select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (!user) {
+      return reply.status(200).send(resposta);
+    }
+
+    // Gerar token seguro de 32 bytes (64 chars hex)
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora a partir de agora
+
+    await db.insert(passwordResetTokens).values({
+      userId: user.id,
+      token,
+      expiresAt,
+    });
+
+    // Registrar token em log — integracao com email sera feita em etapa futura
+    request.log.info({ tokenRecuperacao: token, userId: user.id }, 'Token de recuperacao de senha gerado');
+
+    return reply.status(200).send(resposta);
+  });
+
+  // POST /api/auth/reset-password
+  app.post<{ Body: ResetPasswordBody }>('/reset-password', async (request, reply) => {
+    const { token, newPassword } = request.body;
+
+    if (!token || !newPassword) {
+      return reply.status(400).send({ error: 'token e newPassword sao obrigatorios' });
+    }
+
+    if (newPassword.length < 6) {
+      return reply.status(400).send({ error: 'newPassword deve ter no minimo 6 caracteres' });
+    }
+
+    const agora = new Date();
+
+    // Buscar token valido: existente, nao usado e nao expirado
+    const [resetToken] = await db.select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.token, token),
+          isNull(passwordResetTokens.usedAt),
+          gt(passwordResetTokens.expiresAt, agora),
+        )
+      )
+      .limit(1);
+
+    if (!resetToken) {
+      return reply.status(400).send({ error: 'Token invalido ou expirado' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Atualizar senha do usuario e marcar token como utilizado em paralelo
+    await Promise.all([
+      db.update(users)
+        .set({ passwordHash, updatedAt: agora })
+        .where(eq(users.id, resetToken.userId)),
+      db.update(passwordResetTokens)
+        .set({ usedAt: agora })
+        .where(eq(passwordResetTokens.id, resetToken.id)),
+    ]);
+
+    return reply.status(200).send({ message: 'Senha alterada com sucesso!' });
   });
 }

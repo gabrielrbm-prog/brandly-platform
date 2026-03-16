@@ -8,6 +8,13 @@
     "scheme": "brandly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "owner": "brandly",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/brandly"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -39,6 +46,11 @@
           "color": "#7C3AED"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "PLACEHOLDER_PROJECT_ID"
+      }
+    }
   }
 }

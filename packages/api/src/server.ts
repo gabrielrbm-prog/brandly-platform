@@ -26,6 +26,7 @@ import { notificationRoutes } from './routes/notifications.js';
 import { integrationRoutes } from './routes/integrations.js';
 import { campaignRoutes } from './routes/campaigns.js';
 import { analyticsRoutes } from './routes/analytics.js';
+import { legalRoutes } from './routes/legal.js';
 
 const app = Fastify({
   bodyLimit: 1_048_576, // 1MB max — previne ataques de payload gigante
@@ -124,6 +125,9 @@ async function start() {
 
   // Admin Panel (HTML)
   await app.register(adminPanelRoutes, { prefix: '/admin' });
+
+  // Paginas legais (Termos de Uso e Politica de Privacidade)
+  await app.register(legalRoutes, { prefix: '/legal' });
 
   // Cron Jobs (admin triggers)
   await app.register(cronRoutes, { prefix: '/api/cron' });

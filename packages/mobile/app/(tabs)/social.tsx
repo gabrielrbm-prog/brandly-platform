@@ -21,6 +21,7 @@ import {
   spacing,
 } from '@/lib/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import PhylloConnectWebView from '@/components/PhylloConnectWebView';
 
 const PLATFORM_CONFIG = {
   instagram: { label: 'Instagram', featherIcon: 'instagram' as const, color: platformColors.instagram },
@@ -42,6 +43,7 @@ export default function SocialScreen() {
   const [connecting, setConnecting] = useState(false);
   const [syncing, setSyncing] = useState<string | null>(null);
   const [showConnectInfo, setShowConnectInfo] = useState(false);
+  const [showPhylloWebView, setShowPhylloWebView] = useState(false);
   const [connectData, setConnectData] = useState<ConnectResponse | null>(null);
 
   const METRIC_CONFIG = [
@@ -352,12 +354,9 @@ export default function SocialScreen() {
                 style={[styles.modalPrimaryWrap, shadows.glowPrimary]}
                 onPress={() => {
                   setShowConnectInfo(false);
-                  // TODO: Abrir WebView com Phyllo Connect SDK
-                  Alert.alert(
-                    'Em breve',
-                    'A conexao via OAuth sera habilitada quando as credenciais Phyllo estiverem configuradas. ' +
-                    'Por enquanto, suas metricas serao atualizadas automaticamente apos a configuracao.',
-                  );
+                  if (connectData) {
+                    setShowPhylloWebView(true);
+                  }
                 }}
               >
                 <LinearGradient
@@ -373,6 +372,29 @@ export default function SocialScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Phyllo Connect WebView */}
+      {connectData && (
+        <PhylloConnectWebView
+          visible={showPhylloWebView}
+          sdkToken={connectData.sdkToken}
+          userId={connectData.userId}
+          environment={connectData.environment}
+          onAccountConnected={async (accountId, workPlatformId, phylloUserId) => {
+            try {
+              await socialApi.accountConnected({ accountId, workPlatformId, phylloUserId });
+              await fetchAccounts();
+              Alert.alert('Sucesso', 'Conta conectada com sucesso!');
+            } catch (err: any) {
+              Alert.alert('Erro', err.message ?? 'Falha ao salvar conexao');
+            }
+          }}
+          onClose={() => {
+            setShowPhylloWebView(false);
+            setConnectData(null);
+          }}
+        />
+      )}
     </ScrollView>
   );
 }

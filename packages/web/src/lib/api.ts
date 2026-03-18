@@ -194,7 +194,16 @@ export interface SocialAccount {
   lastSyncAt: string | null;
 }
 
+export interface ConnectResponse {
+  sdkToken: string;
+  userId: string;
+  environment: string;
+}
+
 export const socialApi = {
+  connect: () => api.post<ConnectResponse>('/api/social/connect'),
+  accountConnected: (data: { accountId: string; workPlatformId: string; phylloUserId: string }) =>
+    api.post('/api/social/account-connected', data),
   accounts: () => api.get<{ accounts: SocialAccount[] }>('/api/social/accounts'),
   sync: (platform: 'instagram' | 'tiktok') =>
     api.post('/api/social/sync', { platform }),

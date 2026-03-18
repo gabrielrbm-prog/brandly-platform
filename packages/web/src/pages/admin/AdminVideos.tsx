@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { adminApi, type AdminVideo } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -45,12 +46,13 @@ interface RejectModalProps {
 
 function RejectModal({ videoId, creatorName, onConfirm, onCancel, loading }: RejectModalProps) {
   const [reason, setReason] = useState('');
+  const isEmpty = reason.trim().length === 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70" onClick={onCancel} />
-      <div className="relative w-full max-w-md themed-surface rounded-2xl themed-border border p-6">
-        <button onClick={onCancel} className="absolute top-4 right-4 themed-text-muted hover:themed-text">
+      <div className="relative w-full max-w-md themed-surface rounded-2xl border themed-border p-6">
+        <button onClick={onCancel} className="absolute top-4 right-4 themed-text-muted hover:themed-text transition-colors">
           <X className="w-5 h-5" />
         </button>
 
@@ -64,18 +66,23 @@ function RejectModal({ videoId, creatorName, onConfirm, onCancel, loading }: Rej
         </p>
 
         <Input
-          label="Motivo da rejeicao (opcional)"
+          label="Motivo da rejeicao (obrigatorio)"
           icon={<AlertCircle className="w-4 h-4" />}
           placeholder="Ex: Video fora do briefing, qualidade baixa..."
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         />
 
+        {isEmpty && (
+          <p className="text-xs text-red-400 mt-1">O motivo da rejeicao e obrigatorio.</p>
+        )}
+
         <div className="flex gap-3 mt-5">
           <Button
             variant="danger"
-            onClick={() => onConfirm(videoId, reason)}
+            onClick={() => onConfirm(videoId, reason.trim())}
             loading={loading}
+            disabled={isEmpty || loading}
             icon={<XCircle className="w-4 h-4" />}
             className="flex-1"
           >
@@ -92,6 +99,7 @@ function RejectModal({ videoId, creatorName, onConfirm, onCancel, loading }: Rej
 
 export default function AdminVideos() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [videos, setVideos] = useState<AdminVideo[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -105,12 +113,12 @@ export default function AdminVideos() {
       const res = await adminApi.reviewQueue();
       setVideos(res.videos ?? []);
       setTotal(res.total ?? 0);
-    } catch {
-      // silent
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao carregar fila de videos.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchVideos();
@@ -122,8 +130,9 @@ export default function AdminVideos() {
       await adminApi.reviewVideo(id, { status: 'approved' });
       setVideos((prev) => prev.filter((v) => v.id !== id));
       setTotal((t) => t - 1);
-    } catch {
-      // silent
+      toast.success('Video aprovado com sucesso!');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao aprovar video.');
     } finally {
       setApprovingId(null);
     }
@@ -132,12 +141,13 @@ export default function AdminVideos() {
   async function handleRejectConfirm(id: string, reason: string) {
     setRejectingId(id);
     try {
-      await adminApi.reviewVideo(id, { status: 'rejected', rejectionReason: reason || undefined });
+      await adminApi.reviewVideo(id, { status: 'rejected', rejectionReason: reason });
       setVideos((prev) => prev.filter((v) => v.id !== id));
       setTotal((t) => t - 1);
       setRejectModal(null);
-    } catch {
-      // silent
+      toast.success('Video rejeitado.');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao rejeitar video.');
     } finally {
       setRejectingId(null);
     }

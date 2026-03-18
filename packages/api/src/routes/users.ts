@@ -1,15 +1,27 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
 import { users, levels, creatorProfiles } from '@brandly/core';
-import { eq, sql, count } from 'drizzle-orm';
+import { eq, sql, count, or, ilike, and } from 'drizzle-orm';
 
 export async function userRoutes(app: FastifyInstance) {
   // GET /api/users — lista creators (admin)
+  // Suporta ?search=xxx para filtrar por nome ou email (case-insensitive)
   app.get('/', {
     preHandler: [app.requireAdmin],
   }, async (request, reply) => {
-    const { page = 1, limit = 20 } = request.query as { page?: number; limit?: number };
+    const { page = 1, limit = 20, search } = request.query as {
+      page?: number;
+      limit?: number;
+      search?: string;
+    };
     const offset = (Number(page) - 1) * Number(limit);
+
+    const searchCondition = search
+      ? or(
+          ilike(users.name, `%${search}%`),
+          ilike(users.email, `%${search}%`),
+        )
+      : undefined;
 
     const result = await db.select({
       id: users.id,
@@ -24,11 +36,15 @@ export async function userRoutes(app: FastifyInstance) {
     })
       .from(users)
       .leftJoin(levels, eq(users.levelId, levels.id))
+      .where(searchCondition)
       .orderBy(users.createdAt)
       .offset(offset)
       .limit(Number(limit));
 
-    const [totalRow] = await db.select({ total: count() }).from(users);
+    const [totalRow] = await db
+      .select({ total: count() })
+      .from(users)
+      .where(searchCondition);
 
     return { users: result, total: totalRow?.total ?? 0, page: Number(page), limit: Number(limit) };
   });

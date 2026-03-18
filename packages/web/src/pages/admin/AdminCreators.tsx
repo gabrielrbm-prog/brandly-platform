@@ -10,6 +10,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { adminApi, type AdminUser } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -36,6 +37,7 @@ const LEVEL_COLORS: Record<string, string> = {
 
 export default function AdminCreators() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -49,12 +51,12 @@ export default function AdminCreators() {
       const res = await adminApi.users(page, LIMIT, search || undefined);
       setUsers(res.users ?? []);
       setTotal(res.total ?? 0);
-    } catch {
-      // silent
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao carregar creators.');
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, toast]);
 
   useEffect(() => {
     fetchUsers();

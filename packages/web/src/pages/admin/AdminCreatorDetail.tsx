@@ -16,6 +16,7 @@ import {
   Instagram,
 } from 'lucide-react';
 import { adminApi, type AdminUser, type AdminUserProfile, type AdminCreatorDiagnostic, type AdminDiagnostic } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -59,6 +60,7 @@ function DISCBar({ label, value, color }: { label: string; value: number; color:
 export default function AdminCreatorDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const toast = useToast();
   const [user, setUser] = useState<AdminUser | null>(null);
   const [profile, setProfile] = useState<AdminUserProfile | null>(null);
   const [creatorDiagnostic, setCreatorDiagnostic] = useState<AdminCreatorDiagnostic | null>(null);
@@ -74,19 +76,23 @@ export default function AdminCreatorDetail() {
       ]);
 
       if (userRes.status === 'fulfilled') {
-        setUser(userRes.value.user);
-        setProfile(userRes.value.profile);
+        setUser(userRes.value.user ?? null);
+        setProfile(userRes.value.profile ?? null);
+      } else {
+        toast.error('Erro ao carregar dados do creator.');
       }
+
       if (behavioralRes.status === 'fulfilled') {
-        setCreatorDiagnostic(behavioralRes.value.creatorDiagnostic);
-        setAdminDiagnostic(behavioralRes.value.adminDiagnostic);
+        setCreatorDiagnostic(behavioralRes.value.creatorDiagnostic ?? null);
+        setAdminDiagnostic(behavioralRes.value.adminDiagnostic ?? null);
       }
-    } catch {
-      // silent
+      // Perfil comportamental ausente e esperado — sem toast de erro
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro inesperado ao carregar creator.');
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, toast]);
 
   useEffect(() => {
     fetchData();

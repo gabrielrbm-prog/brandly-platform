@@ -11,20 +11,86 @@ import {
   ExternalLink,
   ChevronRight,
   UserPlus,
+  XCircle,
+  X,
+  AlertCircle,
 } from 'lucide-react';
-import { adminApi, dashboardApi, type AdminVideo, type AdminUser } from '@/lib/api';
+import { adminApi, type AdminVideo, type AdminUser } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
 interface DashboardStats {
   totalCreators: number;
   videosPendentes: number;
   videosAprovadosHoje: number;
-  poolMensal: string;
+  saquesP: number;
+}
+
+interface RejectModalProps {
+  videoId: string;
+  creatorName: string;
+  onConfirm: (id: string, reason: string) => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+function RejectModal({ videoId, creatorName, onConfirm, onCancel, loading }: RejectModalProps) {
+  const [reason, setReason] = useState('');
+  const isEmpty = reason.trim().length === 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70" onClick={onCancel} />
+      <div className="relative w-full max-w-md themed-surface rounded-2xl border themed-border p-6">
+        <button onClick={onCancel} className="absolute top-4 right-4 themed-text-muted hover:themed-text transition-colors">
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2 mb-4">
+          <AlertCircle className="w-5 h-5 text-red-400" />
+          <h3 className="text-lg font-bold themed-text">Rejeitar Video</h3>
+        </div>
+
+        <p className="text-sm themed-text-secondary mb-4">
+          Rejeitar video de <span className="font-semibold themed-text">{creatorName}</span>?
+        </p>
+
+        <Input
+          label="Motivo da rejeicao (obrigatorio)"
+          icon={<AlertCircle className="w-4 h-4" />}
+          placeholder="Ex: Video fora do briefing, qualidade baixa..."
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+
+        {isEmpty && (
+          <p className="text-xs text-red-400 mt-1">O motivo da rejeicao e obrigatorio.</p>
+        )}
+
+        <div className="flex gap-3 mt-5">
+          <Button
+            variant="danger"
+            onClick={() => onConfirm(videoId, reason.trim())}
+            loading={loading}
+            disabled={isEmpty || loading}
+            icon={<XCircle className="w-4 h-4" />}
+            className="flex-1"
+          >
+            Rejeitar
+          </Button>
+          <Button variant="ghost" onClick={onCancel} className="flex-1">
+            Cancelar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function formatDate(d: string) {
@@ -40,6 +106,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pendingVideos, setPendingVideos] = useState<AdminVideo[]>([]);
   const [recentCreators, setRecentCreators] = useState<AdminUser[]>([]);
@@ -48,11 +115,11 @@ export default function AdminDashboard() {
   const [triggeringSync, setTriggeringSync] = useState(false);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectModal, setRejectModal] = useState<{ id: string; creatorName: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [dashRes, queueRes, usersRes] = await Promise.all([
-        dashboardApi.overview() as Promise<any>,
+      const [queueRes, usersRes] = await Promise.all([
         adminApi.reviewQueue(),
         adminApi.users(1, 5),
       ]);
@@ -67,17 +134,17 @@ export default function AdminDashboard() {
         totalCreators: usersRes.total ?? 0,
         videosPendentes: allVideos.filter((v: AdminVideo) => v.status === 'pending').length,
         videosAprovadosHoje: approvedToday,
-        poolMensal: dashRes?.month?.totalEarnings ?? '0.00',
+        saquesP: 0,
       });
 
       setPendingVideos(allVideos.filter((v: AdminVideo) => v.status === 'pending').slice(0, 5));
       setRecentCreators((usersRes.users ?? []).slice(0, 5));
-    } catch {
-      // silent
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao carregar dados do painel.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchData();
@@ -88,24 +155,35 @@ export default function AdminDashboard() {
     try {
       await adminApi.reviewVideo(id, { status: 'approved' });
       setPendingVideos((prev) => prev.filter((v) => v.id !== id));
-      setStats((prev) => prev ? { ...prev, videosPendentes: prev.videosPendentes - 1, videosAprovadosHoje: prev.videosAprovadosHoje + 1 } : prev);
-    } catch {
-      // silent
+      setStats((prev) =>
+        prev
+          ? {
+              ...prev,
+              videosPendentes: prev.videosPendentes - 1,
+              videosAprovadosHoje: prev.videosAprovadosHoje + 1,
+            }
+          : prev,
+      );
+      toast.success('Video aprovado com sucesso!');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao aprovar video.');
     } finally {
       setApprovingId(null);
     }
   }
 
-  async function handleReject(id: string) {
-    const reason = window.prompt('Motivo da rejeicao (opcional):');
-    if (reason === null) return;
+  async function handleRejectConfirm(id: string, reason: string) {
     setRejectingId(id);
     try {
-      await adminApi.reviewVideo(id, { status: 'rejected', rejectionReason: reason || undefined });
+      await adminApi.reviewVideo(id, { status: 'rejected', rejectionReason: reason });
       setPendingVideos((prev) => prev.filter((v) => v.id !== id));
-      setStats((prev) => prev ? { ...prev, videosPendentes: prev.videosPendentes - 1 } : prev);
-    } catch {
-      // silent
+      setStats((prev) =>
+        prev ? { ...prev, videosPendentes: prev.videosPendentes - 1 } : prev,
+      );
+      setRejectModal(null);
+      toast.success('Video rejeitado.');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao rejeitar video.');
     } finally {
       setRejectingId(null);
     }
@@ -115,9 +193,9 @@ export default function AdminDashboard() {
     setTriggeringPool(true);
     try {
       await adminApi.triggerGlobalPool();
-      alert('Pool global distribuido com sucesso!');
+      toast.success('Pool global distribuido com sucesso!');
     } catch (err: any) {
-      alert(err.message ?? 'Erro ao distribuir pool.');
+      toast.error(err?.message ?? 'Erro ao distribuir pool.');
     } finally {
       setTriggeringPool(false);
     }
@@ -127,9 +205,9 @@ export default function AdminDashboard() {
     setTriggeringSync(true);
     try {
       await adminApi.triggerSyncSocial();
-      alert('Sincronizacao de redes sociais iniciada!');
+      toast.success('Sincronizacao de redes sociais iniciada!');
     } catch (err: any) {
-      alert(err.message ?? 'Erro ao sincronizar.');
+      toast.error(err?.message ?? 'Erro ao sincronizar.');
     } finally {
       setTriggeringSync(false);
     }
@@ -166,7 +244,7 @@ export default function AdminDashboard() {
           <StatCard
             glowing
             icon={<Users className="w-4 h-4" />}
-            label="Creators"
+            label="Total Creators"
             value={String(stats?.totalCreators ?? 0)}
             color="#7C3AED"
           />
@@ -187,8 +265,8 @@ export default function AdminDashboard() {
           <StatCard
             glowing
             icon={<DollarSign className="w-4 h-4" />}
-            label="Pool Mensal"
-            value={`R$ ${stats?.poolMensal ?? '0.00'}`}
+            label="Saques Pendentes"
+            value={String(stats?.saquesP ?? 0)}
             color="#F472B6"
           />
         </div>
@@ -274,7 +352,9 @@ export default function AdminDashboard() {
                       <CheckCircle className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleReject(video.id)}
+                      onClick={() =>
+                        setRejectModal({ id: video.id, creatorName: video.creatorName ?? 'Creator' })
+                      }
                       disabled={approvingId === video.id || rejectingId === video.id}
                       className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition-colors disabled:opacity-50"
                       title="Rejeitar"
@@ -329,6 +409,17 @@ export default function AdminDashboard() {
           </div>
         </Card>
       </div>
+
+      {/* Reject modal */}
+      {rejectModal && (
+        <RejectModal
+          videoId={rejectModal.id}
+          creatorName={rejectModal.creatorName}
+          onConfirm={handleRejectConfirm}
+          onCancel={() => setRejectModal(null)}
+          loading={rejectingId === rejectModal.id}
+        />
+      )}
     </PageContainer>
   );
 }

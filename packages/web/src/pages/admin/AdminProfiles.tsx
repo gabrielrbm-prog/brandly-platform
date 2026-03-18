@@ -8,6 +8,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { adminApi, type AdminUser, type AdminCreatorDiagnostic, type AdminDiagnostic } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -26,8 +27,11 @@ const RISK_CONFIG: Record<string, { variant: 'success' | 'warning' | 'danger'; l
   high: { variant: 'danger', label: 'Alto', color: '#EF4444' },
 };
 
+const BATCH_SIZE = 10;
+
 export default function AdminProfiles() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [profiles, setProfiles] = useState<ProfileEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -36,39 +40,49 @@ export default function AdminProfiles() {
     setLoading(true);
     setLoadingProgress(0);
     try {
-      // Fetch all users first
+      // Buscar todos os usuarios
       const usersRes = await adminApi.users(1, 100);
       const users = usersRes.users ?? [];
       setLoadingProgress(20);
 
-      // For each user with onboarding completed, try to fetch behavioral profile
-      const completedUsers = users.filter((u) => u.onboardingCompleted);
+      // Filtrar apenas quem completou o onboarding
+      const completedUsers = users.filter((u: AdminUser) => u.onboardingCompleted);
       const results: ProfileEntry[] = [];
 
-      for (let i = 0; i < completedUsers.length; i++) {
-        const user = completedUsers[i];
-        try {
-          const behavRes = await adminApi.behavioralProfile(user.id);
-          if (behavRes.creatorDiagnostic) {
+      // Processar em batches paralelos de BATCH_SIZE
+      for (let batchStart = 0; batchStart < completedUsers.length; batchStart += BATCH_SIZE) {
+        const batch = completedUsers.slice(batchStart, batchStart + BATCH_SIZE);
+
+        const settled = await Promise.allSettled(
+          batch.map((user: AdminUser) => adminApi.behavioralProfile(user.id)),
+        );
+
+        settled.forEach((result, i) => {
+          if (result.status === 'fulfilled' && result.value.creatorDiagnostic) {
             results.push({
-              user,
-              creatorDiagnostic: behavRes.creatorDiagnostic,
-              adminDiagnostic: behavRes.adminDiagnostic,
+              user: batch[i],
+              creatorDiagnostic: result.value.creatorDiagnostic,
+              adminDiagnostic: result.value.adminDiagnostic,
             });
           }
-        } catch {
-          // User has no behavioral profile yet — skip
-        }
-        setLoadingProgress(20 + Math.round((i / completedUsers.length) * 80));
+          // Usuarios sem perfil comportamental sao silenciosamente ignorados
+        });
+
+        const processed = Math.min(batchStart + BATCH_SIZE, completedUsers.length);
+        setLoadingProgress(20 + Math.round((processed / completedUsers.length) * 80));
       }
 
       setProfiles(results);
-    } catch {
-      // silent
+
+      if (results.length === 0 && completedUsers.length > 0) {
+        toast.info('Nenhum perfil comportamental encontrado entre os creators ativos.');
+      }
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao carregar perfis comportamentais.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchProfiles();

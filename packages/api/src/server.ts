@@ -27,6 +27,7 @@ import { integrationRoutes } from './routes/integrations.js';
 import { campaignRoutes } from './routes/campaigns.js';
 import { analyticsRoutes } from './routes/analytics.js';
 import { legalRoutes } from './routes/legal.js';
+import { adminFinancialRoutes } from './routes/admin-financial.js';
 
 const app = Fastify({
   bodyLimit: 1_048_576, // 1MB max — previne ataques de payload gigante
@@ -127,6 +128,9 @@ async function start() {
 
   // Admin Panel (HTML)
   await app.register(adminPanelRoutes, { prefix: '/admin' });
+
+  // Admin API — financeiro e operacoes administrativas
+  await app.register(adminFinancialRoutes, { prefix: '/api/admin' });
 
   // Paginas legais (Termos de Uso e Politica de Privacidade)
   await app.register(legalRoutes, { prefix: '/legal' });

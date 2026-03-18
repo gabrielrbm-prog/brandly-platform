@@ -195,6 +195,30 @@ export const adminApi = {
     ),
   triggerGlobalPool: () => api.post('/api/cron/global-pool'),
   triggerSyncSocial: () => api.post('/api/cron/sync-social'),
+
+  // Financial
+  financialOverview: () =>
+    api.get<FinancialOverview>('/api/admin/financial/overview'),
+  withdrawals: (status?: string, page?: number) =>
+    api.get<WithdrawalsResponse>(
+      `/api/admin/withdrawals?status=${status ?? 'requested'}&page=${page ?? 1}&limit=20`,
+    ),
+  approveWithdrawal: (id: string) =>
+    api.patch(`/api/admin/withdrawals/${id}`, { status: 'completed' }),
+  rejectWithdrawal: (id: string, reason: string) =>
+    api.patch(`/api/admin/withdrawals/${id}`, { status: 'failed', reason }),
+  batchApproveWithdrawals: (ids: string[]) =>
+    api.post('/api/admin/withdrawals/batch', { ids, status: 'completed' }),
+  salesList: (status?: string, page?: number) =>
+    api.get<SalesResponse>(
+      `/api/admin/sales?status=${status ?? 'pending'}&page=${page ?? 1}&limit=20`,
+    ),
+  confirmSale: (id: string) =>
+    api.post(`/api/sales/${id}/confirm`),
+  paymentsLedger: (page?: number, type?: string) =>
+    api.get<PaymentsResponse>(
+      `/api/admin/payments?page=${page ?? 1}&limit=20${type ? `&type=${type}` : ''}`,
+    ),
 };
 
 export interface AdminUser {
@@ -248,6 +272,63 @@ export interface AdminDiagnostic {
   discScores?: { D: number; I: number; S: number; C: number };
   tags?: string[];
   recommendedActions?: string[];
+}
+
+// Admin Financial interfaces
+export interface FinancialOverview {
+  totalRevenue: number;
+  brandlyMargin: number;
+  totalPaidToCreators: number;
+  pendingWithdrawals: number;
+  pendingWithdrawalsCount: number;
+  pendingSalesCount: number;
+}
+
+export interface AdminWithdrawal {
+  id: string;
+  creatorId: string;
+  creatorName: string;
+  amount: number;
+  pixKey: string;
+  status: string;
+  reason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WithdrawalsResponse {
+  withdrawals: AdminWithdrawal[];
+  total: number;
+}
+
+export interface AdminSale {
+  id: string;
+  productName: string;
+  creatorName: string;
+  brandName: string;
+  amount: number;
+  type: 'digital' | 'physical';
+  status: string;
+  createdAt: string;
+}
+
+export interface SalesResponse {
+  sales: AdminSale[];
+  total: number;
+}
+
+export interface AdminPayment {
+  id: string;
+  creatorName: string;
+  type: 'video' | 'commission' | 'bonus';
+  amount: number;
+  description: string;
+  createdAt: string;
+}
+
+export interface PaymentsResponse {
+  payments: AdminPayment[];
+  total: number;
 }
 
 // Social

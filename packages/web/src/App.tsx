@@ -26,6 +26,7 @@ import AdminCreators from '@/pages/admin/AdminCreators';
 import AdminCreatorDetail from '@/pages/admin/AdminCreatorDetail';
 import AdminVideos from '@/pages/admin/AdminVideos';
 import AdminProfiles from '@/pages/admin/AdminProfiles';
+import AdminFinancial from '@/pages/admin/AdminFinancial';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -113,6 +114,7 @@ export default function App() {
       <Route path="/admin/creators/:id" element={<AdminRoute><AdminCreatorDetail /></AdminRoute>} />
       <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
       <Route path="/admin/profiles" element={<AdminRoute><AdminProfiles /></AdminRoute>} />
+      <Route path="/admin/financial" element={<AdminRoute><AdminFinancial /></AdminRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

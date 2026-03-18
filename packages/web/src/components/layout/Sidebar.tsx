@@ -1,14 +1,15 @@
 import { NavLink } from 'react-router-dom';
 import {
   Home, Video, Users, DollarSign, User, Wand2,
-  ShoppingBag, Share2, BookOpen, Trophy, Zap,
+  ShoppingBag, Share2, BookOpen, Trophy,
   ChevronLeft, ChevronRight, Moon, Sun,
   LayoutDashboard, Film, Brain, Shield,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { logos } from '@/lib/logos';
+import { adminApi } from '@/lib/api';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
@@ -25,6 +26,7 @@ const navItems = [
 
 const adminNavItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Painel' },
+  { to: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
   { to: '/admin/creators', icon: Users, label: 'Creators' },
   { to: '/admin/videos', icon: Film, label: 'Videos' },
   { to: '/admin/profiles', icon: Brain, label: 'Perfis' },
@@ -35,6 +37,14 @@ export default function Sidebar() {
   const { isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const [pendingWithdrawalsCount, setPendingWithdrawalsCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    adminApi.financialOverview()
+      .then((data) => setPendingWithdrawalsCount(data.pendingWithdrawalsCount ?? 0))
+      .catch(() => { /* silently ignore — badge is non-critical */ });
+  }, [isAdmin]);
 
   return (
     <aside
@@ -91,25 +101,42 @@ export default function Sidebar() {
               </div>
             )}
             {collapsed && <div className="border-t themed-border my-2" />}
-            {adminNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === '/admin'}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
-                   ${isActive
-                     ? 'bg-brand-primary/15 text-brand-primary-light'
-                     : 'themed-text-muted hover:themed-surface-light hover:themed-text'
-                   }
-                   ${collapsed ? 'justify-center' : ''}
-                  `
-                }
-              >
-                <item.icon className="w-5 h-5 shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
-              </NavLink>
-            ))}
+            {adminNavItems.map((item) => {
+              const showBadge = item.to === '/admin/financial' && pendingWithdrawalsCount > 0;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === '/admin'}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                     ${isActive
+                       ? 'bg-brand-primary/15 text-brand-primary-light'
+                       : 'themed-text-muted hover:themed-surface-light hover:themed-text'
+                     }
+                     ${collapsed ? 'justify-center' : ''}
+                    `
+                  }
+                >
+                  <div className="relative shrink-0">
+                    <item.icon className="w-5 h-5" />
+                    {showBadge && collapsed && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400" />
+                    )}
+                  </div>
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1">{item.label}</span>
+                      {showBadge && (
+                        <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold leading-none">
+                          {pendingWithdrawalsCount}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </>
         )}
       </nav>

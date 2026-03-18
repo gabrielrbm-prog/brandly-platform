@@ -20,6 +20,13 @@ import Community from '@/pages/community/Community';
 import BehavioralOnboarding from '@/pages/onboarding/BehavioralOnboarding';
 import BehavioralResult from '@/pages/onboarding/BehavioralResult';
 
+// Admin pages
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import AdminCreators from '@/pages/admin/AdminCreators';
+import AdminCreatorDetail from '@/pages/admin/AdminCreatorDetail';
+import AdminVideos from '@/pages/admin/AdminVideos';
+import AdminProfiles from '@/pages/admin/AdminProfiles';
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -33,6 +40,28 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen themed-bg flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'admin') {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -77,6 +106,13 @@ export default function App() {
       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
       <Route path="/onboarding" element={<ProtectedRoute><BehavioralOnboarding /></ProtectedRoute>} />
       <Route path="/onboarding/result" element={<ProtectedRoute><BehavioralResult /></ProtectedRoute>} />
+
+      {/* Admin */}
+      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/creators" element={<AdminRoute><AdminCreators /></AdminRoute>} />
+      <Route path="/admin/creators/:id" element={<AdminRoute><AdminCreatorDetail /></AdminRoute>} />
+      <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
+      <Route path="/admin/profiles" element={<AdminRoute><AdminProfiles /></AdminRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

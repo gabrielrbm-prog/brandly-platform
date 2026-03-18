@@ -3,9 +3,11 @@ import {
   Home, Video, Users, DollarSign, User, Wand2,
   ShoppingBag, Share2, BookOpen, Trophy, Zap,
   ChevronLeft, ChevronRight, Moon, Sun,
+  LayoutDashboard, Film, Brain, Shield,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { logos } from '@/lib/logos';
 
 const navItems = [
@@ -21,9 +23,18 @@ const navItems = [
   { to: '/profile', icon: User, label: 'Perfil' },
 ];
 
+const adminNavItems = [
+  { to: '/admin', icon: LayoutDashboard, label: 'Painel' },
+  { to: '/admin/creators', icon: Users, label: 'Creators' },
+  { to: '/admin/videos', icon: Film, label: 'Videos' },
+  { to: '/admin/profiles', icon: Brain, label: 'Perfis' },
+];
+
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { isDark, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   return (
     <aside
@@ -70,6 +81,37 @@ export default function Sidebar() {
             {!collapsed && <span>{item.label}</span>}
           </NavLink>
         ))}
+
+        {isAdmin && (
+          <>
+            {!collapsed && (
+              <div className="flex items-center gap-2 px-3 pt-4 pb-1">
+                <Shield className="w-3 h-3 text-brand-primary-light" />
+                <span className="text-xs font-semibold text-brand-primary-light uppercase tracking-wider">Admin</span>
+              </div>
+            )}
+            {collapsed && <div className="border-t themed-border my-2" />}
+            {adminNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/admin'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                   ${isActive
+                     ? 'bg-brand-primary/15 text-brand-primary-light'
+                     : 'themed-text-muted hover:themed-surface-light hover:themed-text'
+                   }
+                   ${collapsed ? 'justify-center' : ''}
+                  `
+                }
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="border-t themed-border flex">

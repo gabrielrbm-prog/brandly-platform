@@ -177,6 +177,79 @@ export const onboardingApi = {
     api.get<{ creatorDiagnostic: CreatorDiagnostic }>('/api/onboarding/behavioral/result'),
 };
 
+// Admin
+export const adminApi = {
+  users: (page = 1, limit = 20, search?: string) =>
+    api.get<{ users: AdminUser[]; total: number }>(
+      `/api/users?page=${page}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`,
+    ),
+  userDetail: (id: string) =>
+    api.get<{ user: AdminUser; profile: AdminUserProfile }>(`/api/users/${id}`),
+  reviewQueue: () =>
+    api.get<{ videos: AdminVideo[]; total: number }>('/api/videos/review-queue'),
+  reviewVideo: (id: string, data: { status: 'approved' | 'rejected'; rejectionReason?: string }) =>
+    api.patch(`/api/videos/${id}/review`, data),
+  behavioralProfile: (userId: string) =>
+    api.get<{ creatorDiagnostic: AdminCreatorDiagnostic; adminDiagnostic: AdminDiagnostic }>(
+      `/api/onboarding/behavioral/admin/${userId}`,
+    ),
+  triggerGlobalPool: () => api.post('/api/cron/global-pool'),
+  triggerSyncSocial: () => api.post('/api/cron/sync-social'),
+};
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  level?: string;
+  referralCode?: string;
+  onboardingCompleted?: boolean;
+  createdAt: string;
+}
+
+export interface AdminUserProfile {
+  instagram?: string;
+  tiktok?: string;
+  niche?: string;
+  bio?: string;
+  onboardingStep?: string;
+}
+
+export interface AdminVideo {
+  id: string;
+  url: string;
+  platform: string;
+  status: string;
+  createdAt: string;
+  creatorName?: string;
+  creatorId?: string;
+  brandName?: string;
+}
+
+export interface AdminCreatorDiagnostic {
+  archetype: string;
+  archetypeEmoji: string;
+  title: string;
+  shortDescription: string;
+  strengths: string[];
+  superpower: string;
+  contentStyle?: string;
+  idealFormats?: string[];
+  productMatch?: string[];
+  motivationPhrase?: string;
+  level: string;
+  readinessScore: number;
+}
+
+export interface AdminDiagnostic {
+  retentionRisk: string;
+  predictedOutput: string;
+  discScores?: { D: number; I: number; S: number; C: number };
+  tags?: string[];
+  recommendedActions?: string[];
+}
+
 // Social
 export interface SocialAccount {
   id: string;

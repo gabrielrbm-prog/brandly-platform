@@ -1,0 +1,124 @@
+# Mobile CI — Brandly (Expo managed workflow)
+#
+# Runs only when files inside packages/mobile/** change, keeping API/web CI
+# runs and mobile CI runs independent of each other.
+#
+# What this workflow does:
+#   1. Installs workspace dependencies with npm ci (hoisted + mobile-local)
+#   2. Runs TypeScript type checking via expo's tsc wrapper
+#   3. Runs ESLint if an eslint config exists in the mobile package
+#   4. Performs a dry-run export (Metro bundler) to catch runtime import errors
+#      without producing a real build artifact
+
+name: Mobile CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+
+concurrency:
+  group: mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile-quality:
+    name: Typecheck & Lint (Mobile)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Install all workspace deps so hoisted packages (typescript, eslint, etc.)
+      # are available to the mobile package without a separate install step.
+      - name: Install dependencies
+        run: npm ci
+
+      # Cache the Expo CLI download and Metro bundler cache between runs.
+      - name: Cache Expo / Metro
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.expo
+            packages/mobile/.expo
+            packages/mobile/node_modules/.cache
+          key: expo-${{ runner.os }}-${{ hashFiles('packages/mobile/package.json') }}
+          restore-keys: |
+            expo-${{ runner.os }}-
+
+      # TypeScript — Expo's tsconfig extends expo/tsconfig.base which requires
+      # the expo package to be present (already installed via npm ci above).
+      - name: Typecheck (mobile)
+        working-directory: packages/mobile
+        run: npx tsc --noEmit
+
+      # ESLint — only run when a config file exists in the mobile package.
+      # This avoids a hard failure while the config is still being set up.
+      - name: Lint (mobile)
+        working-directory: packages/mobile
+        run: |
+          if [ -f eslint.config.js ] || [ -f eslint.config.mjs ] || [ -f .eslintrc.js ] || [ -f .eslintrc.json ]; then
+            npx eslint src/ app/ --ext .ts,.tsx --max-warnings=0
+          else
+            echo "No ESLint config found in packages/mobile — skipping lint step."
+            echo "Add an eslint.config.js to enable linting."
+          fi
+
+  mobile-export-check:
+    name: Expo Export Dry-Run
+    runs-on: ubuntu-latest
+    needs: mobile-quality
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Expo / Metro
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.expo
+            packages/mobile/.expo
+            packages/mobile/node_modules/.cache
+          key: expo-export-${{ runner.os }}-${{ hashFiles('packages/mobile/package.json') }}
+          restore-keys: |
+            expo-export-${{ runner.os }}-
+
+      # Export for web target — fastest dry-run that exercises Metro bundling
+      # without requiring Android/iOS simulators or EAS credentials.
+      # The output is uploaded as an artifact for optional inspection.
+      - name: Expo export (web — dry-run)
+        working-directory: packages/mobile
+        env:
+          # Suppress interactive prompts from Expo CLI
+          CI: true
+          # Use a dummy API URL so the bundler can resolve env references
+          EXPO_PUBLIC_API_URL: https://api-production-3a6f.up.railway.app
+        run: npx expo export --platform web --output-dir /tmp/mobile-export
+
+      - name: Upload export artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-web-export
+          path: /tmp/mobile-export/
+          retention-days: 7

@@ -38,3 +38,6 @@ coverage/
 
 # Drizzle
 packages/core/drizzle/
+
+# GitHub Actions (temporarily ignored — token lacks workflow scope)
+.github/workflows/

@@ -28,6 +28,9 @@ interface DailySummary {
   approved: number;
   pending: number;
   rejected: number;
+  paid: number;
+  earnings: string;
+  remaining: number;
   maxDaily: number;
 }
 
@@ -66,12 +69,13 @@ export default function Videos() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [v, s] = await Promise.all([
-        videosApi.list() as Promise<VideoItem[]>,
+      const [listRes, dailyRes] = await Promise.all([
+        videosApi.list() as Promise<{ videos: VideoItem[]; today: { approved: number; pending: number; rejected: number; remaining: number } }>,
         videosApi.dailySummary() as Promise<DailySummary>,
       ]);
-      setVideos(v);
-      setSummary(s);
+      setVideos(listRes.videos ?? []);
+      // dailySummary response uses `remaining` instead of `maxDaily`; derive maxDaily = 10
+      setSummary({ ...dailyRes, submitted: (dailyRes.approved ?? 0) + (dailyRes.pending ?? 0) + (dailyRes.rejected ?? 0), maxDaily: 10 });
     } catch { /* silent */ } finally { setLoading(false); }
   }, []);
 
@@ -79,7 +83,8 @@ export default function Videos() {
 
   async function openModal() {
     try {
-      const brands = (await brandsApi.my()) as Brand[];
+      const res = (await brandsApi.my()) as { brands: Brand[] };
+      const brands = res.brands ?? [];
       if (!brands.length) { alert('Conecte-se a uma marca primeiro.'); return; }
       setMyBrands(brands);
       setSelectedBrand(brands[0]);

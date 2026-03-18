@@ -6,9 +6,9 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
-interface RankingEntry { position: number; name: string; level: string; score: number }
-interface Live { id: string; title: string; date: string; host: string; status: 'upcoming' | 'live' | 'ended' }
-interface Case { id: string; name: string; title: string; description: string }
+interface RankingEntry { creatorId: string; name: string; total: number | string }
+interface Live { id: string; title: string; scheduledAt: string; host: string; status: 'upcoming' | 'live' | 'ended' }
+interface Case { id: string; creatorName: string; title: string; story: string; earnings: string }
 
 const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
@@ -23,12 +23,14 @@ export default function Community() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [r, l, c] = await Promise.all([
-        communityApi.ranking() as Promise<RankingEntry[]>,
-        communityApi.lives() as Promise<Live[]>,
-        communityApi.cases() as Promise<Case[]>,
+      const [rankRes, liveRes, caseRes] = await Promise.all([
+        communityApi.ranking() as Promise<{ ranking: RankingEntry[]; totalCreators: number }>,
+        communityApi.lives() as Promise<{ upcoming: Live[]; past: Live[] }>,
+        communityApi.cases() as Promise<{ cases: Case[]; total: number }>,
       ]);
-      setRanking(r); setLives(l); setCases(c);
+      setRanking(rankRes.ranking ?? []);
+      setLives([...(liveRes.upcoming ?? []), ...(liveRes.past ?? [])]);
+      setCases(caseRes.cases ?? []);
     } catch { /* silent */ } finally { setLoading(false); }
   }, []);
 
@@ -64,27 +66,29 @@ export default function Community() {
             {ranking.length === 0 ? (
               <p className="text-center themed-text-muted py-8">Nenhum dado de ranking disponivel.</p>
             ) : (
-              ranking.map((entry) => (
-                <div key={entry.position} className="flex items-center gap-3 themed-surface rounded-xl themed-border p-3">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                    entry.position <= 3 ? '' : 'bg-gray-800'
-                  }`} style={entry.position <= 3 ? { backgroundColor: `${MEDAL_COLORS[entry.position - 1]}20` } : {}}>
-                    {entry.position <= 3 ? (
-                      <Medal className="w-5 h-5" style={{ color: MEDAL_COLORS[entry.position - 1] }} />
-                    ) : (
-                      <span className="text-sm font-bold themed-text-muted">#{entry.position}</span>
-                    )}
+              ranking.map((entry, index) => {
+                const position = index + 1;
+                return (
+                  <div key={entry.creatorId} className="flex items-center gap-3 themed-surface rounded-xl themed-border p-3">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                      position <= 3 ? '' : 'bg-gray-800'
+                    }`} style={position <= 3 ? { backgroundColor: `${MEDAL_COLORS[position - 1]}20` } : {}}>
+                      {position <= 3 ? (
+                        <Medal className="w-5 h-5" style={{ color: MEDAL_COLORS[position - 1] }} />
+                      ) : (
+                        <span className="text-sm font-bold themed-text-muted">#{position}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium themed-text truncate">{entry.name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold themed-text">{entry.total}</p>
+                      <p className="text-xs themed-text-muted">videos</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium themed-text truncate">{entry.name}</p>
-                    <Badge variant="primary">{entry.level}</Badge>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold themed-text">{entry.score}</p>
-                    <p className="text-xs themed-text-muted">pontos</p>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -102,7 +106,7 @@ export default function Community() {
                       {live.status === 'live' ? 'AO VIVO' : live.status === 'upcoming' ? 'Em breve' : 'Encerrada'}
                     </Badge>
                   </div>
-                  <p className="text-xs themed-text-muted">Host: {live.host} | {new Date(live.date).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-xs themed-text-muted">Host: {live.host} | {new Date(live.scheduledAt).toLocaleDateString('pt-BR')}</p>
                 </Card>
               ))
             )}
@@ -117,8 +121,9 @@ export default function Community() {
               cases.map((c) => (
                 <Card key={c.id}>
                   <p className="text-sm font-semibold themed-text mb-1">{c.title}</p>
-                  <p className="text-xs themed-text-secondary mb-2">por {c.name}</p>
-                  <p className="text-sm text-gray-300">{c.description}</p>
+                  <p className="text-xs themed-text-secondary mb-2">por {c.creatorName}</p>
+                  <p className="text-sm text-gray-300">{c.story}</p>
+                  {c.earnings && <p className="text-xs text-emerald-400 mt-1 font-semibold">R$ {c.earnings} ganhos</p>}
                 </Card>
               ))
             )}

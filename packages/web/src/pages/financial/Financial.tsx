@@ -20,15 +20,18 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
-interface Balance { available: number; pending: number; withdrawn: number; total: number }
-interface Earnings {
-  videos: { amount: number; count: number };
-  commissions: { amount: number; count: number };
-  bonuses: { amount: number; count: number };
-  total: number;
+interface Balance { available: string; pending: string; withdrawn: string; totalEarned: string }
+interface ApiEarnings {
+  period: string;
+  breakdown: {
+    videos: { total: string; count: number };
+    commissions: { total: string; count: number };
+    bonuses: { total: string; count: number };
+  };
+  grandTotal: string;
 }
 interface Transaction {
-  id: string; type: string; description: string; amount: number; date: string; status: string;
+  id: string; type: string; description: string; amount: string; createdAt: string; status: string;
 }
 
 function fmt(v: number) { return `R$ ${v.toFixed(2).replace('.', ',')}`; }
@@ -41,7 +44,7 @@ const TYPE_ICONS: Record<string, typeof DollarSign> = { video: Video, commission
 
 export default function Financial() {
   const [balance, setBalance] = useState<Balance | null>(null);
-  const [earnings, setEarnings] = useState<Earnings | null>(null);
+  const [earnings, setEarnings] = useState<ApiEarnings | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWithdraw, setShowWithdraw] = useState(false);
@@ -51,12 +54,14 @@ export default function Financial() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [b, e, h] = await Promise.all([
+      const [b, e, histRes] = await Promise.all([
         financialApi.balance() as Promise<Balance>,
-        financialApi.earnings() as Promise<Earnings>,
-        financialApi.history() as Promise<Transaction[]>,
+        financialApi.earnings() as Promise<ApiEarnings>,
+        financialApi.history() as Promise<{ payments: Transaction[] }>,
       ]);
-      setBalance(b); setEarnings(e); setTransactions(h);
+      setBalance(b);
+      setEarnings(e);
+      setTransactions(histRes.payments ?? []);
     } catch { /* silent */ } finally { setLoading(false); }
   }, []);
 
@@ -81,10 +86,10 @@ export default function Financial() {
       <div className="space-y-6">
         {/* Balance cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard glowing icon={<DollarSign className="w-4 h-4" />} label="Disponivel" value={fmt(balance?.available ?? 0)} color="#10B981" />
-          <StatCard glowing icon={<Clock className="w-4 h-4" />} label="Pendente" value={fmt(balance?.pending ?? 0)} color="#F59E0B" />
-          <StatCard glowing icon={<ArrowDownCircle className="w-4 h-4" />} label="Sacado" value={fmt(balance?.withdrawn ?? 0)} color="#3B82F6" />
-          <StatCard glowing icon={<TrendingUp className="w-4 h-4" />} label="Total" value={fmt(balance?.total ?? 0)} color="#7C3AED" />
+          <StatCard glowing icon={<DollarSign className="w-4 h-4" />} label="Disponivel" value={`R$ ${balance?.available ?? '0.00'}`} color="#10B981" />
+          <StatCard glowing icon={<Clock className="w-4 h-4" />} label="Pendente" value={`R$ ${balance?.pending ?? '0.00'}`} color="#F59E0B" />
+          <StatCard glowing icon={<ArrowDownCircle className="w-4 h-4" />} label="Sacado" value={`R$ ${balance?.withdrawn ?? '0.00'}`} color="#3B82F6" />
+          <StatCard glowing icon={<TrendingUp className="w-4 h-4" />} label="Total" value={`R$ ${balance?.totalEarned ?? '0.00'}`} color="#7C3AED" />
         </div>
 
         {/* Withdraw CTA */}
@@ -98,9 +103,9 @@ export default function Financial() {
             <h3 className="text-sm font-semibold themed-text-secondary mb-3">Ganhos do Mes</h3>
             <div className="space-y-3">
               {[
-                { label: 'Videos', count: earnings.videos.count, amount: earnings.videos.amount, color: '#3B82F6', icon: Video },
-                { label: 'Comissoes', count: earnings.commissions.count, amount: earnings.commissions.amount, color: '#7C3AED', icon: Users },
-                { label: 'Bonus', count: earnings.bonuses.count, amount: earnings.bonuses.amount, color: '#F59E0B', icon: Award },
+                { label: 'Videos', count: earnings.breakdown.videos.count, amount: earnings.breakdown.videos.total, color: '#3B82F6', icon: Video },
+                { label: 'Comissoes', count: earnings.breakdown.commissions.count, amount: earnings.breakdown.commissions.total, color: '#7C3AED', icon: Users },
+                { label: 'Bonus', count: earnings.breakdown.bonuses.count, amount: earnings.breakdown.bonuses.total, color: '#F59E0B', icon: Award },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between themed-surface-light rounded-xl p-3">
                   <div className="flex items-center gap-2">
@@ -108,12 +113,12 @@ export default function Financial() {
                     <span className="text-sm themed-text-secondary">{item.label}</span>
                     <Badge variant="default">{item.count}x</Badge>
                   </div>
-                  <span className="text-sm font-bold themed-text">{fmt(item.amount)}</span>
+                  <span className="text-sm font-bold themed-text">R$ {item.amount}</span>
                 </div>
               ))}
               <div className="flex justify-between pt-2 border-t themed-border">
                 <span className="text-sm font-semibold themed-text-secondary">Total</span>
-                <span className="text-lg font-bold text-emerald-400">{fmt(earnings.total)}</span>
+                <span className="text-lg font-bold text-emerald-400">R$ {earnings.grandTotal}</span>
               </div>
             </div>
           </Card>
@@ -136,10 +141,10 @@ export default function Financial() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium themed-text truncate">{tx.description}</p>
-                      <p className="text-xs themed-text-muted">{fmtDate(tx.date)}</p>
+                      <p className="text-xs themed-text-muted">{fmtDate(tx.createdAt)}</p>
                     </div>
                     <span className={`text-sm font-bold ${isWithdrawal ? 'text-red-400' : 'text-emerald-400'}`}>
-                      {isWithdrawal ? '-' : '+'}{fmt(tx.amount)}
+                      {isWithdrawal ? '-' : '+'}R$ {tx.amount}
                     </span>
                   </div>
                 );
@@ -159,7 +164,7 @@ export default function Financial() {
             <div className="space-y-4">
               <Input label="Chave PIX" icon={<CreditCard className="w-4 h-4" />} placeholder="CPF, email, celular ou chave aleatoria" value={pixKey} onChange={(e) => setPixKey(e.target.value)} />
               <Input label="Valor" icon={<DollarSign className="w-4 h-4" />} placeholder="0.00" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <p className="text-xs themed-text-muted">Disponivel: {fmt(balance?.available ?? 0)}</p>
+              <p className="text-xs themed-text-muted">Disponivel: R$ {balance?.available ?? '0.00'}</p>
               <Button onClick={handleWithdraw} loading={withdrawing} icon={<Send className="w-4 h-4" />} className="w-full">Solicitar</Button>
             </div>
           </div>

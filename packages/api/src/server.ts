@@ -67,7 +67,9 @@ async function start() {
       'http://localhost:19006',     // expo web
       'https://api-production-3a6f.up.railway.app',
       'https://gabrielrbm-prog.github.io',
-      /\.brandly\.com$/,            // dominio customizado futuro
+      'https://brandly-app.pages.dev',  // Cloudflare Pages
+      /\.brandly-app\.pages\.dev$/,     // Cloudflare preview deploys
+      /\.brandly\.com$/,                // dominio customizado futuro
     ],
     credentials: true,
   });

@@ -38,10 +38,12 @@ export default function Brands() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [catalog, mine] = await Promise.all([
-        brandsApi.list(category === 'all' ? undefined : category) as Promise<Brand[]>,
-        brandsApi.my() as Promise<Brand[]>,
+      const [catalogRes, mineRes] = await Promise.all([
+        brandsApi.list(category === 'all' ? undefined : category) as Promise<{ brands: Brand[] }>,
+        brandsApi.my() as Promise<{ brands: Brand[] }>,
       ]);
+      const catalog = catalogRes.brands ?? [];
+      const mine = mineRes.brands ?? [];
       const myIds = new Set(mine.map((b) => b.id));
       setBrands(catalog.map((b) => ({ ...b, isConnected: myIds.has(b.id) })));
       setMyBrands(mine);

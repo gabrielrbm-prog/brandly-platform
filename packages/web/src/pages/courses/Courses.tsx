@@ -6,7 +6,7 @@ import CourseCard from '@/components/ui/CourseCard';
 import Badge from '@/components/ui/Badge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
-interface Course { id: string; title: string; description: string; lessonsCount: number; completedLessons: number }
+interface Course { id: string; title: string; description: string; totalLessons: number; completedLessons: number; progress: string }
 interface Lesson { id: string; title: string; duration: string; completed: boolean; locked: boolean }
 
 const COURSE_COLORS = ['purple', 'amber', 'emerald', 'blue', 'pink'] as const;
@@ -19,8 +19,8 @@ export default function Courses() {
 
   const fetchCourses = useCallback(async () => {
     try {
-      const result = (await coursesApi.list()) as Course[];
-      setCourses(result);
+      const res = (await coursesApi.list()) as { courses: Course[]; totalProgress: string; certificateAvailable: boolean };
+      setCourses(res.courses ?? []);
     } catch { /* silent */ } finally { setLoading(false); }
   }, []);
 
@@ -29,8 +29,8 @@ export default function Courses() {
   async function selectCourse(course: Course) {
     setSelectedCourse(course);
     try {
-      const result = (await coursesApi.lessons(course.id)) as Lesson[];
-      setLessons(result);
+      const res = (await coursesApi.lessons(course.id)) as { courseId: string; lessons: Lesson[]; progress: string };
+      setLessons(res.lessons ?? []);
     } catch { /* silent */ }
   }
 
@@ -66,18 +66,18 @@ export default function Courses() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {courses.map((c, i) => {
-                  const pct = c.lessonsCount > 0 ? (c.completedLessons / c.lessonsCount) * 100 : 0;
+                  const pct = c.totalLessons > 0 ? (c.completedLessons / c.totalLessons) * 100 : 0;
                   return (
                     <CourseCard
                       key={c.id}
                       title={c.title}
                       description={c.description}
                       progress={pct}
-                      lessonsCount={c.lessonsCount}
+                      lessonsCount={c.totalLessons}
                       completedLessons={c.completedLessons}
                       color={COURSE_COLORS[i % COURSE_COLORS.length]}
                       icon={<BookOpen className="w-4 h-4" style={{ color: ['#7C3AED', '#F59E0B', '#10B981', '#3B82F6', '#EC4899'][i % 5] }} />}
-                      timeLeft={pct >= 100 ? 'Completo' : `${c.lessonsCount - c.completedLessons} restantes`}
+                      timeLeft={pct >= 100 ? 'Completo' : `${c.totalLessons - c.completedLessons} restantes`}
                       onClick={() => selectCourse(c)}
                     />
                   );

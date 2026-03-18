@@ -52,11 +52,11 @@ export default function Network() {
     try {
       const [s, r, t] = await Promise.all([
         networkApi.stats() as Promise<NetworkStats>,
-        networkApi.referralLink() as Promise<{ link: string }>,
+        networkApi.referralLink() as Promise<{ referralCode: string; referralUrl: string; totalReferrals: number; activeReferrals: number }>,
         networkApi.tree() as Promise<{ directs: DirectMember[] }>,
       ]);
       setStats(s);
-      setReferralLink(r.link);
+      setReferralLink(r.referralUrl ?? '');
       setMembers(t.directs ?? []);
     } catch { /* silent */ } finally { setLoading(false); }
   }, []);

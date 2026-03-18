@@ -36,7 +36,8 @@ export default function Studio() {
 
   const fetchBrands = useCallback(async () => {
     try {
-      const brands = (await brandsApi.my()) as Brand[];
+      const res = (await brandsApi.my()) as { brands: Brand[] };
+      const brands = res.brands ?? [];
       setMyBrands(brands);
       if (brands.length > 0) setSelectedBrand(brands[0]);
     } catch { /* silent */ } finally { setLoading(false); }
@@ -44,8 +45,8 @@ export default function Studio() {
 
   const fetchLibrary = useCallback(async () => {
     try {
-      const result = (await scriptsApi.list()) as Script[];
-      setLibrary(result);
+      const res = (await scriptsApi.list()) as { scripts: Script[] };
+      setLibrary(res.scripts ?? []);
     } catch { /* silent */ }
   }, []);
 

@@ -22,26 +22,25 @@ import StatCard from '@/components/ui/StatCard';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
-interface DailyStats {
-  approved: number;
-  pending: number;
-  rejected: number;
-  earningsToday: number;
-  remainingSlots: number;
-}
-
-interface MonthlyStats {
-  totalVideos: number;
-  approvalRate: number;
-  totalEarnings: number;
-  earningsBreakdown: { videos: number; commissions: number; bonuses: number };
-}
-
-interface Overview {
-  daily: DailyStats;
-  monthly: MonthlyStats;
-  level: { name: string; progress: number };
-  activeBrands: number;
+interface ApiDashboard {
+  today: {
+    videosApproved: number;
+    videosPending: number;
+    videosRejected: number;
+    earnings: string;
+    remaining: number;
+  };
+  month: {
+    period: string;
+    totalVideos: number;
+    approvalRate: string;
+    totalEarnings: string;
+    videoEarnings: string;
+    commissionEarnings: string;
+    bonusEarnings: string;
+  };
+  brands: { active: number };
+  level: { current: string };
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -51,12 +50,12 @@ const LEVEL_COLORS: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [data, setData] = useState<Overview | null>(null);
+  const [data, setData] = useState<ApiDashboard | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      const result = (await dashboardApi.overview()) as Overview;
+      const result = (await dashboardApi.overview()) as ApiDashboard;
       setData(result);
     } catch {
       // silent
@@ -77,13 +76,11 @@ export default function Dashboard() {
     );
   }
 
-  const daily = data?.daily;
-  const monthly = data?.monthly;
-  const level = data?.level;
-  const levelName = level?.name ?? 'Seed';
+  const today = data?.today;
+  const month = data?.month;
+  const levelName = data?.level?.current ?? 'Seed';
   const levelColor = LEVEL_COLORS[levelName] ?? '#7C3AED';
-  const progressPct = Math.min((level?.progress ?? 0) * 100, 100);
-  const used = 10 - (daily?.remainingSlots ?? 10);
+  const used = (today?.videosApproved ?? 0) + (today?.videosPending ?? 0) + (today?.videosRejected ?? 0);
 
   return (
     <PageContainer title="Inicio">
@@ -120,7 +117,7 @@ export default function Dashboard() {
               <p className="text-sm themed-text-secondary">
                 R${' '}
                 <span className="text-4xl font-bold text-emerald-400">
-                  {(daily?.earningsToday ?? 0).toFixed(2)}
+                  {today?.earnings ?? '0.00'}
                 </span>
               </p>
               <p className="text-xs themed-text-muted mt-1">Meta: R$ 100,00/dia</p>
@@ -134,7 +131,7 @@ export default function Dashboard() {
             </div>
           </div>
           <ProgressBar value={used} max={10} color="#10B981" className="mt-4" />
-          <p className="text-xs themed-text-muted mt-1">{daily?.remainingSlots ?? 10} slots restantes hoje</p>
+          <p className="text-xs themed-text-muted mt-1">{today?.remaining ?? 10} slots restantes hoje</p>
         </Card>
 
         {/* Daily stats grid */}
@@ -144,10 +141,10 @@ export default function Dashboard() {
             <span className="text-xs font-semibold themed-text-muted uppercase tracking-wider">Hoje</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard glowing icon={<CheckCircle className="w-4 h-4" />} label="Aprovados" value={String(daily?.approved ?? 0)} color="#10B981" />
-            <StatCard glowing icon={<Clock className="w-4 h-4" />} label="Pendentes" value={String(daily?.pending ?? 0)} color="#F59E0B" />
-            <StatCard glowing icon={<XCircle className="w-4 h-4" />} label="Rejeitados" value={String(daily?.rejected ?? 0)} color="#EF4444" />
-            <StatCard glowing icon={<Zap className="w-4 h-4" />} label="Restantes" value={String(daily?.remainingSlots ?? 10)} color="#A78BFA" />
+            <StatCard glowing icon={<CheckCircle className="w-4 h-4" />} label="Aprovados" value={String(today?.videosApproved ?? 0)} color="#10B981" />
+            <StatCard glowing icon={<Clock className="w-4 h-4" />} label="Pendentes" value={String(today?.videosPending ?? 0)} color="#F59E0B" />
+            <StatCard glowing icon={<XCircle className="w-4 h-4" />} label="Rejeitados" value={String(today?.videosRejected ?? 0)} color="#EF4444" />
+            <StatCard glowing icon={<Zap className="w-4 h-4" />} label="Restantes" value={String(today?.remaining ?? 10)} color="#A78BFA" />
           </div>
         </div>
 
@@ -165,30 +162,30 @@ export default function Dashboard() {
             <div className="grid grid-cols-3 divide-x divide-gray-800 text-center mb-4">
               <div>
                 <Video className="w-4 h-4 themed-text-secondary mx-auto mb-1" />
-                <p className="text-lg font-bold themed-text">{monthly?.totalVideos ?? 0}</p>
+                <p className="text-lg font-bold themed-text">{month?.totalVideos ?? 0}</p>
                 <p className="text-xs themed-text-muted">Videos</p>
               </div>
               <div>
                 <BarChart2 className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
                 <p className="text-lg font-bold text-emerald-400">
-                  {((monthly?.approvalRate ?? 0) * 100).toFixed(0)}%
+                  {month?.approvalRate ?? '0%'}
                 </p>
                 <p className="text-xs themed-text-muted">Aprovacao</p>
               </div>
               <div>
                 <DollarSign className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
                 <p className="text-lg font-bold text-emerald-400">
-                  R$ {(monthly?.totalEarnings ?? 0).toFixed(0)}
+                  R$ {month?.totalEarnings ?? '0.00'}
                 </p>
                 <p className="text-xs themed-text-muted">Total</p>
               </div>
             </div>
-            {monthly?.earningsBreakdown && (
+            {month && (
               <div className="themed-surface-light rounded-xl p-3 space-y-2">
                 {[
-                  { label: 'Videos', value: monthly.earningsBreakdown.videos, color: '#3B82F6' },
-                  { label: 'Comissoes', value: monthly.earningsBreakdown.commissions, color: '#7C3AED' },
-                  { label: 'Bonus', value: monthly.earningsBreakdown.bonuses, color: '#F59E0B' },
+                  { label: 'Videos', value: month.videoEarnings, color: '#3B82F6' },
+                  { label: 'Comissoes', value: month.commissionEarnings, color: '#7C3AED' },
+                  { label: 'Bonus', value: month.bonusEarnings, color: '#F59E0B' },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -196,7 +193,7 @@ export default function Dashboard() {
                       <span className="text-sm themed-text-secondary">{item.label}</span>
                     </div>
                     <span className="text-sm font-semibold themed-text">
-                      R$ {(item.value ?? 0).toFixed(2)}
+                      R$ {item.value}
                     </span>
                   </div>
                 ))}
@@ -213,10 +210,9 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-lg font-bold" style={{ color: levelColor }}>{levelName}</p>
-              <p className="text-xs themed-text-muted">{progressPct.toFixed(0)}% para o proximo nivel</p>
+              <p className="text-xs themed-text-muted">Nivel atual</p>
             </div>
           </div>
-          <ProgressBar value={progressPct} color={levelColor} />
         </Card>
 
         {/* Brands */}
@@ -228,7 +224,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide">Marcas Conectadas</p>
-                <p className="text-xl font-bold themed-text">{data?.activeBrands ?? 0}</p>
+                <p className="text-xl font-bold themed-text">{data?.brands?.active ?? 0}</p>
               </div>
             </div>
             <ChevronRight className="w-5 h-5 themed-text-muted" />

@@ -3,7 +3,7 @@ import {
   Home, Video, Users, DollarSign, User, Wand2,
   ShoppingBag, Share2, BookOpen, Trophy,
   ChevronLeft, ChevronRight, Moon, Sun,
-  LayoutDashboard, Film, Brain, Shield,
+  LayoutDashboard, Film, Brain, Shield, Building2,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -27,6 +27,7 @@ const navItems = [
 const adminNavItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Painel' },
   { to: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
+  { to: '/admin/brands', icon: Building2, label: 'Marcas' },
   { to: '/admin/creators', icon: Users, label: 'Creators' },
   { to: '/admin/videos', icon: Film, label: 'Videos' },
   { to: '/admin/profiles', icon: Brain, label: 'Perfis' },

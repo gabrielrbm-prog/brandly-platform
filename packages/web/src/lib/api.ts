@@ -219,6 +219,32 @@ export const adminApi = {
     api.get<PaymentsResponse>(
       `/api/admin/payments?page=${page ?? 1}&limit=20${type ? `&type=${type}` : ''}`,
     ),
+
+  // Brands
+  brandsList: (page = 1, search?: string, status?: string) =>
+    api.get<{ brands: AdminBrand[]; total: number }>(
+      `/api/admin/brands?page=${page}&limit=20${search ? `&search=${encodeURIComponent(search)}` : ''}${status ? `&status=${status}` : ''}`,
+    ),
+  brandDetail: (id: string) =>
+    api.get<AdminBrandDetailResponse>(`/api/admin/brands/${id}`),
+  createBrand: (data: Partial<AdminBrand>) =>
+    api.post<{ brand: AdminBrand }>('/api/admin/brands', data),
+  updateBrand: (id: string, data: Partial<AdminBrand>) =>
+    api.patch<{ brand: AdminBrand }>(`/api/admin/brands/${id}`, data),
+  toggleBrandStatus: (id: string) =>
+    api.patch<{ brand: AdminBrand }>(`/api/admin/brands/${id}/toggle-status`),
+  brandBriefings: (brandId: string) =>
+    api.get<{ briefings: AdminBriefing[] }>(`/api/admin/brands/${brandId}/briefings`),
+  createBriefing: (brandId: string, data: Partial<AdminBriefing>) =>
+    api.post<{ briefing: AdminBriefing }>(`/api/admin/brands/${brandId}/briefings`, data),
+  updateBriefing: (id: string, data: Partial<AdminBriefing>) =>
+    api.patch<{ briefing: AdminBriefing }>(`/api/admin/briefings/${id}`, data),
+  brandProducts: (brandId: string) =>
+    api.get<{ products: AdminProduct[] }>(`/api/admin/brands/${brandId}/products`),
+  createProduct: (brandId: string, data: Partial<AdminProduct>) =>
+    api.post<{ product: AdminProduct }>(`/api/admin/brands/${brandId}/products`, data),
+  updateProduct: (id: string, data: Partial<AdminProduct>) =>
+    api.patch<{ product: AdminProduct }>(`/api/admin/products/${id}`, data),
 };
 
 export interface AdminUser {
@@ -329,6 +355,71 @@ export interface AdminPayment {
 export interface PaymentsResponse {
   payments: AdminPayment[];
   total: number;
+}
+
+// Admin Brand interfaces
+export interface AdminBrand {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  website?: string;
+  contactEmail?: string;
+  logoUrl?: string;
+  isActive: boolean;
+  minVideosPerMonth?: number;
+  maxCreators?: number;
+  activeCreatorsCount?: number;
+  videosThisMonth?: number;
+  createdAt: string;
+}
+
+export interface AdminBrandCreator {
+  id: string;
+  name: string;
+  email: string;
+  videosCount: number;
+  approvalRate: number;
+}
+
+export interface AdminBriefing {
+  id: string;
+  brandId: string;
+  title: string;
+  description: string;
+  doList?: string[];
+  dontList?: string[];
+  technicalRequirements?: string;
+  tone?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminProduct {
+  id: string;
+  brandId: string;
+  name: string;
+  description?: string;
+  type: 'digital' | 'physical';
+  price: number;
+  commissionPercent: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminBrandStats {
+  totalVideos: number;
+  approvedVideos: number;
+  rejectedVideos: number;
+  approvalRate: number;
+}
+
+export interface AdminBrandDetailResponse {
+  brand: AdminBrand;
+  creators: AdminBrandCreator[];
+  briefings: AdminBriefing[];
+  products: AdminProduct[];
+  stats: AdminBrandStats;
 }
 
 // Social

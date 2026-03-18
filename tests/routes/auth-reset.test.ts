@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import { buildApp } from '../helpers/build-app.js';
 
 // Mock do @brandly/core (db + schemas)
+// Mock do email service
+vi.mock('@brandly/api/services/email.js', () => ({
+  sendPasswordResetEmail: vi.fn().mockResolvedValue(true),
+  sendWelcomeEmail: vi.fn().mockResolvedValue(true),
+}));
+
 vi.mock('@brandly/core', async () => {
   const actual = await vi.importActual('@brandly/core');
   return {
@@ -69,10 +75,12 @@ describe('Auth Routes — Recuperacao de Senha', () => {
   });
 
   it('POST /forgot-password — retorna 200 e registra token quando email existe', async () => {
-    // Simula usuario encontrado no banco
+    // Simula usuario encontrado no banco (primeira query)
     mockDb.limit.mockResolvedValueOnce([{ id: 'user-existente-id' }]);
     // Simula insert do token sem erro
     mockDb.values.mockReturnThis();
+    // Simula segunda query para buscar nome do usuario
+    mockDb.limit.mockResolvedValueOnce([{ name: 'Creator Teste' }]);
 
     const res = await app.inject({
       method: 'POST',

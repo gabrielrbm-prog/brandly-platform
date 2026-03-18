@@ -90,12 +90,17 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="text-center text-sm themed-text-secondary">
-          Nao tem conta?{' '}
-          <Link to="/register" className="text-brand-primary-light font-semibold hover:underline">
-            Cadastre-se gratuitamente
+        <div className="text-center space-y-2">
+          <Link to="/reset-password" className="block text-sm themed-text-secondary hover:text-brand-primary-light transition-colors">
+            Esqueci minha senha
           </Link>
-        </p>
+          <p className="text-sm themed-text-secondary">
+            Nao tem conta?{' '}
+            <Link to="/register" className="text-brand-primary-light font-semibold hover:underline">
+              Cadastre-se gratuitamente
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

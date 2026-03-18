@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 // Auth pages
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
+import ResetPassword from '@/pages/auth/ResetPassword';
 
 // Protected pages
 import Dashboard from '@/pages/dashboard/Dashboard';
@@ -61,6 +62,7 @@ export default function App() {
       {/* Public */}
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Protected */}
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

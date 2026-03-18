@@ -4,6 +4,7 @@ import { db } from '@brandly/core';
 import { users, levels, creatorProfiles, passwordResetTokens } from '@brandly/core';
 import { eq, gt, and, isNull } from 'drizzle-orm';
 import crypto from 'crypto';
+import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/email.js';
 
 interface RegisterBody {
   name: string;
@@ -95,6 +96,9 @@ export async function authRoutes(app: FastifyInstance) {
     });
 
     const token = app.jwt.sign({ userId: user.id, role: user.role });
+
+    // Enviar welcome email em background (nao bloqueia resposta)
+    sendWelcomeEmail(email, name).catch(() => {});
 
     return reply.status(201).send({ user, token });
   });
@@ -193,8 +197,14 @@ export async function authRoutes(app: FastifyInstance) {
       expiresAt,
     });
 
-    // Registrar token em log — integracao com email sera feita em etapa futura
-    request.log.info({ tokenRecuperacao: token, userId: user.id }, 'Token de recuperacao de senha gerado');
+    // Buscar nome do usuario para o email
+    const [userData] = await db.select({ name: users.name })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1);
+
+    // Enviar email em background (nao bloqueia resposta)
+    sendPasswordResetEmail(email, token, userData?.name ?? 'Creator').catch(() => {});
 
     return reply.status(200).send(resposta);
   });

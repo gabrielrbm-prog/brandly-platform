@@ -1000,7 +1000,7 @@ export default function AdminBrandDetail() {
     try {
       const res = await adminApi.toggleBrandStatus(brand.id);
       setBrand(res.brand);
-      toast.success(brand.isActive ? 'Marca desativada.' : 'Marca ativada.');
+      toast.success((brand.isActive ?? brand.status === 'active') ? 'Marca desativada.' : 'Marca ativada.');
     } catch (err: any) {
       toast.error(err?.message ?? 'Erro ao alterar status.');
     }
@@ -1035,6 +1035,7 @@ export default function AdminBrandDetail() {
 
   const categoryColor = getCategoryColor(brand.category);
   const categoryLabel = getCategoryLabel(brand.category);
+  const brandIsActive = brand.isActive ?? brand.status === 'active';
 
   const TABS: { id: TabId; label: string; icon: React.ReactNode; count?: number }[] = [
     { id: 'creators', label: 'Creators', icon: <Users className="w-4 h-4" />, count: creators.length },
@@ -1077,8 +1078,8 @@ export default function AdminBrandDetail() {
                 >
                   {categoryLabel}
                 </span>
-                <Badge variant={brand.isActive ? 'success' : 'default'}>
-                  {brand.isActive ? 'Ativa' : 'Inativa'}
+                <Badge variant={brandIsActive ? 'success' : 'default'}>
+                  {brandIsActive ? 'Ativa' : 'Inativa'}
                 </Badge>
               </div>
               {brand.description && (
@@ -1119,13 +1120,13 @@ export default function AdminBrandDetail() {
             <button
               onClick={handleToggleStatus}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                brand.isActive
+                brandIsActive
                   ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
                   : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
               }`}
             >
-              {brand.isActive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              {brand.isActive ? 'Desativar' : 'Ativar'}
+              {brandIsActive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              {brandIsActive ? 'Desativar' : 'Ativar'}
             </button>
             <button
               onClick={() => setShowEditModal(true)}

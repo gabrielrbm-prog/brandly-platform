@@ -7,15 +7,9 @@ import {
   X,
   Eye,
   EyeOff,
-  Youtube,
-  Instagram,
-  Video,
-  Zap,
   CheckCircle,
-  Clock,
   Calendar,
   ExternalLink,
-  Image as ImageIcon,
   Users,
 } from 'lucide-react';
 import { adminApi, type AdminLive, type AdminCase } from '@/lib/api';
@@ -73,38 +67,20 @@ function getLiveStatusStyle(status: AdminLive['status']) {
   }
 }
 
-const PLATFORM_ICONS: Record<string, React.ReactNode> = {
-  youtube: <Youtube className="w-4 h-4 text-red-400" />,
-  instagram: <Instagram className="w-4 h-4 text-pink-400" />,
-  tiktok: <Video className="w-4 h-4 text-cyan-400" />,
-  zoom: <Zap className="w-4 h-4 text-blue-400" />,
-};
-
-const PLATFORM_LABELS: Record<string, string> = {
-  youtube: 'YouTube',
-  instagram: 'Instagram',
-  tiktok: 'TikTok',
-  zoom: 'Zoom',
-};
-
 // ─── Live Modal ────────────────────────────────────────────────────────────────
 
 interface LiveFormData {
-  titulo: string;
-  descricao: string;
+  title: string;
   scheduledAt: string;
-  hostName: string;
-  platform: AdminLive['platform'];
-  streamUrl: string;
+  instructorName: string;
+  meetingUrl: string;
 }
 
 const EMPTY_LIVE: LiveFormData = {
-  titulo: '',
-  descricao: '',
+  title: '',
   scheduledAt: '',
-  hostName: '',
-  platform: 'youtube',
-  streamUrl: '',
+  instructorName: '',
+  meetingUrl: '',
 };
 
 interface LiveModalProps {
@@ -119,12 +95,10 @@ function LiveModal({ live, onClose, onSaved }: LiveModalProps) {
   const [form, setForm] = useState<LiveFormData>(() =>
     live
       ? {
-          titulo: live.titulo,
-          descricao: live.descricao ?? '',
+          title: live.title,
           scheduledAt: toDatetimeLocalValue(live.scheduledAt),
-          hostName: live.hostName,
-          platform: live.platform,
-          streamUrl: live.streamUrl ?? '',
+          instructorName: live.instructorName,
+          meetingUrl: live.meetingUrl ?? '',
         }
       : EMPTY_LIVE,
   );
@@ -135,17 +109,15 @@ function LiveModal({ live, onClose, onSaved }: LiveModalProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.titulo.trim() || !form.scheduledAt || !form.hostName.trim()) {
-      toast.error('Titulo, data/hora e host sao obrigatorios.');
+    if (!form.title.trim() || !form.scheduledAt || !form.instructorName.trim()) {
+      toast.error('Titulo, data/hora e instrutor sao obrigatorios.');
       return;
     }
     const payload = {
-      titulo: form.titulo.trim(),
-      descricao: form.descricao.trim() || undefined,
+      title: form.title.trim(),
       scheduledAt: new Date(form.scheduledAt).toISOString(),
-      hostName: form.hostName.trim(),
-      platform: form.platform,
-      streamUrl: form.streamUrl.trim() || undefined,
+      instructorName: form.instructorName.trim(),
+      meetingUrl: form.meetingUrl.trim() || undefined,
     };
     setSaving(true);
     try {
@@ -182,57 +154,32 @@ function LiveModal({ live, onClose, onSaved }: LiveModalProps) {
           <Input
             label="Titulo"
             placeholder="Ex: Masterclass Producao de Videos UGC"
-            value={form.titulo}
-            onChange={(e) => handleChange('titulo', e.target.value)}
+            value={form.title}
+            onChange={(e) => handleChange('title', e.target.value)}
             required
           />
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium themed-text-secondary">Descricao</label>
-            <textarea
-              value={form.descricao}
-              onChange={(e) => handleChange('descricao', e.target.value)}
-              placeholder="Sobre o que sera a live..."
-              rows={2}
-              className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text placeholder:themed-text-muted focus:outline-none focus:border-brand-primary/50 transition-colors resize-none"
+            <label className="block text-sm font-medium themed-text-secondary">Data e Hora</label>
+            <input
+              type="datetime-local"
+              value={form.scheduledAt}
+              onChange={(e) => handleChange('scheduledAt', e.target.value)}
+              required
+              className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text focus:outline-none focus:border-brand-primary/50 transition-colors"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium themed-text-secondary">Data e Hora</label>
-              <input
-                type="datetime-local"
-                value={form.scheduledAt}
-                onChange={(e) => handleChange('scheduledAt', e.target.value)}
-                required
-                className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text focus:outline-none focus:border-brand-primary/50 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium themed-text-secondary">Plataforma</label>
-              <select
-                value={form.platform}
-                onChange={(e) => handleChange('platform', e.target.value as AdminLive['platform'])}
-                className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text focus:outline-none focus:border-brand-primary/50 transition-colors"
-              >
-                <option value="youtube">YouTube</option>
-                <option value="instagram">Instagram</option>
-                <option value="tiktok">TikTok</option>
-                <option value="zoom">Zoom</option>
-              </select>
-            </div>
-          </div>
           <Input
-            label="Host / Apresentador"
+            label="Instrutor / Apresentador"
             placeholder="Ex: Raquel Guerreiro"
-            value={form.hostName}
-            onChange={(e) => handleChange('hostName', e.target.value)}
+            value={form.instructorName}
+            onChange={(e) => handleChange('instructorName', e.target.value)}
             required
           />
           <Input
-            label="URL da Live"
+            label="URL da Reuniao"
             placeholder="https://..."
-            value={form.streamUrl}
-            onChange={(e) => handleChange('streamUrl', e.target.value)}
+            value={form.meetingUrl}
+            onChange={(e) => handleChange('meetingUrl', e.target.value)}
           />
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" type="button" onClick={onClose} className="flex-1">
@@ -263,7 +210,7 @@ function DeleteLiveModal({ live, onConfirm, onCancel }: DeleteLiveModalProps) {
         <h3 className="text-base font-bold themed-text mb-2">Excluir Live</h3>
         <p className="text-sm themed-text-secondary mb-6">
           Tem certeza que deseja excluir a live{' '}
-          <span className="font-semibold themed-text">"{live.titulo}"</span>?
+          <span className="font-semibold themed-text">"{live.title}"</span>?
           Esta acao nao pode ser desfeita.
         </p>
         <div className="flex gap-3">
@@ -286,19 +233,15 @@ function DeleteLiveModal({ live, onConfirm, onCancel }: DeleteLiveModalProps) {
 
 interface CaseFormData {
   creatorName: string;
-  titulo: string;
-  descricao: string;
-  imageUrl: string;
-  videoUrl: string;
+  title: string;
+  story: string;
   isPublished: boolean;
 }
 
 const EMPTY_CASE: CaseFormData = {
   creatorName: '',
-  titulo: '',
-  descricao: '',
-  imageUrl: '',
-  videoUrl: '',
+  title: '',
+  story: '',
   isPublished: false,
 };
 
@@ -314,11 +257,9 @@ function CaseModal({ adminCase, onClose, onSaved }: CaseModalProps) {
   const [form, setForm] = useState<CaseFormData>(() =>
     adminCase
       ? {
-          creatorName: adminCase.creatorName,
-          titulo: adminCase.titulo,
-          descricao: adminCase.descricao,
-          imageUrl: adminCase.imageUrl ?? '',
-          videoUrl: adminCase.videoUrl ?? '',
+          creatorName: adminCase.creatorName ?? '',
+          title: adminCase.title,
+          story: adminCase.story,
           isPublished: adminCase.isPublished,
         }
       : EMPTY_CASE,
@@ -330,16 +271,14 @@ function CaseModal({ adminCase, onClose, onSaved }: CaseModalProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.titulo.trim() || !form.creatorName.trim() || !form.descricao.trim()) {
-      toast.error('Titulo, creator e descricao sao obrigatorios.');
+    if (!form.title.trim() || !form.story.trim()) {
+      toast.error('Titulo e historia sao obrigatorios.');
       return;
     }
     const payload = {
-      creatorName: form.creatorName.trim(),
-      titulo: form.titulo.trim(),
-      descricao: form.descricao.trim(),
-      imageUrl: form.imageUrl.trim() || undefined,
-      videoUrl: form.videoUrl.trim() || undefined,
+      creatorName: form.creatorName.trim() || undefined,
+      title: form.title.trim(),
+      story: form.story.trim(),
       isPublished: form.isPublished,
     };
     setSaving(true);
@@ -380,39 +319,24 @@ function CaseModal({ adminCase, onClose, onSaved }: CaseModalProps) {
               placeholder="Ex: Carolina Silva"
               value={form.creatorName}
               onChange={(e) => handleChange('creatorName', e.target.value)}
-              required
             />
             <Input
               label="Titulo"
               placeholder="Ex: De 0 a R$5k/mes em 60 dias"
-              value={form.titulo}
-              onChange={(e) => handleChange('titulo', e.target.value)}
+              value={form.title}
+              onChange={(e) => handleChange('title', e.target.value)}
               required
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium themed-text-secondary">Descricao</label>
+            <label className="block text-sm font-medium themed-text-secondary">Historia</label>
             <textarea
-              value={form.descricao}
-              onChange={(e) => handleChange('descricao', e.target.value)}
+              value={form.story}
+              onChange={(e) => handleChange('story', e.target.value)}
               placeholder="Historia de sucesso do creator..."
               rows={3}
               required
               className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text placeholder:themed-text-muted focus:outline-none focus:border-brand-primary/50 transition-colors resize-none"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="URL da Imagem"
-              placeholder="https://..."
-              value={form.imageUrl}
-              onChange={(e) => handleChange('imageUrl', e.target.value)}
-            />
-            <Input
-              label="URL do Video"
-              placeholder="https://..."
-              value={form.videoUrl}
-              onChange={(e) => handleChange('videoUrl', e.target.value)}
             />
           </div>
           {/* Published toggle */}
@@ -462,24 +386,13 @@ interface CaseCardProps {
 function CaseCard({ adminCase, onToggle, onEdit }: CaseCardProps) {
   return (
     <div className="rounded-2xl border themed-border bg-white/5 backdrop-blur-sm overflow-hidden hover:border-brand-primary/20 transition-all">
-      {/* Image */}
-      {adminCase.imageUrl ? (
-        <div className="h-32 overflow-hidden">
-          <img
-            src={adminCase.imageUrl}
-            alt={adminCase.titulo}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-          />
-        </div>
-      ) : (
-        <div className="h-32 bg-gradient-to-br from-brand-primary/10 to-violet-600/5 flex items-center justify-center">
-          <ImageIcon className="w-8 h-8 text-brand-primary/30" />
-        </div>
-      )}
+      <div className="h-16 bg-gradient-to-br from-brand-primary/10 to-violet-600/5 flex items-center justify-center">
+        <CheckCircle className="w-6 h-6 text-brand-primary/30" />
+      </div>
 
       <div className="p-4">
         <div className="flex items-start justify-between mb-1">
-          <p className="text-xs themed-text-muted">{adminCase.creatorName}</p>
+          <p className="text-xs themed-text-muted">{adminCase.creatorName ?? '—'}</p>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
               adminCase.isPublished
@@ -491,9 +404,9 @@ function CaseCard({ adminCase, onToggle, onEdit }: CaseCardProps) {
           </span>
         </div>
 
-        <h3 className="font-bold themed-text text-sm mb-2 line-clamp-1">{adminCase.titulo}</h3>
+        <h3 className="font-bold themed-text text-sm mb-2 line-clamp-1">{adminCase.title}</h3>
         <p className="text-xs themed-text-muted line-clamp-2 leading-relaxed mb-4">
-          {adminCase.descricao}
+          {adminCase.story}
         </p>
 
         <div className="flex items-center gap-2">
@@ -593,10 +506,7 @@ function LivesTab({ lives, loading, onRefresh }: LivesTabProps) {
                     Data/Hora
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-semibold themed-text-muted uppercase tracking-wider">
-                    Host
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold themed-text-muted uppercase tracking-wider">
-                    Plataforma
+                    Instrutor
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-semibold themed-text-muted uppercase tracking-wider">
                     Status
@@ -613,10 +523,10 @@ function LivesTab({ lives, loading, onRefresh }: LivesTabProps) {
                     <tr key={live.id} className="hover:bg-white/3 transition-colors">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium themed-text">{live.titulo}</p>
-                          {live.streamUrl && (
+                          <p className="font-medium themed-text">{live.title}</p>
+                          {live.meetingUrl && (
                             <a
-                              href={live.streamUrl}
+                              href={live.meetingUrl}
                               target="_blank"
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
@@ -633,15 +543,7 @@ function LivesTab({ lives, loading, onRefresh }: LivesTabProps) {
                           <span className="text-xs">{formatDateTime(live.scheduledAt)}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 themed-text-secondary text-xs">{live.hostName}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5">
-                          {PLATFORM_ICONS[live.platform]}
-                          <span className="text-xs themed-text-secondary">
-                            {PLATFORM_LABELS[live.platform]}
-                          </span>
-                        </div>
-                      </td>
+                      <td className="py-3 px-4 themed-text-secondary text-xs">{live.instructorName}</td>
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${style.badge}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />

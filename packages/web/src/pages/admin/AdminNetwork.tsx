@@ -49,8 +49,10 @@ const RETENTION_RISK_LABELS: Record<string, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+function formatCurrency(value: string | number) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    typeof value === 'string' ? parseFloat(value) : value,
+  );
 }
 
 function getCurrentPeriod() {
@@ -213,7 +215,7 @@ function BonusSummarySection({
             <StatCard
               icon={<Users className="w-4 h-4" />}
               label="Receberam Bonus"
-              value={data ? String(data.creatorsWithBonuses) : '—'}
+              value={data ? String(data.creatorsReceived ?? data.creatorsWithBonuses ?? 0) : '—'}
               color="#34D399"
             />
           </div>

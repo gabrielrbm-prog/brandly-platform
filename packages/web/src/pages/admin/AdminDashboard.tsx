@@ -399,8 +399,8 @@ export default function AdminDashboard() {
                   <p className="text-xs themed-text-muted truncate">{creator.email}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {creator.level && (
-                    <Badge variant="primary" className="text-xs">{creator.level}</Badge>
+                  {creator.levelName && (
+                    <Badge variant="primary" className="text-xs">{creator.levelName}</Badge>
                   )}
                   <ChevronRight className="w-4 h-4 themed-text-muted" />
                 </div>

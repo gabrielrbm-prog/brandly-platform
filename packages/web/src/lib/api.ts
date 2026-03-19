@@ -348,7 +348,8 @@ export interface AdminUser {
   name: string;
   email: string;
   role: string;
-  level?: string;
+  status?: string;
+  levelName?: string | null;
   referralCode?: string;
   onboardingCompleted?: boolean;
   createdAt: string;
@@ -398,10 +399,10 @@ export interface AdminDiagnostic {
 
 // Admin Financial interfaces
 export interface FinancialOverview {
-  totalRevenue: number;
-  brandlyMargin: number;
-  totalPaidToCreators: number;
-  pendingWithdrawals: number;
+  totalRevenue: string;
+  brandlyMargin: string;
+  totalPaidToCreators: string;
+  pendingWithdrawals: string;
   pendingWithdrawalsCount: number;
   pendingSalesCount: number;
 }
@@ -410,7 +411,7 @@ export interface AdminWithdrawal {
   id: string;
   creatorId: string;
   creatorName: string;
-  amount: number;
+  amount: string;
   pixKey: string;
   status: string;
   reason?: string;
@@ -428,7 +429,7 @@ export interface AdminSale {
   productName: string;
   creatorName: string;
   brandName: string;
-  amount: number;
+  amount: string;
   type: 'digital' | 'physical';
   status: string;
   createdAt: string;
@@ -443,7 +444,7 @@ export interface AdminPayment {
   id: string;
   creatorName: string;
   type: 'video' | 'commission' | 'bonus';
-  amount: number;
+  amount: string;
   description: string;
   createdAt: string;
 }
@@ -459,12 +460,14 @@ export interface AdminBrand {
   name: string;
   category: string;
   description?: string;
-  website?: string;
+  website?: string | null;
   contactEmail?: string;
-  logoUrl?: string;
-  isActive: boolean;
+  logoUrl?: string | null;
+  status?: string;
+  isActive?: boolean;
   minVideosPerMonth?: number;
   maxCreators?: number;
+  activeCreators?: number;
   activeCreatorsCount?: number;
   videosThisMonth?: number;
   createdAt: string;
@@ -545,17 +548,17 @@ export interface AdminCreatorVideosResponse {
 }
 
 export interface AdminCreatorFinancial {
-  balance: number;
-  totalEarnings: number;
-  videoEarnings: number;
-  commissionEarnings: number;
-  bonusEarnings: number;
-  pendingWithdrawals: number;
-  completedWithdrawals: number;
+  balance: string;
+  totalEarnings: string;
+  videoEarnings: string;
+  commissionEarnings: string;
+  bonusEarnings: string;
+  pendingWithdrawals: string;
+  completedWithdrawals: string;
   recentPayments: Array<{
     id: string;
     type: string;
-    amount: number;
+    amount: string;
     description: string;
     createdAt: string;
   }>;
@@ -619,12 +622,14 @@ export interface AdminNetworkRecruiter {
 }
 
 export interface AdminNetworkBonusSummary {
-  directBonuses: number;
-  infiniteBonuses: number;
-  matchingBonuses: number;
-  globalPool: number;
-  totalDistributed: number;
-  creatorsWithBonuses: number;
+  period?: string;
+  directBonuses: string;
+  infiniteBonuses: string;
+  matchingBonuses: string;
+  globalPool: string;
+  totalDistributed: string;
+  creatorsReceived?: number;
+  creatorsWithBonuses?: number;
 }
 
 export interface AdminAtRiskCreator {
@@ -651,18 +656,18 @@ export interface AdminAnalyticsVideos {
   approvedToday: number;
   pendingNow: number;
   rejectedToday: number;
-  approvalRate: number;
+  approvalRate: string;
 }
 
 export interface AdminAnalyticsFinancial {
-  totalRevenue: number;
-  revenueThisMonth: number;
-  paidToCreatorsThisMonth: number;
+  totalRevenue: string;
+  revenueThisMonth: string;
+  paidToCreatorsThisMonth: string;
 }
 
 export interface AdminAnalyticsEngagement {
   avgFollowers: number;
-  avgEngagementRate: number;
+  avgEngagementRate: string;
   connectedSocialAccounts: number;
 }
 
@@ -731,7 +736,7 @@ export interface AdminAiUsage {
   totalGenerations: number;
   byType: AdminAiGenerationByType[];
   totalTokensUsed: number;
-  estimatedCost: number;
+  estimatedCost: string;
   recentGenerations: AdminAiRecentGeneration[];
 }
 
@@ -798,6 +803,7 @@ export interface AdminCourse {
   thumbnailUrl?: string;
   isPublished: boolean;
   lessonsCount?: number;
+  enrolledCreators?: number;
   enrolledCount?: number;
   completionRate?: number;
   createdAt: string;
@@ -826,23 +832,21 @@ export interface AdminCourseProgress {
 
 export interface AdminLive {
   id: string;
-  titulo: string;
-  descricao?: string;
+  title: string;
   scheduledAt: string;
-  hostName: string;
-  platform: 'youtube' | 'instagram' | 'tiktok' | 'zoom';
-  streamUrl?: string;
+  instructorName: string;
+  meetingUrl?: string | null;
   status: 'agendada' | 'ao-vivo' | 'encerrada';
   createdAt: string;
 }
 
 export interface AdminCase {
   id: string;
-  creatorName: string;
-  titulo: string;
-  descricao: string;
-  imageUrl?: string;
-  videoUrl?: string;
+  creatorId?: string | null;
+  creatorName?: string | null;
+  title: string;
+  story: string;
+  earnings?: string;
   isPublished: boolean;
   createdAt: string;
 }

@@ -391,7 +391,7 @@ function CourseCard({ course, onToggle, onEdit, onClick }: CourseCardProps) {
           <div className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 themed-text-muted" />
             <span className="text-xs themed-text-secondary">
-              <span className="font-semibold themed-text">{course.enrolledCount ?? 0}</span> inscritos
+              <span className="font-semibold themed-text">{course.enrolledCreators ?? course.enrolledCount ?? 0}</span> inscritos
             </span>
           </div>
         </div>
@@ -579,7 +579,7 @@ function CourseDetail({ course, onBack, onCourseUpdated }: CourseDetailProps) {
                   <span className="font-semibold themed-text">{course.lessonsCount ?? 0}</span> licoes
                 </span>
                 <span className="text-xs themed-text-muted">
-                  <span className="font-semibold themed-text">{course.enrolledCount ?? 0}</span> inscritos
+                  <span className="font-semibold themed-text">{course.enrolledCreators ?? course.enrolledCount ?? 0}</span> inscritos
                 </span>
                 <span className="text-xs themed-text-muted">
                   <span className="font-semibold themed-text">{course.completionRate ?? 0}%</span> conclusao

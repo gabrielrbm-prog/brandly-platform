@@ -122,8 +122,10 @@ function formatDate(d: string) {
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 }
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+function formatCurrency(value: string | number) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    typeof value === 'string' ? parseFloat(value) : value,
+  );
 }
 
 function formatFollowers(n: number) {
@@ -624,7 +626,10 @@ function FinancialTab({ creatorId }: { creatorId: string }) {
 
   if (!data) return null;
 
-  const totalEarnings = data.videoEarnings + data.commissionEarnings + data.bonusEarnings;
+  const totalEarnings =
+    parseFloat(data.videoEarnings) +
+    parseFloat(data.commissionEarnings) +
+    parseFloat(data.bonusEarnings);
 
   return (
     <div className="space-y-4">
@@ -681,7 +686,7 @@ function FinancialTab({ creatorId }: { creatorId: string }) {
                 </span>
               </div>
               <ProgressBar
-                value={totalEarnings > 0 ? (item.value / totalEarnings) * 100 : 0}
+                value={totalEarnings > 0 ? (parseFloat(String(item.value)) / totalEarnings) * 100 : 0}
                 max={100}
                 color={item.color}
               />
@@ -1135,8 +1140,8 @@ export default function AdminCreatorDetail() {
     );
   }
 
-  const levelColor = LEVEL_COLORS[user.level ?? 'Seed'] ?? '#9CA3AF';
-  const userStatus: string = (user as any).status ?? 'active';
+  const levelColor = LEVEL_COLORS[user.levelName ?? 'Seed'] ?? '#9CA3AF';
+  const userStatus: string = user.status ?? 'active';
 
   return (
     <PageContainer title="Admin — Creator">
@@ -1163,7 +1168,7 @@ export default function AdminCreatorDetail() {
                   className="text-xs font-bold px-2.5 py-1 rounded-full border shrink-0"
                   style={{ color: levelColor, borderColor: levelColor }}
                 >
-                  {user.level ?? 'Seed'}
+                  {user.levelName ?? 'Seed'}
                 </span>
                 <Badge variant={STATUS_VARIANTS[userStatus] ?? 'default'}>
                   {STATUS_LABELS[userStatus] ?? userStatus}

@@ -74,7 +74,8 @@ function formatNumber(value: number) {
   return value.toLocaleString('pt-BR');
 }
 
-function formatCurrency(value: number) {
+function formatCurrency(value: string | number) {
+  if (typeof value === 'string') return value;
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 

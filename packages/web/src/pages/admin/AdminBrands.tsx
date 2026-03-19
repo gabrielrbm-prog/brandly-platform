@@ -264,6 +264,7 @@ function BrandCard({ brand, onToggleStatus, onEdit, onClick }: BrandCardProps) {
   const categoryColor = getCategoryColor(brand.category);
   const categoryLabel = getCategoryLabel(brand.category);
   const initial = brand.name.charAt(0).toUpperCase();
+  const isActive = brand.isActive ?? brand.status === 'active';
 
   return (
     <div
@@ -272,8 +273,8 @@ function BrandCard({ brand, onToggleStatus, onEdit, onClick }: BrandCardProps) {
     >
       {/* Status indicator */}
       <div
-        className={`absolute top-3 right-3 w-2 h-2 rounded-full ${brand.isActive ? 'bg-emerald-400' : 'bg-gray-500'}`}
-        title={brand.isActive ? 'Ativa' : 'Inativa'}
+        className={`absolute top-3 right-3 w-2 h-2 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-gray-500'}`}
+        title={isActive ? 'Ativa' : 'Inativa'}
       />
 
       {/* Brand header */}
@@ -307,7 +308,7 @@ function BrandCard({ brand, onToggleStatus, onEdit, onClick }: BrandCardProps) {
         <div className="flex items-center gap-1.5">
           <Users className="w-3.5 h-3.5 themed-text-muted" />
           <span className="text-xs themed-text-secondary">
-            <span className="font-bold themed-text">{brand.activeCreatorsCount ?? 0}</span> creators
+            <span className="font-bold themed-text">{brand.activeCreators ?? brand.activeCreatorsCount ?? 0}</span> creators
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -323,14 +324,14 @@ function BrandCard({ brand, onToggleStatus, onEdit, onClick }: BrandCardProps) {
         <button
           onClick={() => onToggleStatus(brand)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            brand.isActive
+            isActive
               ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
               : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
           }`}
-          title={brand.isActive ? 'Desativar marca' : 'Ativar marca'}
+          title={isActive ? 'Desativar marca' : 'Ativar marca'}
         >
-          {brand.isActive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          {brand.isActive ? 'Desativar' : 'Ativar'}
+          {isActive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          {isActive ? 'Desativar' : 'Ativar'}
         </button>
         <button
           onClick={() => onEdit(brand)}
@@ -400,7 +401,7 @@ export default function AdminBrands() {
     try {
       await adminApi.toggleBrandStatus(brand.id);
       toast.success(
-        brand.isActive ? 'Marca desativada.' : 'Marca ativada.',
+        (brand.isActive ?? brand.status === 'active') ? 'Marca desativada.' : 'Marca ativada.',
       );
       fetchBrands();
     } catch (err: any) {

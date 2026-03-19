@@ -37,8 +37,10 @@ function formatDate(d: string) {
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+function formatCurrency(value: string | number) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    typeof value === 'string' ? parseFloat(value) : value,
+  );
 }
 
 const WITHDRAWAL_STATUS_LABELS: Record<string, string> = {
@@ -1009,28 +1011,28 @@ export default function AdminFinancial() {
                 glowing
                 icon={<TrendingUp className="w-4 h-4" />}
                 label="Receita Total"
-                value={formatCurrency(overview?.totalRevenue ?? 0)}
+                value={formatCurrency(overview?.totalRevenue ?? '0')}
                 color="#10B981"
               />
               <StatCard
                 glowing
                 icon={<DollarSign className="w-4 h-4" />}
                 label="Margem Brandly"
-                value={formatCurrency(overview?.brandlyMargin ?? 0)}
+                value={formatCurrency(overview?.brandlyMargin ?? '0')}
                 color="#7C3AED"
               />
               <StatCard
                 glowing
                 icon={<Users className="w-4 h-4" />}
                 label="Pago a Creators"
-                value={formatCurrency(overview?.totalPaidToCreators ?? 0)}
+                value={formatCurrency(overview?.totalPaidToCreators ?? '0')}
                 color="#3B82F6"
               />
               <StatCard
                 glowing
                 icon={<Clock className="w-4 h-4" />}
                 label="Saques Pendentes"
-                value={formatCurrency(overview?.pendingWithdrawals ?? 0)}
+                value={formatCurrency(overview?.pendingWithdrawals ?? '0')}
                 color="#F59E0B"
               />
             </div>
@@ -1056,7 +1058,8 @@ export default function AdminFinancial() {
                     <p className="text-xs themed-text-muted">Total Pagamentos</p>
                     <p className="text-xl font-bold themed-text">
                       {formatCurrency(
-                        (overview?.totalPaidToCreators ?? 0) + (overview?.brandlyMargin ?? 0),
+                        parseFloat(overview?.totalPaidToCreators ?? '0') +
+                          parseFloat(overview?.brandlyMargin ?? '0'),
                       )}
                     </p>
                   </div>

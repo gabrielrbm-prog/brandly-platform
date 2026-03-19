@@ -28,8 +28,10 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+function formatCurrency(value: string | number) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    typeof value === 'string' ? parseFloat(value) : value,
+  );
 }
 
 function formatNumber(value: number) {
@@ -126,7 +128,7 @@ function OverviewSection({
           <StatCard
             icon={<TrendingUp className="w-4 h-4" />}
             label="Taxa Aprovacao"
-            value={data ? `${data.videos.approvalRate.toFixed(1)}%` : '—'}
+            value={data ? (typeof data.videos.approvalRate === 'string' ? data.videos.approvalRate : `${data.videos.approvalRate}%`) : '—'}
             color="#34D399"
           />
         </div>
@@ -176,7 +178,7 @@ function OverviewSection({
           <StatCard
             icon={<TrendingUp className="w-4 h-4" />}
             label="Taxa engajamento"
-            value={data ? `${data.engagement.avgEngagementRate.toFixed(2)}%` : '—'}
+            value={data ? (typeof data.engagement.avgEngagementRate === 'string' ? `${data.engagement.avgEngagementRate}%` : `${data.engagement.avgEngagementRate.toFixed(2)}%`) : '—'}
             color="#A78BFA"
           />
           <StatCard

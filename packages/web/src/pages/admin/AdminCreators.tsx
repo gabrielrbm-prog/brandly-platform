@@ -128,7 +128,7 @@ export default function AdminCreators() {
             </div>
 
             {users.map((user) => {
-              const levelColor = LEVEL_COLORS[user.level ?? 'Seed'] ?? '#9CA3AF';
+              const levelColor = LEVEL_COLORS[user.levelName ?? 'Seed'] ?? '#9CA3AF';
               return (
                 <div
                   key={user.id}
@@ -144,12 +144,12 @@ export default function AdminCreators() {
                       <p className="font-semibold themed-text truncate">{user.name}</p>
                       <p className="text-xs themed-text-muted truncate">{user.email}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        {user.level && (
+                        {user.levelName && (
                           <span
                             className="text-xs font-semibold"
                             style={{ color: levelColor }}
                           >
-                            {user.level}
+                            {user.levelName}
                           </span>
                         )}
                         {user.onboardingCompleted ? (
@@ -172,7 +172,7 @@ export default function AdminCreators() {
                     </div>
                     <span className="text-sm themed-text-secondary truncate">{user.email}</span>
                     <span className="text-sm font-semibold" style={{ color: levelColor }}>
-                      {user.level ?? 'Seed'}
+                      {user.levelName ?? 'Seed'}
                     </span>
                     <div>
                       {user.onboardingCompleted ? (

@@ -289,6 +289,58 @@ export const adminApi = {
     api.get<AdminVideoSla>('/api/admin/analytics/video-sla'),
   aiUsage: (period: '30d' | '90d' = '30d') =>
     api.get<AdminAiUsage>(`/api/admin/analytics/ai-usage?period=${period}`),
+
+  // Courses (LMS)
+  coursesList: () =>
+    api.get<{ courses: AdminCourse[]; total: number }>('/api/admin/courses'),
+  createCourse: (data: Partial<AdminCourse>) =>
+    api.post<{ course: AdminCourse }>('/api/admin/courses', data),
+  updateCourse: (id: string, data: Partial<AdminCourse>) =>
+    api.patch<{ course: AdminCourse }>(`/api/admin/courses/${id}`, data),
+  toggleCoursePublish: (id: string) =>
+    api.patch<{ course: AdminCourse }>(`/api/admin/courses/${id}/toggle-publish`),
+  courseLessons: (courseId: string) =>
+    api.get<{ lessons: AdminLesson[] }>(`/api/admin/courses/${courseId}/lessons`),
+  createLesson: (courseId: string, data: Partial<AdminLesson>) =>
+    api.post<{ lesson: AdminLesson }>(`/api/admin/courses/${courseId}/lessons`, data),
+  updateLesson: (id: string, data: Partial<AdminLesson>) =>
+    api.patch<{ lesson: AdminLesson }>(`/api/admin/lessons/${id}`, data),
+  toggleLessonPublish: (id: string) =>
+    api.patch<{ lesson: AdminLesson }>(`/api/admin/lessons/${id}/toggle-publish`),
+  courseProgress: (courseId: string) =>
+    api.get<{ progress: AdminCourseProgress[] }>(`/api/admin/courses/${courseId}/progress`),
+
+  // Community
+  livesList: () =>
+    api.get<{ lives: AdminLive[] }>('/api/admin/lives'),
+  createLive: (data: Partial<AdminLive>) =>
+    api.post<{ live: AdminLive }>('/api/admin/lives', data),
+  updateLive: (id: string, data: Partial<AdminLive>) =>
+    api.patch<{ live: AdminLive }>(`/api/admin/lives/${id}`, data),
+  deleteLive: (id: string) =>
+    api.delete(`/api/admin/lives/${id}`),
+  casesList: () =>
+    api.get<{ cases: AdminCase[] }>('/api/admin/cases'),
+  createCase: (data: Partial<AdminCase>) =>
+    api.post<{ case: AdminCase }>('/api/admin/cases', data),
+  updateCase: (id: string, data: Partial<AdminCase>) =>
+    api.patch<{ case: AdminCase }>(`/api/admin/cases/${id}`, data),
+  toggleCasePublish: (id: string) =>
+    api.patch<{ case: AdminCase }>(`/api/admin/cases/${id}/toggle-publish`),
+
+  // Notifications
+  sendNotification: (data: { title: string; message: string; userIds?: string[] }) =>
+    api.post<{ sent: number; message: string }>('/api/admin/notifications/send', data),
+
+  // Export
+  exportCreators: async () => downloadCsv(`${API_URL}/api/admin/export/creators?format=csv`, 'creators'),
+  exportPayments: async (month?: string, year?: string) => {
+    const params = new URLSearchParams({ format: 'csv' });
+    if (month) params.set('month', month);
+    if (year) params.set('year', year);
+    return downloadCsv(`${API_URL}/api/admin/export/payments?${params}`, 'payments');
+  },
+  exportVideos: async () => downloadCsv(`${API_URL}/api/admin/export/videos?format=csv`, 'videos'),
 };
 
 export interface AdminUser {
@@ -715,3 +767,82 @@ export const socialApi = {
     api.post('/api/social/sync', { platform }),
   disconnect: (platform: string) => api.delete(`/api/social/disconnect/${platform}`),
 };
+
+// ─── CSV Download Helper ───────────────────────────────────────────────────────
+
+async function downloadCsv(url: string, filename: string): Promise<void> {
+  const token = localStorage.getItem('brandly_auth_token');
+  const response = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) {
+    throw new Error(`Falha ao exportar: ${response.statusText}`);
+  }
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = `${filename}-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(objectUrl);
+}
+
+// ─── Admin LMS / Community / Export Interfaces ────────────────────────────────
+
+export interface AdminCourse {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnailUrl?: string;
+  isPublished: boolean;
+  lessonsCount?: number;
+  enrolledCount?: number;
+  completionRate?: number;
+  createdAt: string;
+}
+
+export interface AdminLesson {
+  id: string;
+  courseId: string;
+  title: string;
+  contentUrl?: string;
+  contentType: 'video' | 'text' | 'quiz';
+  duration?: number;
+  orderIndex: number;
+  isPublished: boolean;
+  createdAt: string;
+}
+
+export interface AdminCourseProgress {
+  userId: string;
+  creatorName: string;
+  completedLessons: number;
+  totalLessons: number;
+  completionPercent: number;
+  lastActivityAt: string | null;
+}
+
+export interface AdminLive {
+  id: string;
+  titulo: string;
+  descricao?: string;
+  scheduledAt: string;
+  hostName: string;
+  platform: 'youtube' | 'instagram' | 'tiktok' | 'zoom';
+  streamUrl?: string;
+  status: 'agendada' | 'ao-vivo' | 'encerrada';
+  createdAt: string;
+}
+
+export interface AdminCase {
+  id: string;
+  creatorName: string;
+  titulo: string;
+  descricao: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  isPublished: boolean;
+  createdAt: string;
+}

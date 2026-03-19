@@ -4,7 +4,7 @@ import {
   ShoppingBag, Share2, BookOpen, Trophy,
   ChevronLeft, ChevronRight, Moon, Sun,
   LayoutDashboard, Film, Brain, Shield, Building2, GitBranch,
-  BarChart3, Sparkles,
+  BarChart3, Sparkles, GraduationCap, Radio, Download,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -35,6 +35,9 @@ const adminNavItems = [
   { to: '/admin/ai', icon: Sparkles, label: 'Monitor IA' },
   { to: '/admin/videos', icon: Film, label: 'Videos' },
   { to: '/admin/profiles', icon: Brain, label: 'Perfis' },
+  { to: '/admin/courses', icon: GraduationCap, label: 'Formacao' },
+  { to: '/admin/community', icon: Radio, label: 'Comunidade' },
+  { to: '/admin/export', icon: Download, label: 'Exportar' },
 ];
 
 export default function Sidebar() {

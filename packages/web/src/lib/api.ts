@@ -245,6 +245,36 @@ export const adminApi = {
     api.post<{ product: AdminProduct }>(`/api/admin/brands/${brandId}/products`, data),
   updateProduct: (id: string, data: Partial<AdminProduct>) =>
     api.patch<{ product: AdminProduct }>(`/api/admin/products/${id}`, data),
+
+  // Creator detail sub-endpoints
+  creatorVideos: (id: string, status?: string, page = 1) =>
+    api.get<AdminCreatorVideosResponse>(
+      `/api/admin/creators/${id}/videos?page=${page}&limit=20${status ? `&status=${status}` : ''}`,
+    ),
+  creatorFinancial: (id: string) =>
+    api.get<AdminCreatorFinancial>(`/api/admin/creators/${id}/financial`),
+  creatorNetwork: (id: string) =>
+    api.get<AdminCreatorNetwork>(`/api/admin/creators/${id}/network`),
+  creatorBrands: (id: string) =>
+    api.get<{ brands: AdminCreatorBrandItem[] }>(`/api/admin/creators/${id}/brands`),
+  creatorSocial: (id: string) =>
+    api.get<{ accounts: AdminCreatorSocialAccount[] }>(`/api/admin/creators/${id}/social`),
+  changeCreatorStatus: (id: string, status: 'active' | 'inactive' | 'suspended') =>
+    api.patch<{ user: AdminUser }>(`/api/admin/creators/${id}/status`, { status }),
+  changeCreatorLevel: (id: string, levelId: string) =>
+    api.patch<{ user: AdminUser }>(`/api/admin/creators/${id}/level`, { levelId }),
+
+  // Network analytics
+  networkLevelDistribution: () =>
+    api.get<AdminNetworkLevelDistribution>('/api/admin/network/level-distribution'),
+  networkTopRecruiters: (limit = 10) =>
+    api.get<{ recruiters: AdminNetworkRecruiter[] }>(`/api/admin/network/top-recruiters?limit=${limit}`),
+  networkBonusSummary: (period?: string) =>
+    api.get<AdminNetworkBonusSummary>(
+      `/api/admin/network/bonus-summary${period ? `?period=${period}` : ''}`,
+    ),
+  networkAtRisk: () =>
+    api.get<{ creators: AdminAtRiskCreator[] }>('/api/admin/network/at-risk'),
 };
 
 export interface AdminUser {
@@ -420,6 +450,125 @@ export interface AdminBrandDetailResponse {
   briefings: AdminBriefing[];
   products: AdminProduct[];
   stats: AdminBrandStats;
+}
+
+// Admin Creator detail sub-types
+export interface AdminCreatorVideo {
+  id: string;
+  url: string;
+  platform: string;
+  brandName?: string;
+  status: string;
+  payment: number;
+  rejectionReason?: string;
+  createdAt: string;
+}
+
+export interface AdminCreatorVideosStats {
+  total: number;
+  approved: number;
+  pending: number;
+  rejected: number;
+  approvalRate: number;
+}
+
+export interface AdminCreatorVideosResponse {
+  videos: AdminCreatorVideo[];
+  total: number;
+  stats: AdminCreatorVideosStats;
+}
+
+export interface AdminCreatorFinancial {
+  balance: number;
+  totalEarnings: number;
+  videoEarnings: number;
+  commissionEarnings: number;
+  bonusEarnings: number;
+  pendingWithdrawals: number;
+  completedWithdrawals: number;
+  recentPayments: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    description: string;
+    createdAt: string;
+  }>;
+}
+
+export interface AdminCreatorNetworkDirect {
+  id: string;
+  name: string;
+  email: string;
+  level: string;
+  status: string;
+  videosThisMonth: number;
+  joinedAt: string;
+}
+
+export interface AdminCreatorNetwork {
+  sponsor: { id: string; name: string; email: string; level: string } | null;
+  directCount: number;
+  networkDepth: number;
+  totalInNetwork: number;
+  directs: AdminCreatorNetworkDirect[];
+}
+
+export interface AdminCreatorBrandItem {
+  id: string;
+  name: string;
+  category: string;
+  videosCount: number;
+  approvalRate: number;
+}
+
+export interface AdminCreatorSocialAccount {
+  id: string;
+  platform: string;
+  username: string | null;
+  followers: number;
+  engagementRate: number;
+  status: string;
+  lastSyncAt: string | null;
+}
+
+// Admin Network analytics types
+export interface AdminNetworkLevelItem {
+  level: string;
+  count: number;
+  percentage: number;
+}
+
+export interface AdminNetworkLevelDistribution {
+  distribution: AdminNetworkLevelItem[];
+  total: number;
+}
+
+export interface AdminNetworkRecruiter {
+  id: string;
+  name: string;
+  email: string;
+  level: string;
+  activeDirects: number;
+  totalNetwork: number;
+}
+
+export interface AdminNetworkBonusSummary {
+  directBonuses: number;
+  infiniteBonuses: number;
+  matchingBonuses: number;
+  globalPool: number;
+  totalDistributed: number;
+  creatorsWithBonuses: number;
+}
+
+export interface AdminAtRiskCreator {
+  id: string;
+  name: string;
+  email: string;
+  level: string;
+  daysSinceLastVideo: number;
+  videosThisMonth: number;
+  retentionRisk: string;
 }
 
 // Social

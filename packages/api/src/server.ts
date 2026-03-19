@@ -30,6 +30,7 @@ import { legalRoutes } from './routes/legal.js';
 import { adminFinancialRoutes } from './routes/admin-financial.js';
 import { adminBrandsRoutes } from './routes/admin-brands.js';
 import { adminCreatorsRoutes } from './routes/admin-creators.js';
+import { adminAnalyticsRoutes } from './routes/admin-analytics.js';
 
 const app = Fastify({
   bodyLimit: 1_048_576, // 1MB max — previne ataques de payload gigante
@@ -139,6 +140,9 @@ async function start() {
 
   // Admin API — gestao avancada de creators e analytics de rede
   await app.register(adminCreatorsRoutes, { prefix: '/api/admin' });
+
+  // Admin API — analytics de plataforma e monitor de uso de IA
+  await app.register(adminAnalyticsRoutes, { prefix: '/api/admin' });
 
   // Paginas legais (Termos de Uso e Politica de Privacidade)
   await app.register(legalRoutes, { prefix: '/legal' });

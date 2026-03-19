@@ -275,6 +275,20 @@ export const adminApi = {
     ),
   networkAtRisk: () =>
     api.get<{ creators: AdminAtRiskCreator[] }>('/api/admin/network/at-risk'),
+
+  // Analytics
+  analyticsOverview: () =>
+    api.get<AdminAnalyticsOverview>('/api/admin/analytics/overview'),
+  analyticsGrowth: (period: '30d' | '90d' | '12m' = '30d') =>
+    api.get<AdminAnalyticsGrowth>(`/api/admin/analytics/growth?period=${period}`),
+  onboardingFunnel: () =>
+    api.get<AdminOnboardingFunnel>('/api/admin/analytics/onboarding-funnel'),
+  rejectionReasons: () =>
+    api.get<AdminRejectionReasons>('/api/admin/analytics/rejection-reasons'),
+  videoSla: () =>
+    api.get<AdminVideoSla>('/api/admin/analytics/video-sla'),
+  aiUsage: (period: '30d' | '90d' = '30d') =>
+    api.get<AdminAiUsage>(`/api/admin/analytics/ai-usage?period=${period}`),
 };
 
 export interface AdminUser {
@@ -569,6 +583,104 @@ export interface AdminAtRiskCreator {
   daysSinceLastVideo: number;
   videosThisMonth: number;
   retentionRisk: string;
+}
+
+// Admin Analytics interfaces
+
+export interface AdminAnalyticsCreators {
+  total: number;
+  active: number;
+  newThisMonth: number;
+  newThisWeek: number;
+}
+
+export interface AdminAnalyticsVideos {
+  total: number;
+  approvedToday: number;
+  pendingNow: number;
+  rejectedToday: number;
+  approvalRate: number;
+}
+
+export interface AdminAnalyticsFinancial {
+  totalRevenue: number;
+  revenueThisMonth: number;
+  paidToCreatorsThisMonth: number;
+}
+
+export interface AdminAnalyticsEngagement {
+  avgFollowers: number;
+  avgEngagementRate: number;
+  connectedSocialAccounts: number;
+}
+
+export interface AdminAnalyticsOverview {
+  creators: AdminAnalyticsCreators;
+  videos: AdminAnalyticsVideos;
+  financial: AdminAnalyticsFinancial;
+  engagement: AdminAnalyticsEngagement;
+}
+
+export interface AdminGrowthDataPoint {
+  label: string;
+  registrations: number;
+  videosSubmitted: number;
+  revenue: number;
+}
+
+export interface AdminAnalyticsGrowth {
+  period: string;
+  data: AdminGrowthDataPoint[];
+}
+
+export interface AdminOnboardingFunnel {
+  registered: number;
+  startedOnboarding: number;
+  completedBehavioral: number;
+  submittedFirstVideo: number;
+  hitDailyTarget: number;
+  conversionRate: number;
+}
+
+export interface AdminRejectionReason {
+  reason: string;
+  count: number;
+  percentage: number;
+}
+
+export interface AdminRejectionReasons {
+  reasons: AdminRejectionReason[];
+  totalRejected: number;
+  topCreatorsRejected: number;
+}
+
+export interface AdminVideoSla {
+  avgReviewTimeHours: number;
+  pendingOver24h: number;
+  reviewedToday: number;
+  pendingNow: number;
+}
+
+export interface AdminAiGenerationByType {
+  type: string;
+  count: number;
+  avgTokens: number;
+}
+
+export interface AdminAiRecentGeneration {
+  id: string;
+  type: string;
+  tokensUsed: number;
+  createdAt: string;
+}
+
+export interface AdminAiUsage {
+  period: string;
+  totalGenerations: number;
+  byType: AdminAiGenerationByType[];
+  totalTokensUsed: number;
+  estimatedCost: number;
+  recentGenerations: AdminAiRecentGeneration[];
 }
 
 // Social

@@ -30,6 +30,8 @@ import AdminFinancial from '@/pages/admin/AdminFinancial';
 import AdminBrands from '@/pages/admin/AdminBrands';
 import AdminBrandDetail from '@/pages/admin/AdminBrandDetail';
 import AdminNetwork from '@/pages/admin/AdminNetwork';
+import AdminAnalytics from '@/pages/admin/AdminAnalytics';
+import AdminAiUsage from '@/pages/admin/AdminAiUsage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -121,6 +123,8 @@ export default function App() {
       <Route path="/admin/brands" element={<AdminRoute><AdminBrands /></AdminRoute>} />
       <Route path="/admin/brands/:id" element={<AdminRoute><AdminBrandDetail /></AdminRoute>} />
       <Route path="/admin/network" element={<AdminRoute><AdminNetwork /></AdminRoute>} />
+      <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
+      <Route path="/admin/ai" element={<AdminRoute><AdminAiUsage /></AdminRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

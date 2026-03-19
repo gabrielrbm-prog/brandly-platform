@@ -4,6 +4,7 @@ import {
   ShoppingBag, Share2, BookOpen, Trophy,
   ChevronLeft, ChevronRight, Moon, Sun,
   LayoutDashboard, Film, Brain, Shield, Building2, GitBranch,
+  BarChart3, Sparkles,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -30,6 +31,8 @@ const adminNavItems = [
   { to: '/admin/brands', icon: Building2, label: 'Marcas' },
   { to: '/admin/creators', icon: Users, label: 'Creators' },
   { to: '/admin/network', icon: GitBranch, label: 'Rede' },
+  { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/admin/ai', icon: Sparkles, label: 'Monitor IA' },
   { to: '/admin/videos', icon: Film, label: 'Videos' },
   { to: '/admin/profiles', icon: Brain, label: 'Perfis' },
 ];

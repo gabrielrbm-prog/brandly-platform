@@ -73,7 +73,9 @@ async function start() {
       'https://api-production-3a6f.up.railway.app',
       'https://gabrielrbm-prog.github.io',
       'https://brandly-app.pages.dev',  // Cloudflare Pages
+      'https://app.brandlycreator.com.br',  // Domínio de produção
       /\.brandly-app\.pages\.dev$/,     // Cloudflare preview deploys
+      /\.brandlycreator\.com\.br$/,     // Subdomínios brandlycreator
       /\.brandly\.com$/,                // dominio customizado futuro
     ],
     credentials: true,
@@ -170,10 +172,19 @@ async function start() {
       prefix: '/app/',
     });
 
+    // Redirect raiz e rotas sem /app/ para /app/
+    app.get('/', (_request, reply) => {
+      reply.redirect('/app/');
+    });
+
     // SPA fallback — qualquer rota /app/* que não seja arquivo estático retorna index.html
     app.setNotFoundHandler((request, reply) => {
       if (request.url.startsWith('/app')) {
         return (reply as any).sendFile('index.html', webDistPath);
+      }
+      // Rotas como /login, /register etc. redirecionam para /app/...
+      if (!request.url.startsWith('/api') && !request.url.startsWith('/app')) {
+        return reply.redirect(`/app${request.url}`);
       }
       reply.code(404).send({ error: 'Not Found' });
     });

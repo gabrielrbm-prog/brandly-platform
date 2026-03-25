@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = localStorage.getItem('brandly_auth_token');
       if (token) {
         api.setToken(token);
-        const userData = await authApi.me();
+        const response = await authApi.me() as { user: User } | User;
+        const userData = 'user' in response ? response.user : response;
         setUser(userData as User);
       }
     } catch {

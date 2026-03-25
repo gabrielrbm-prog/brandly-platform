@@ -7,14 +7,21 @@ import Badge from '@/components/ui/Badge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
 interface Course { id: string; title: string; description: string; totalLessons: number; completedLessons: number; progress: string }
-interface Lesson { id: string; title: string; duration: string; completed: boolean; locked: boolean }
+interface Lesson { id: string; title: string; duration: string; completed: boolean; locked: boolean; videoUrl?: string | null }
 
 const COURSE_COLORS = ['purple', 'amber', 'emerald', 'blue', 'pink'] as const;
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+}
 
 export default function Courses() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchCourses = useCallback(async () => {
@@ -107,14 +114,45 @@ export default function Courses() {
               </div>
             </div>
 
+            {activeLesson && activeLesson.videoUrl && (
+              <div className="themed-surface rounded-2xl border themed-border overflow-hidden">
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    src={getYouTubeEmbedUrl(activeLesson.videoUrl) || ''}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={activeLesson.title}
+                  />
+                </div>
+                <div className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-base font-bold themed-text">{activeLesson.title}</p>
+                    <p className="text-xs themed-text-muted mt-1">{activeLesson.duration}</p>
+                  </div>
+                  {!activeLesson.completed && (
+                    <button
+                      onClick={() => { completeLesson(activeLesson.id); setActiveLesson({ ...activeLesson, completed: true }); }}
+                      className="px-4 py-2 bg-brand-primary text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                      Concluir aula
+                    </button>
+                  )}
+                  {activeLesson.completed && <Badge variant="success">Concluido</Badge>}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               {lessons.map((l, i) => (
                 <div
                   key={l.id}
+                  onClick={() => !l.locked && l.videoUrl && setActiveLesson(l)}
                   className={`
                     flex items-center gap-3 themed-surface rounded-xl border themed-border p-3 md:p-4
                     transition-all duration-200
-                    ${l.locked ? 'opacity-50' : 'hover:themed-surface-light'}
+                    ${l.locked ? 'opacity-50' : 'cursor-pointer hover:themed-surface-light'}
+                    ${activeLesson?.id === l.id ? 'ring-2 ring-brand-primary/50' : ''}
                   `}
                 >
                   <div className="flex items-center justify-center w-7 h-7 rounded-full themed-surface-light text-xs font-bold themed-text-muted">
@@ -135,7 +173,7 @@ export default function Courses() {
                     <Badge variant="success">Concluido</Badge>
                   ) : !l.locked && (
                     <button
-                      onClick={() => completeLesson(l.id)}
+                      onClick={(e) => { e.stopPropagation(); completeLesson(l.id); }}
                       className="text-xs font-semibold text-brand-primary-light hover:underline shrink-0"
                     >
                       Concluir

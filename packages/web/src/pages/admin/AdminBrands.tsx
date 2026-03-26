@@ -28,26 +28,44 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 const LIMIT = 20;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  health: '#10B981',
-  tech: '#3B82F6',
   beauty: '#F472B6',
-  fitness: '#F59E0B',
-  food: '#EF4444',
+  supplements: '#10B981',
+  home: '#F59E0B',
+  tech: '#3B82F6',
   fashion: '#A78BFA',
+  food: '#EF4444',
+  fitness: '#F97316',
+  health: '#14B8A6',
+  wellness: '#06B6D4',
+  education: '#8B5CF6',
+  finance: '#6366F1',
+  lifestyle: '#EC4899',
+  pets: '#84CC16',
+  kids: '#FB923C',
+  automotive: '#64748B',
+  travel: '#0EA5E9',
+  other: '#7C3AED',
   default: '#7C3AED',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  health: 'Saude',
-  tech: 'Tecnologia',
   beauty: 'Beleza',
-  fitness: 'Fitness',
-  food: 'Alimentacao',
+  supplements: 'Suplementos',
+  home: 'Casa',
+  tech: 'Tecnologia',
   fashion: 'Moda',
+  food: 'Alimentacao',
+  fitness: 'Fitness',
+  health: 'Saude',
+  wellness: 'Bem-estar',
   education: 'Educacao',
   finance: 'Financas',
-  entertainment: 'Entretenimento',
   lifestyle: 'Lifestyle',
+  pets: 'Pets',
+  kids: 'Infantil',
+  automotive: 'Automotivo',
+  travel: 'Viagens',
+  other: 'Outro',
 };
 
 const TONE_OPTIONS = [
@@ -81,7 +99,7 @@ interface BrandFormData {
 
 const EMPTY_FORM: BrandFormData = {
   name: '',
-  category: 'health',
+  category: 'beauty',
   description: '',
   website: '',
   contactEmail: '',

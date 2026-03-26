@@ -90,8 +90,8 @@ function LogoEditor({ imageSrc, onSave, onCancel }: LogoEditorProps) {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [cropShape, setCropShape] = useState<'circle' | 'square'>('square');
 
-  const CONTAINER = 280;
-  const CROP = 240;
+  const CONTAINER = 360;
+  const CROP = 320;
 
   function handleImageLoad() {
     setLoaded(true);
@@ -180,10 +180,10 @@ function LogoEditor({ imageSrc, onSave, onCancel }: LogoEditorProps) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onCancel}>
-      <div className="themed-surface-card border themed-border rounded-2xl p-5 shadow-2xl w-full max-w-sm space-y-4" onClick={(e) => e.stopPropagation()}>
+      <div className="themed-surface-card border themed-border rounded-2xl p-5 shadow-2xl w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
         <div className="text-center">
-          <h4 className="text-sm font-bold themed-text">Recortar Logo</h4>
-          <p className="text-xs themed-text-muted mt-1">Arraste a imagem e use o slider para ajustar</p>
+          <h4 className="text-base font-bold themed-text">Recortar Logo</h4>
+          <p className="text-xs themed-text-muted mt-1">Arraste a imagem e use o slider para ajustar o enquadramento</p>
         </div>
 
         {/* Crop area */}
@@ -379,7 +379,7 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
     };
     const apiCategory = categoryMap[form.category] || form.category;
 
-    const payload = {
+    const fullPayload = {
       name: form.name.trim(),
       category: apiCategory,
       description: form.description.trim() || undefined,
@@ -387,16 +387,39 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
       contactEmail: form.contactEmail.trim() || undefined,
       minVideosPerMonth: form.minVideosPerMonth ? parseInt(form.minVideosPerMonth, 10) : undefined,
       maxCreators: form.maxCreators ? parseInt(form.maxCreators, 10) : undefined,
-      logoUrl: form.logoUrl.trim() || null,
+      logoUrl: form.logoUrl || null,
     };
 
     setSaving(true);
     try {
       if (brand) {
-        await adminApi.updateBrand(brand.id, payload);
+        // Só envia campos que mudaram para evitar conflito 409
+        const updatePayload: Record<string, unknown> = {};
+        if (form.name.trim() !== brand.name) updatePayload.name = form.name.trim();
+        if (apiCategory !== brand.category) updatePayload.category = apiCategory;
+        const desc = form.description.trim() || undefined;
+        if (desc !== (brand.description ?? undefined)) updatePayload.description = desc;
+        const web = form.website.trim() || undefined;
+        if (web !== (brand.website ?? undefined)) updatePayload.website = web;
+        const email = form.contactEmail.trim() || undefined;
+        if (email !== (brand.contactEmail ?? undefined)) updatePayload.contactEmail = email;
+        const minV = form.minVideosPerMonth ? parseInt(form.minVideosPerMonth, 10) : undefined;
+        if (minV !== brand.minVideosPerMonth) updatePayload.minVideosPerMonth = minV;
+        const maxC = form.maxCreators ? parseInt(form.maxCreators, 10) : undefined;
+        if (maxC !== brand.maxCreators) updatePayload.maxCreators = maxC;
+        const logo = form.logoUrl || null;
+        if (logo !== (brand.logoUrl ?? null)) updatePayload.logoUrl = logo;
+
+        if (Object.keys(updatePayload).length === 0) {
+          toast.info('Nenhuma alteracao detectada.');
+          setSaving(false);
+          return;
+        }
+
+        await adminApi.updateBrand(brand.id, updatePayload);
         toast.success('Marca atualizada com sucesso.');
       } else {
-        await adminApi.createBrand(payload);
+        await adminApi.createBrand(fullPayload);
         toast.success('Marca criada com sucesso.');
       }
       onSaved();

@@ -8,7 +8,6 @@ async function request<T = unknown>(
   body?: unknown,
 ): Promise<T> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
   };
 
@@ -19,6 +18,7 @@ async function request<T = unknown>(
   const config: RequestInit = { method, headers };
 
   if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
     config.body = JSON.stringify(body);
   }
 

@@ -566,7 +566,7 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml,.png,.jpg,.jpeg,.webp,.gif,.svg"
                   onChange={handleFileChange}
                   className="hidden"
                 />

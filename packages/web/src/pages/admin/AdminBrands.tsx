@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2,
@@ -15,6 +15,10 @@ import {
   Mail,
   Upload,
   Trash2,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Check,
 } from 'lucide-react';
 import { adminApi, type AdminBrand } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
@@ -69,6 +73,207 @@ function getCategoryLabel(category: string): string {
   return CATEGORY_LABELS[category] ?? category;
 }
 
+// ─── Logo Editor ──────────────────────────────────────────────────────────────
+
+interface LogoEditorProps {
+  imageSrc: string;
+  onSave: (croppedDataUrl: string) => void;
+  onCancel: () => void;
+}
+
+function LogoEditor({ imageSrc, onSave, onCancel }: LogoEditorProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [img, setImg] = useState<HTMLImageElement | null>(null);
+  const [scale, setScale] = useState(1);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const SIZE = 200; // canvas size
+
+  useEffect(() => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => {
+      setImg(image);
+      // Fit image to canvas
+      const fitScale = SIZE / Math.min(image.width, image.height);
+      setScale(fitScale);
+      setOffsetX((SIZE - image.width * fitScale) / 2);
+      setOffsetY((SIZE - image.height * fitScale) / 2);
+    };
+    image.src = imageSrc;
+  }, [imageSrc]);
+
+  useEffect(() => {
+    if (!img || !canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, SIZE, SIZE);
+
+    // Background
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // Draw image
+    ctx.save();
+    ctx.drawImage(img, offsetX, offsetY, img.width * scale, img.height * scale);
+    ctx.restore();
+
+    // Draw circle overlay (darken outside)
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Circle border
+    ctx.strokeStyle = '#7C3AED';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 4, 0, Math.PI * 2);
+    ctx.stroke();
+  }, [img, scale, offsetX, offsetY]);
+
+  function handleMouseDown(e: ReactMouseEvent) {
+    setDragging(true);
+    setDragStart({ x: e.clientX - offsetX, y: e.clientY - offsetY });
+  }
+
+  function handleMouseMove(e: ReactMouseEvent) {
+    if (!dragging) return;
+    setOffsetX(e.clientX - dragStart.x);
+    setOffsetY(e.clientY - dragStart.y);
+  }
+
+  function handleMouseUp() {
+    setDragging(false);
+  }
+
+  function handleZoom(delta: number) {
+    setScale((prev) => {
+      const newScale = Math.max(0.1, Math.min(5, prev + delta));
+      // Adjust offset to zoom toward center
+      if (img) {
+        const cx = SIZE / 2;
+        const cy = SIZE / 2;
+        setOffsetX((prevX) => cx - ((cx - prevX) / prev) * newScale);
+        setOffsetY((prevY) => cy - ((cy - prevY) / prev) * newScale);
+      }
+      return newScale;
+    });
+  }
+
+  function handleSave() {
+    if (!img) return;
+    // Render final cropped circle to a new canvas
+    const output = document.createElement('canvas');
+    output.width = 256;
+    output.height = 256;
+    const ctx = output.getContext('2d');
+    if (!ctx) return;
+
+    // Scale factor from preview to output
+    const ratio = 256 / SIZE;
+
+    // Clip to circle
+    ctx.beginPath();
+    ctx.arc(128, 128, 124, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Draw image at same relative position
+    ctx.drawImage(
+      img,
+      offsetX * ratio,
+      offsetY * ratio,
+      img.width * scale * ratio,
+      img.height * scale * ratio,
+    );
+
+    onSave(output.toDataURL('image/png', 0.9));
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="themed-surface-card border themed-border rounded-2xl p-5 shadow-2xl w-full max-w-xs space-y-4">
+        <h4 className="text-sm font-bold themed-text text-center">Ajustar Logo</h4>
+        <p className="text-xs themed-text-muted text-center">Arraste para posicionar, use zoom para ajustar</p>
+
+        <div className="flex justify-center">
+          <canvas
+            ref={canvasRef}
+            width={SIZE}
+            height={SIZE}
+            className="rounded-xl cursor-grab active:cursor-grabbing border themed-border"
+            style={{ width: SIZE, height: SIZE }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          />
+        </div>
+
+        {/* Zoom controls */}
+        <div className="flex items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => handleZoom(-0.1)}
+            className="p-2 rounded-lg bg-white/5 themed-text-secondary hover:themed-text hover:bg-white/10 transition-colors"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <span className="text-xs themed-text-muted w-16 text-center">{Math.round(scale * 100)}%</span>
+          <button
+            type="button"
+            onClick={() => handleZoom(0.1)}
+            className="p-2 rounded-lg bg-white/5 themed-text-secondary hover:themed-text hover:bg-white/10 transition-colors"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (img) {
+                const fitScale = SIZE / Math.min(img.width, img.height);
+                setScale(fitScale);
+                setOffsetX((SIZE - img.width * fitScale) / 2);
+                setOffsetY((SIZE - img.height * fitScale) / 2);
+              }
+            }}
+            className="p-2 rounded-lg bg-white/5 themed-text-secondary hover:themed-text hover:bg-white/10 transition-colors"
+            title="Resetar"
+          >
+            <RotateCw className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-3 py-2 rounded-xl border themed-border text-sm themed-text-secondary hover:themed-text transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="flex-1 px-3 py-2 rounded-xl bg-brand-primary text-white text-sm font-medium hover:bg-brand-primary/90 transition-colors flex items-center justify-center gap-1.5"
+          >
+            <Check className="w-4 h-4" />
+            Aplicar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Brand Modal ──────────────────────────────────────────────────────────────
 
 interface BrandFormData {
@@ -102,6 +307,7 @@ interface BrandModalProps {
 function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
   const toast = useToast();
   const [saving, setSaving] = useState(false);
+  const [showLogoEditor, setShowLogoEditor] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<BrandFormData>(() =>
     brand
@@ -122,6 +328,8 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  const [rawLogoForEditor, setRawLogoForEditor] = useState('');
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -133,7 +341,9 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      handleChange('logoUrl', reader.result as string);
+      const dataUrl = reader.result as string;
+      setRawLogoForEditor(dataUrl);
+      setShowLogoEditor(true);
     };
     reader.readAsDataURL(file);
   }
@@ -277,16 +487,29 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
 
             <div className="flex items-start gap-3">
               {/* Preview */}
-              <div className="shrink-0">
+              <div className="shrink-0 relative group">
                 {form.logoUrl ? (
-                  <img
-                    src={form.logoUrl}
-                    alt="Logo preview"
-                    className="w-14 h-14 rounded-xl object-cover border themed-border"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
+                  <>
+                    <img
+                      src={form.logoUrl}
+                      alt="Logo preview"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-brand-primary/30"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRawLogoForEditor(form.logoUrl);
+                        setShowLogoEditor(true);
+                      }}
+                      className="absolute inset-0 w-14 h-14 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      title="Ajustar logo"
+                    >
+                      <ZoomIn className="w-4 h-4 text-white" />
+                    </button>
+                  </>
                 ) : (
-                  <div className="w-14 h-14 rounded-xl themed-surface border themed-border flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full themed-surface border themed-border flex items-center justify-center">
                     <Building2 className="w-6 h-6 themed-text-muted" />
                   </div>
                 )}
@@ -320,19 +543,46 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
                   {form.logoUrl.startsWith('data:') ? 'Imagem selecionada — trocar' : 'Ou fazer upload de imagem (max 2MB)'}
                 </button>
 
-                {form.logoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => handleChange('logoUrl', '')}
-                    className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Remover logo
-                  </button>
-                )}
+                <div className="flex items-center gap-3">
+                  {form.logoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRawLogoForEditor(form.logoUrl);
+                        setShowLogoEditor(true);
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-brand-primary-light hover:text-brand-primary transition-colors"
+                    >
+                      <ZoomIn className="w-3 h-3" />
+                      Ajustar logo
+                    </button>
+                  )}
+                  {form.logoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleChange('logoUrl', '')}
+                      className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Remover
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Logo Editor Modal */}
+          {showLogoEditor && rawLogoForEditor && (
+            <LogoEditor
+              imageSrc={rawLogoForEditor}
+              onSave={(croppedUrl) => {
+                handleChange('logoUrl', croppedUrl);
+                setShowLogoEditor(false);
+              }}
+              onCancel={() => setShowLogoEditor(false)}
+            />
+          )}
 
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" type="button" onClick={onClose} className="flex-1">

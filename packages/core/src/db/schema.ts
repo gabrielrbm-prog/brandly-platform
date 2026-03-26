@@ -31,6 +31,8 @@ export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'approved'
 export const withdrawalStatusEnum = pgEnum('withdrawal_status', ['requested', 'processing', 'completed', 'failed']);
 export const brandCategoryEnum = pgEnum('brand_category', [
   'beauty', 'supplements', 'home', 'tech', 'fashion', 'food',
+  'fitness', 'health', 'wellness', 'education', 'finance',
+  'lifestyle', 'pets', 'kids', 'automotive', 'travel', 'other',
 ]);
 
 // ============================================

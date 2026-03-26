@@ -178,7 +178,7 @@ function OverviewSection({
           <StatCard
             icon={<TrendingUp className="w-4 h-4" />}
             label="Taxa engajamento"
-            value={data ? (typeof data.engagement.avgEngagementRate === 'string' ? `${data.engagement.avgEngagementRate}%` : `${data.engagement.avgEngagementRate.toFixed(2)}%`) : '—'}
+            value={data ? `${Number(data.engagement.avgEngagementRate ?? 0).toFixed(2)}%` : '—'}
             color="#A78BFA"
           />
           <StatCard

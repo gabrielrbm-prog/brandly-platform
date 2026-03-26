@@ -20,7 +20,7 @@ function parsePage(page?: number, limit?: number) {
   return { page: p, limit: l, offset: (p - 1) * l };
 }
 
-const VALID_BRAND_CATEGORIES = ['beauty', 'supplements', 'home', 'tech', 'fashion', 'food'] as const;
+const VALID_BRAND_CATEGORIES = ['beauty', 'supplements', 'home', 'tech', 'fashion', 'food', 'fitness', 'health', 'wellness', 'education', 'finance', 'lifestyle', 'pets', 'kids', 'automotive', 'travel', 'other'] as const;
 type BrandCategory = typeof VALID_BRAND_CATEGORIES[number];
 
 const VALID_PRODUCT_TYPES = ['physical', 'digital'] as const;

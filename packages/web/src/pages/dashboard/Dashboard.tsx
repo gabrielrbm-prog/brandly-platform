@@ -21,6 +21,7 @@ import Card from '@/components/ui/Card';
 import StatCard from '@/components/ui/StatCard';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { SkeletonCard } from '@/components/ui/Skeleton';
+import { useToast } from '@/components/ui/Toast';
 
 interface ApiDashboard {
   today: {
@@ -50,6 +51,7 @@ const LEVEL_COLORS: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const toast = useToast();
   const [data, setData] = useState<ApiDashboard | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,12 +59,12 @@ export default function Dashboard() {
     try {
       const result = (await dashboardApi.overview()) as ApiDashboard;
       setData(result);
-    } catch {
-      // silent
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao carregar dados do dashboard.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

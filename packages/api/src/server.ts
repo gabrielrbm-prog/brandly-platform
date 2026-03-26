@@ -34,7 +34,7 @@ import { adminAnalyticsRoutes } from './routes/admin-analytics.js';
 import { adminOperationsRoutes } from './routes/admin-operations.js';
 
 const app = Fastify({
-  bodyLimit: 1_048_576, // 1MB max — previne ataques de payload gigante
+  bodyLimit: 5_242_880, // 5MB max — suporta base64 de logos de marcas
   logger: {
     level: process.env.LOG_LEVEL ?? 'info',
     transport: process.env.NODE_ENV === 'development'

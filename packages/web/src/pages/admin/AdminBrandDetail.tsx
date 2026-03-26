@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -16,6 +16,8 @@ import {
   Clock,
   X,
   ChevronRight,
+  Upload,
+  Trash2,
 } from 'lucide-react';
 import {
   adminApi,
@@ -92,6 +94,7 @@ interface BrandFormData {
   contactEmail: string;
   minVideosPerMonth: string;
   maxCreators: string;
+  logoUrl: string;
 }
 
 interface EditBrandModalProps {
@@ -103,6 +106,8 @@ interface EditBrandModalProps {
 function EditBrandModal({ brand, onClose, onSaved }: EditBrandModalProps) {
   const toast = useToast();
   const [saving, setSaving] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<BrandFormData>({
     name: brand.name,
     category: brand.category,
@@ -111,10 +116,27 @@ function EditBrandModal({ brand, onClose, onSaved }: EditBrandModalProps) {
     contactEmail: brand.contactEmail ?? '',
     minVideosPerMonth: brand.minVideosPerMonth?.toString() ?? '',
     maxCreators: brand.maxCreators?.toString() ?? '',
+    logoUrl: brand.logoUrl ?? '',
   });
 
   function handleChange(field: keyof BrandFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+    if (file.size > MAX_SIZE) {
+      toast.error('Imagem muito grande. Limite de 2MB.');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      handleChange('logoUrl', reader.result as string);
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -131,6 +153,7 @@ function EditBrandModal({ brand, onClose, onSaved }: EditBrandModalProps) {
       contactEmail: form.contactEmail.trim() || undefined,
       minVideosPerMonth: form.minVideosPerMonth ? parseInt(form.minVideosPerMonth, 10) : undefined,
       maxCreators: form.maxCreators ? parseInt(form.maxCreators, 10) : undefined,
+      logoUrl: form.logoUrl.trim() || null,
     };
     setSaving(true);
     try {
@@ -210,6 +233,69 @@ function EditBrandModal({ brand, onClose, onSaved }: EditBrandModalProps) {
               type="number"
             />
           </div>
+          {/* Logo section */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium themed-text-secondary">Logo da Marca</label>
+
+            <div className="flex items-start gap-3">
+              {/* Preview */}
+              <div className="shrink-0">
+                {form.logoUrl ? (
+                  <img
+                    src={form.logoUrl}
+                    alt="Logo preview"
+                    className="w-14 h-14 rounded-xl object-cover border themed-border"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl themed-surface border themed-border flex items-center justify-center">
+                    <Building2 className="w-6 h-6 themed-text-muted" />
+                  </div>
+                )}
+              </div>
+
+              {/* Input area */}
+              <div className="flex-1 space-y-2">
+                {/* URL input */}
+                <input
+                  type="text"
+                  value={form.logoUrl.startsWith('data:') ? '' : form.logoUrl}
+                  onChange={(e) => handleChange('logoUrl', e.target.value)}
+                  placeholder="Cole a URL do logo ou faça upload abaixo"
+                  className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text placeholder:themed-text-muted focus:outline-none focus:border-brand-primary/50 transition-colors"
+                />
+
+                {/* Upload button */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full rounded-xl border border-dashed themed-border themed-surface px-3 py-2 text-sm themed-text-secondary hover:border-brand-primary/50 hover:themed-text transition-colors flex items-center justify-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  {form.logoUrl.startsWith('data:') ? 'Imagem selecionada — trocar' : 'Ou fazer upload de imagem (max 2MB)'}
+                </button>
+
+                {form.logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleChange('logoUrl', '')}
+                    className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Remover logo
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" type="button" onClick={onClose} className="flex-1">
               Cancelar
@@ -1059,12 +1145,26 @@ export default function AdminBrandDetail() {
         {/* Brand header card */}
         <Card glowing>
           <div className="flex items-start gap-4">
+            {brand.logoUrl ? (
+              <img
+                src={brand.logoUrl}
+                alt={`${brand.name} logo`}
+                className="w-14 h-14 rounded-2xl object-cover shrink-0 border themed-border"
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.style.display = 'none';
+                  const fallback = img.nextElementSibling as HTMLElement | null;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
             <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold shrink-0"
+              className="w-14 h-14 rounded-2xl items-center justify-center text-2xl font-bold shrink-0"
               style={{
                 backgroundColor: `${categoryColor}20`,
                 border: `1px solid ${categoryColor}35`,
                 color: categoryColor,
+                display: brand.logoUrl ? 'none' : 'flex',
               }}
             >
               {brand.name.charAt(0).toUpperCase()}

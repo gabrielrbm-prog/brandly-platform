@@ -119,9 +119,10 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [queueRes, usersRes] = await Promise.all([
+      const [queueRes, usersRes, financialRes] = await Promise.all([
         adminApi.reviewQueue(),
         adminApi.users(1, 5),
+        adminApi.financialOverview().catch(() => null),
       ]);
 
       const allVideos = queueRes.videos ?? [];
@@ -134,7 +135,7 @@ export default function AdminDashboard() {
         totalCreators: usersRes.total ?? 0,
         videosPendentes: allVideos.filter((v: AdminVideo) => v.status === 'pending').length,
         videosAprovadosHoje: approvedToday,
-        saquesP: 0,
+        saquesP: (financialRes as any)?.pendingWithdrawalsCount ?? 0,
       });
 
       setPendingVideos(allVideos.filter((v: AdminVideo) => v.status === 'pending').slice(0, 5));
@@ -332,13 +333,13 @@ export default function AdminDashboard() {
                       </Badge>
                     </div>
                     <a
-                      href={video.url}
+                      href={video.url || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-xs text-brand-primary-light hover:underline truncate"
                     >
                       <ExternalLink className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{video.url}</span>
+                      <span className="truncate">{video.url || 'Sem URL'}</span>
                     </a>
                     <p className="text-xs themed-text-muted mt-0.5">{formatDate(video.createdAt)}</p>
                   </div>

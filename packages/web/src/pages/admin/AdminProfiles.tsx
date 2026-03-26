@@ -40,13 +40,24 @@ export default function AdminProfiles() {
     setLoading(true);
     setLoadingProgress(0);
     try {
-      // Buscar todos os usuarios
-      const usersRes = await adminApi.users(1, 100);
-      const users = usersRes.users ?? [];
-      setLoadingProgress(20);
+      // Buscar usuarios paginados (ate 500 para cobrir crescimento)
+      const allUsers: AdminUser[] = [];
+      let page = 1;
+      const perPage = 50;
+      let hasMore = true;
+
+      while (hasMore) {
+        const usersRes = await adminApi.users(page, perPage);
+        const pageUsers = usersRes.users ?? [];
+        allUsers.push(...pageUsers);
+        setLoadingProgress(Math.min(20, Math.round((allUsers.length / (usersRes.total || 1)) * 20)));
+        hasMore = allUsers.length < (usersRes.total ?? 0) && pageUsers.length === perPage;
+        page++;
+        if (page > 10) break; // safety: max 500 users
+      }
 
       // Filtrar apenas quem completou o onboarding
-      const completedUsers = users.filter((u: AdminUser) => u.onboardingCompleted);
+      const completedUsers = allUsers.filter((u: AdminUser) => u.onboardingCompleted);
       const results: ProfileEntry[] = [];
 
       // Processar em batches paralelos de BATCH_SIZE
@@ -58,14 +69,13 @@ export default function AdminProfiles() {
         );
 
         settled.forEach((result, i) => {
-          if (result.status === 'fulfilled' && result.value.creatorDiagnostic) {
+          if (result.status === 'fulfilled' && result.value?.creatorDiagnostic) {
             results.push({
               user: batch[i],
               creatorDiagnostic: result.value.creatorDiagnostic,
               adminDiagnostic: result.value.adminDiagnostic,
             });
           }
-          // Usuarios sem perfil comportamental sao silenciosamente ignorados
         });
 
         const processed = Math.min(batchStart + BATCH_SIZE, completedUsers.length);

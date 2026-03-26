@@ -119,8 +119,24 @@ export default function Brands() {
               <Card glowing key={brand.id}>
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${catColor}15` }}>
-                      <Star className="w-5 h-5" style={{ color: catColor }} />
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ backgroundColor: `${catColor}15` }}>
+                      {brand.logoUrl ? (
+                        <img
+                          src={brand.logoUrl}
+                          alt={`${brand.name} logo`}
+                          className="w-10 h-10 object-cover"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.style.display = 'none';
+                            const icon = img.nextElementSibling as HTMLElement | null;
+                            if (icon) icon.style.display = 'block';
+                          }}
+                        />
+                      ) : null}
+                      <Star
+                        className="w-5 h-5"
+                        style={{ color: catColor, display: brand.logoUrl ? 'none' : 'block' }}
+                      />
                     </div>
                     <div>
                       <p className="text-sm font-semibold themed-text">{brand.name}</p>

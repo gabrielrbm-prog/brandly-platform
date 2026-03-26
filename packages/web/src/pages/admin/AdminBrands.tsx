@@ -28,44 +28,26 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 const LIMIT = 20;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  beauty: '#F472B6',
-  supplements: '#10B981',
-  home: '#F59E0B',
+  health: '#10B981',
   tech: '#3B82F6',
-  fashion: '#A78BFA',
+  beauty: '#F472B6',
+  fitness: '#F59E0B',
   food: '#EF4444',
-  fitness: '#F97316',
-  health: '#14B8A6',
-  wellness: '#06B6D4',
-  education: '#8B5CF6',
-  finance: '#6366F1',
-  lifestyle: '#EC4899',
-  pets: '#84CC16',
-  kids: '#FB923C',
-  automotive: '#64748B',
-  travel: '#0EA5E9',
-  other: '#7C3AED',
+  fashion: '#A78BFA',
   default: '#7C3AED',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  beauty: 'Beleza',
-  supplements: 'Suplementos',
-  home: 'Casa',
-  tech: 'Tecnologia',
-  fashion: 'Moda',
-  food: 'Alimentacao',
-  fitness: 'Fitness',
   health: 'Saude',
-  wellness: 'Bem-estar',
+  tech: 'Tecnologia',
+  beauty: 'Beleza',
+  fitness: 'Fitness',
+  food: 'Alimentacao',
+  fashion: 'Moda',
   education: 'Educacao',
   finance: 'Financas',
+  entertainment: 'Entretenimento',
   lifestyle: 'Lifestyle',
-  pets: 'Pets',
-  kids: 'Infantil',
-  automotive: 'Automotivo',
-  travel: 'Viagens',
-  other: 'Outro',
 };
 
 const TONE_OPTIONS = [
@@ -99,7 +81,7 @@ interface BrandFormData {
 
 const EMPTY_FORM: BrandFormData = {
   name: '',
-  category: 'beauty',
+  category: 'health',
   description: '',
   website: '',
   contactEmail: '',
@@ -141,9 +123,20 @@ function BrandModal({ brand, onClose, onSaved }: BrandModalProps) {
       return;
     }
 
+    // Mapear categorias do frontend para as aceitas pela API
+    const categoryMap: Record<string, string> = {
+      health: 'supplements',
+      fitness: 'supplements',
+      education: 'tech',
+      finance: 'tech',
+      entertainment: 'tech',
+      lifestyle: 'beauty',
+    };
+    const apiCategory = categoryMap[form.category] || form.category;
+
     const payload = {
       name: form.name.trim(),
-      category: form.category,
+      category: apiCategory,
       description: form.description.trim() || undefined,
       website: form.website.trim() || undefined,
       contactEmail: form.contactEmail.trim() || undefined,

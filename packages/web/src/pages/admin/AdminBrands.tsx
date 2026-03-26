@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2,
@@ -17,7 +17,6 @@ import {
   Trash2,
   ZoomIn,
   ZoomOut,
-  RotateCw,
   Check,
 } from 'lucide-react';
 import { adminApi, type AdminBrand } from '@/lib/api';
@@ -82,191 +81,205 @@ interface LogoEditorProps {
 }
 
 function LogoEditor({ imageSrc, onSave, onCancel }: LogoEditorProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [img, setImg] = useState<HTMLImageElement | null>(null);
-  const [scale, setScale] = useState(1);
-  const [offsetX, setOffsetX] = useState(0);
-  const [offsetY, setOffsetY] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [cropShape, setCropShape] = useState<'circle' | 'square'>('square');
 
-  const SIZE = 200; // canvas size
+  const CONTAINER = 280;
+  const CROP = 240;
 
-  useEffect(() => {
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.onload = () => {
-      setImg(image);
-      // Fit image to canvas
-      const fitScale = SIZE / Math.min(image.width, image.height);
-      setScale(fitScale);
-      setOffsetX((SIZE - image.width * fitScale) / 2);
-      setOffsetY((SIZE - image.height * fitScale) / 2);
-    };
-    image.src = imageSrc;
-  }, [imageSrc]);
-
-  useEffect(() => {
-    if (!img || !canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, SIZE, SIZE);
-
-    // Background
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(0, 0, SIZE, SIZE);
-
-    // Draw image
-    ctx.save();
-    ctx.drawImage(img, offsetX, offsetY, img.width * scale, img.height * scale);
-    ctx.restore();
-
-    // Draw circle overlay (darken outside)
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(0, 0, SIZE, SIZE);
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Circle border
-    ctx.strokeStyle = '#7C3AED';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 4, 0, Math.PI * 2);
-    ctx.stroke();
-  }, [img, scale, offsetX, offsetY]);
-
-  function handleMouseDown(e: ReactMouseEvent) {
-    setDragging(true);
-    setDragStart({ x: e.clientX - offsetX, y: e.clientY - offsetY });
-  }
-
-  function handleMouseMove(e: ReactMouseEvent) {
-    if (!dragging) return;
-    setOffsetX(e.clientX - dragStart.x);
-    setOffsetY(e.clientY - dragStart.y);
-  }
-
-  function handleMouseUp() {
-    setDragging(false);
-  }
-
-  function handleZoom(delta: number) {
-    setScale((prev) => {
-      const newScale = Math.max(0.1, Math.min(5, prev + delta));
-      // Adjust offset to zoom toward center
-      if (img) {
-        const cx = SIZE / 2;
-        const cy = SIZE / 2;
-        setOffsetX((prevX) => cx - ((cx - prevX) / prev) * newScale);
-        setOffsetY((prevY) => cy - ((cy - prevY) / prev) * newScale);
-      }
-      return newScale;
+  function handleImageLoad() {
+    setLoaded(true);
+    // Center image — fill the crop area
+    const el = imgRef.current;
+    if (!el) return;
+    const fitZoom = CROP / Math.min(el.naturalWidth, el.naturalHeight);
+    setZoom(fitZoom);
+    setPos({
+      x: (CONTAINER - el.naturalWidth * fitZoom) / 2,
+      y: (CONTAINER - el.naturalHeight * fitZoom) / 2,
     });
   }
 
+  function handlePointerDown(e: React.PointerEvent) {
+    e.preventDefault();
+    setDragging(true);
+    setDragStart({ x: e.clientX - pos.x, y: e.clientY - pos.y });
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    if (!dragging) return;
+    setPos({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  }
+
+  function handlePointerUp() {
+    setDragging(false);
+  }
+
+  function handleWheel(e: React.WheelEvent) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    setZoom((z) => Math.max(0.05, Math.min(10, z + delta)));
+  }
+
+  function handleZoomSlider(e: React.ChangeEvent<HTMLInputElement>) {
+    const newZoom = parseFloat(e.target.value);
+    // Zoom toward center
+    const el = imgRef.current;
+    if (el) {
+      const cx = CONTAINER / 2;
+      const cy = CONTAINER / 2;
+      setPos((p) => ({
+        x: cx - ((cx - p.x) / zoom) * newZoom,
+        y: cy - ((cy - p.y) / zoom) * newZoom,
+      }));
+    }
+    setZoom(newZoom);
+  }
+
   function handleSave() {
-    if (!img) return;
-    // Render final cropped circle to a new canvas
+    const el = imgRef.current;
+    if (!el) return;
+
     const output = document.createElement('canvas');
-    output.width = 256;
-    output.height = 256;
+    const outputSize = 512;
+    output.width = outputSize;
+    output.height = outputSize;
     const ctx = output.getContext('2d');
     if (!ctx) return;
 
-    // Scale factor from preview to output
-    const ratio = 256 / SIZE;
+    const ratio = outputSize / CROP;
+    // Offset from crop area top-left
+    const cropLeft = (CONTAINER - CROP) / 2;
+    const cropTop = (CONTAINER - CROP) / 2;
+    const imgX = (pos.x - cropLeft) * ratio;
+    const imgY = (pos.y - cropTop) * ratio;
+    const imgW = el.naturalWidth * zoom * ratio;
+    const imgH = el.naturalHeight * zoom * ratio;
 
-    // Clip to circle
-    ctx.beginPath();
-    ctx.arc(128, 128, 124, 0, Math.PI * 2);
-    ctx.clip();
+    if (cropShape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
+      ctx.clip();
+    }
 
-    // Draw image at same relative position
-    ctx.drawImage(
-      img,
-      offsetX * ratio,
-      offsetY * ratio,
-      img.width * scale * ratio,
-      img.height * scale * ratio,
-    );
-
-    onSave(output.toDataURL('image/png', 0.9));
+    ctx.drawImage(el, imgX, imgY, imgW, imgH);
+    onSave(output.toDataURL('image/png', 0.92));
   }
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="themed-surface-card border themed-border rounded-2xl p-5 shadow-2xl w-full max-w-xs space-y-4">
-        <h4 className="text-sm font-bold themed-text text-center">Ajustar Logo</h4>
-        <p className="text-xs themed-text-muted text-center">Arraste para posicionar, use zoom para ajustar</p>
+  // Slider range: min zoom = fit small side in crop, max = 5x that
+  const el = imgRef.current;
+  const minZoom = el ? CROP / Math.max(el.naturalWidth, el.naturalHeight) * 0.3 : 0.05;
+  const maxZoom = el ? (CROP / Math.min(el.naturalWidth, el.naturalHeight)) * 5 : 10;
 
-        <div className="flex justify-center">
-          <canvas
-            ref={canvasRef}
-            width={SIZE}
-            height={SIZE}
-            className="rounded-xl cursor-grab active:cursor-grabbing border themed-border"
-            style={{ width: SIZE, height: SIZE }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          />
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onCancel}>
+      <div className="themed-surface-card border themed-border rounded-2xl p-5 shadow-2xl w-full max-w-sm space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="text-center">
+          <h4 className="text-sm font-bold themed-text">Recortar Logo</h4>
+          <p className="text-xs themed-text-muted mt-1">Arraste a imagem e use o slider para ajustar</p>
         </div>
 
-        {/* Zoom controls */}
-        <div className="flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => handleZoom(-0.1)}
-            className="p-2 rounded-lg bg-white/5 themed-text-secondary hover:themed-text hover:bg-white/10 transition-colors"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <span className="text-xs themed-text-muted w-16 text-center">{Math.round(scale * 100)}%</span>
-          <button
-            type="button"
-            onClick={() => handleZoom(0.1)}
-            className="p-2 rounded-lg bg-white/5 themed-text-secondary hover:themed-text hover:bg-white/10 transition-colors"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (img) {
-                const fitScale = SIZE / Math.min(img.width, img.height);
-                setScale(fitScale);
-                setOffsetX((SIZE - img.width * fitScale) / 2);
-                setOffsetY((SIZE - img.height * fitScale) / 2);
-              }
+        {/* Crop area */}
+        <div className="flex justify-center">
+          <div
+            ref={containerRef}
+            className="relative overflow-hidden bg-black/40 border themed-border"
+            style={{
+              width: CONTAINER,
+              height: CONTAINER,
+              borderRadius: cropShape === 'circle' ? '50%' : 16,
+              cursor: dragging ? 'grabbing' : 'grab',
             }}
-            className="p-2 rounded-lg bg-white/5 themed-text-secondary hover:themed-text hover:bg-white/10 transition-colors"
-            title="Resetar"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onWheel={handleWheel}
           >
-            <RotateCw className="w-4 h-4" />
+            {/* The image */}
+            <img
+              ref={imgRef}
+              src={imageSrc}
+              alt=""
+              onLoad={handleImageLoad}
+              draggable={false}
+              className="absolute select-none pointer-events-none"
+              style={{
+                left: pos.x,
+                top: pos.y,
+                width: el ? el.naturalWidth * zoom : 'auto',
+                height: el ? el.naturalHeight * zoom : 'auto',
+                maxWidth: 'none',
+                display: loaded ? 'block' : 'none',
+              }}
+            />
+
+            {/* Grid overlay */}
+            {dragging && (
+              <div className="absolute inset-0 pointer-events-none" style={{ borderRadius: 'inherit' }}>
+                <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white/20" />
+                <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white/20" />
+                <div className="absolute top-1/3 left-0 right-0 h-px bg-white/20" />
+                <div className="absolute top-2/3 left-0 right-0 h-px bg-white/20" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Shape toggle */}
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setCropShape('square')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${cropShape === 'square' ? 'bg-brand-primary text-white' : 'bg-white/5 themed-text-muted hover:themed-text'}`}
+          >
+            Quadrado
           </button>
+          <button
+            type="button"
+            onClick={() => setCropShape('circle')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${cropShape === 'circle' ? 'bg-brand-primary text-white' : 'bg-white/5 themed-text-muted hover:themed-text'}`}
+          >
+            Circular
+          </button>
+        </div>
+
+        {/* Zoom slider */}
+        <div className="flex items-center gap-3 px-2">
+          <ZoomOut className="w-4 h-4 themed-text-muted shrink-0" />
+          <input
+            type="range"
+            min={minZoom}
+            max={maxZoom}
+            step={0.001}
+            value={zoom}
+            onChange={handleZoomSlider}
+            className="flex-1 h-1.5 accent-brand-primary cursor-pointer"
+          />
+          <ZoomIn className="w-4 h-4 themed-text-muted shrink-0" />
         </div>
 
         <div className="flex gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 px-3 py-2 rounded-xl border themed-border text-sm themed-text-secondary hover:themed-text transition-colors"
+            className="flex-1 px-3 py-2.5 rounded-xl border themed-border text-sm themed-text-secondary hover:themed-text transition-colors"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 px-3 py-2 rounded-xl bg-brand-primary text-white text-sm font-medium hover:bg-brand-primary/90 transition-colors flex items-center justify-center gap-1.5"
+            className="flex-1 px-3 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-medium hover:bg-brand-primary/90 transition-colors flex items-center justify-center gap-1.5"
           >
             <Check className="w-4 h-4" />
-            Aplicar
+            Recortar
           </button>
         </div>
       </div>

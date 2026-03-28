@@ -33,10 +33,10 @@ const STATUS_CONFIG: Record<
   { label: string; color: string; bg: string; icon: typeof Package }
 > = {
   pending: {
-    label: 'Aguardando Envio',
-    color: '#F59E0B',
-    bg: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-    icon: Clock,
+    label: 'Cadastrado',
+    color: '#6B7280',
+    bg: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+    icon: Package,
   },
   posted: {
     label: 'Postado',
@@ -282,7 +282,7 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
               }}
               className="px-2 py-1.5 text-xs rounded-lg bg-transparent themed-border themed-text-secondary cursor-pointer"
             >
-              <option value="pending">Aguardando Envio</option>
+              <option value="pending">Cadastrado</option>
               <option value="posted">Postado</option>
               <option value="in_transit">Em Transito</option>
               <option value="out_for_delivery">Saiu para Entrega</option>
@@ -500,7 +500,7 @@ export default function Tracking() {
           <StatCard
             glowing
             icon={<Clock className="w-4 h-4" />}
-            label="Pendentes"
+            label="Cadastrados"
             value={String((summary?.pending ?? 0) + (summary?.posted ?? 0))}
             color="#F59E0B"
           />

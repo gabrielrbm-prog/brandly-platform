@@ -292,22 +292,26 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
             </select>
           </div>
 
-          {/* Rastreamento dos Correios dentro da Brandly */}
-          <div>
-            <p className="text-xs font-semibold themed-text-muted uppercase tracking-wider mb-2">
-              Rastreamento Correios
+          {/* Consultar nos Correios */}
+          <div className="flex flex-col items-center gap-3 py-4">
+            <p className="text-sm themed-text-secondary text-center">
+              Para ver as movimentacoes, consulte direto no site dos Correios.
+              <br />
+              O codigo sera copiado automaticamente.
             </p>
-            <div className="rounded-lg overflow-hidden border themed-border" style={{ height: 500 }}>
-              <iframe
-                src={`https://rastreamento.correios.com.br/app/index.php`}
-                title={`Rastreamento ${shipment.trackingCode}`}
-                className="w-full h-full"
-                style={{ border: 'none', background: '#fff' }}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-              />
-            </div>
-            <p className="text-xs themed-text-muted mt-2">
-              Cole o codigo <span className="font-mono font-bold">{shipment.trackingCode}</span> no campo acima e resolva o captcha para ver as movimentacoes.
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(shipment.trackingCode);
+                toast.success('Codigo copiado! Cole no site dos Correios.');
+                window.open('https://rastreamento.correios.com.br/app/index.php', '_blank');
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+            >
+              <Search className="w-4 h-4" />
+              Abrir Correios e copiar codigo
+            </button>
+            <p className="text-xs themed-text-muted font-mono">
+              {shipment.trackingCode}
             </p>
           </div>
 

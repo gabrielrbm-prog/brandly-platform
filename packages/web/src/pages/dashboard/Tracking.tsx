@@ -217,28 +217,13 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
             </p>
           )}
 
-          {shipment.lastEvent && (
-            <p className="text-xs themed-text-secondary mt-1 line-clamp-2">
-              {shipment.lastEvent}
-            </p>
-          )}
-
           <p className="text-xs themed-text-muted mt-1">
-            Atualizado: {formatDate(shipment.updatedAt)}
+            Adicionado: {formatDate(shipment.createdAt)}
           </p>
         </div>
 
         {/* Acoes */}
         <div className="flex items-center gap-1 shrink-0">
-          <a
-            href={`https://rastreamento.correios.com.br/app/index.php`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-lg themed-text-muted hover:text-blue-400 hover:bg-blue-500/10 transition-all"
-            title="Ver nos Correios"
-          >
-            <Search className="w-4 h-4" />
-          </a>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
@@ -326,15 +311,6 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
             </p>
           </div>
 
-          {/* Historico salvo no sistema */}
-          {(shipment.events as TrackingEvent[])?.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold themed-text-muted uppercase tracking-wider mb-3">
-                Historico salvo
-              </p>
-              <TrackingTimeline events={(shipment.events as TrackingEvent[]) ?? []} />
-            </div>
-          )}
         </div>
       )}
     </Card>

@@ -32,6 +32,7 @@ import { adminBrandsRoutes } from './routes/admin-brands.js';
 import { adminCreatorsRoutes } from './routes/admin-creators.js';
 import { adminAnalyticsRoutes } from './routes/admin-analytics.js';
 import { adminOperationsRoutes } from './routes/admin-operations.js';
+import { shipmentRoutes } from './routes/shipments.js';
 
 const app = Fastify({
   bodyLimit: 5_242_880, // 5MB max — suporta base64 de logos de marcas
@@ -131,6 +132,9 @@ async function start() {
   // Auxiliares
   await app.register(userRoutes, { prefix: '/api/users' });
   await app.register(saleRoutes, { prefix: '/api/sales' });
+
+  // Rastreamento de envios (Correios)
+  await app.register(shipmentRoutes, { prefix: '/api/shipments' });
 
   // Admin Panel (HTML)
   await app.register(adminPanelRoutes, { prefix: '/admin' });

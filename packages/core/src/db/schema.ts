@@ -13,6 +13,17 @@ import {
 } from 'drizzle-orm/pg-core';
 
 // ============================================
+// TIPOS TYPESCRIPT
+// ============================================
+export interface TrackingEvent {
+  date: string;
+  time: string;
+  location: string;
+  status: string;
+  description: string;
+}
+
+// ============================================
 // ENUMS
 // ============================================
 export const userRoleEnum = pgEnum('user_role', ['creator', 'brand', 'admin']);
@@ -26,6 +37,15 @@ export const levelNameEnum = pgEnum('level_name', [
   'Seed', 'Spark', 'Flow', 'Iconic', 'Vision', 'Empire', 'Infinity',
 ]);
 export const poolStatusEnum = pgEnum('pool_status', ['open', 'closed', 'distributed']);
+export const shipmentStatusEnum = pgEnum('shipment_status', [
+  'pending',
+  'posted',
+  'in_transit',
+  'out_for_delivery',
+  'delivered',
+  'returned',
+  'failed',
+]);
 export const videoStatusEnum = pgEnum('video_status', ['pending', 'approved', 'rejected']);
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'approved', 'paid', 'withdrawn']);
 export const withdrawalStatusEnum = pgEnum('withdrawal_status', ['requested', 'processing', 'completed', 'failed']);
@@ -497,3 +517,29 @@ export const successCases = pgTable('success_cases', {
   isPublished: boolean('is_published').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// ============================================
+// RASTREAMENTO DE ENVIOS (Correios)
+// ============================================
+export const shipments = pgTable('shipments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  saleId: uuid('sale_id').references(() => sales.id),
+  trackingCode: varchar('tracking_code', { length: 50 }).notNull(),
+  carrier: varchar('carrier', { length: 50 }).notNull().default('correios'),
+  status: shipmentStatusEnum('status').notNull().default('pending'),
+  recipientName: varchar('recipient_name', { length: 255 }),
+  recipientCpf: varchar('recipient_cpf', { length: 20 }),
+  destinationCity: varchar('destination_city', { length: 100 }),
+  destinationState: varchar('destination_state', { length: 2 }),
+  lastEvent: text('last_event'),
+  lastEventDate: timestamp('last_event_date'),
+  events: jsonb('events').$type<TrackingEvent[]>().default([]),
+  estimatedDelivery: timestamp('estimated_delivery'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdBy: uuid('created_by').references(() => users.id),
+}, (table) => [
+  index('shipments_tracking_code_idx').on(table.trackingCode),
+  index('shipments_sale_idx').on(table.saleId),
+  index('shipments_status_idx').on(table.status),
+]);

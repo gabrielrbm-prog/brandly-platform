@@ -773,6 +773,92 @@ export const socialApi = {
   disconnect: (platform: string) => api.delete(`/api/social/disconnect/${platform}`),
 };
 
+// ─── Tracking (Correios) ──────────────────────────────────────────────────────
+
+export interface TrackingEvent {
+  date: string;
+  time: string;
+  location: string;
+  status: string;
+  description: string;
+}
+
+export interface Shipment {
+  id: string;
+  saleId: string | null;
+  trackingCode: string;
+  carrier: string;
+  status: string;
+  recipientName: string | null;
+  recipientCpf: string | null;
+  destinationCity: string | null;
+  destinationState: string | null;
+  lastEvent: string | null;
+  lastEventDate: string | null;
+  events: TrackingEvent[] | null;
+  estimatedDelivery: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string | null;
+}
+
+export interface ShipmentSummary {
+  pending: number;
+  posted: number;
+  in_transit: number;
+  out_for_delivery: number;
+  delivered: number;
+  returned: number;
+  failed: number;
+}
+
+export interface ShipmentsListResponse {
+  shipments: Shipment[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export const trackingApi = {
+  list: (params?: { page?: number; limit?: number; status?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.status) qs.set('status', params.status);
+    const query = qs.toString();
+    return api.get<ShipmentsListResponse>(`/api/shipments${query ? `?${query}` : ''}`);
+  },
+  summary: () =>
+    api.get<{ summary: ShipmentSummary }>('/api/shipments/summary'),
+  detail: (id: string) =>
+    api.get<{ shipment: Shipment }>(`/api/shipments/${id}`),
+  tracking: (id: string) =>
+    api.get(`/api/shipments/${id}/tracking`),
+  create: (data: {
+    trackingCode: string;
+    saleId?: string;
+    recipientName?: string;
+    recipientCpf?: string;
+    destinationCity?: string;
+    destinationState?: string;
+    carrier?: string;
+  }) => api.post<{ shipment: Shipment; message: string; warning?: string }>('/api/shipments', data),
+  update: (id: string, data: Partial<{
+    trackingCode: string;
+    recipientName: string;
+    recipientCpf: string;
+    destinationCity: string;
+    destinationState: string;
+    carrier: string;
+  }>) => api.patch<{ shipment: Shipment; message: string }>(`/api/shipments/${id}`, data),
+  remove: (id: string) =>
+    api.delete(`/api/shipments/${id}`),
+  refresh: (id: string) =>
+    api.post<{ shipment: Shipment; message: string; warning?: string }>(`/api/shipments/${id}/refresh`),
+  refreshAll: () =>
+    api.post('/api/shipments/refresh-all'),
+};
+
 // ─── CSV Download Helper ───────────────────────────────────────────────────────
 
 async function downloadCsv(url: string, filename: string): Promise<void> {

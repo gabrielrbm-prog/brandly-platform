@@ -19,6 +19,7 @@ import Courses from '@/pages/courses/Courses';
 import Community from '@/pages/community/Community';
 import BehavioralOnboarding from '@/pages/onboarding/BehavioralOnboarding';
 import BehavioralResult from '@/pages/onboarding/BehavioralResult';
+import Tracking from '@/pages/dashboard/Tracking';
 
 // Admin pages
 import AdminDashboard from '@/pages/admin/AdminDashboard';
@@ -115,6 +116,7 @@ export default function App() {
       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
       <Route path="/onboarding" element={<ProtectedRoute><BehavioralOnboarding /></ProtectedRoute>} />
       <Route path="/onboarding/result" element={<ProtectedRoute><BehavioralResult /></ProtectedRoute>} />
+      <Route path="/tracking" element={<ProtectedRoute><Tracking /></ProtectedRoute>} />
 
       {/* Admin */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

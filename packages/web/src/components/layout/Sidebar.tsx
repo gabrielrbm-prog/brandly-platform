@@ -4,7 +4,7 @@ import {
   ShoppingBag, Share2, BookOpen, Trophy,
   ChevronLeft, ChevronRight, Moon, Sun,
   LayoutDashboard, Film, Brain, Shield, Building2, GitBranch,
-  BarChart3, Sparkles, GraduationCap, Radio, Download,
+  BarChart3, Sparkles, GraduationCap, Radio, Download, Package,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -22,6 +22,7 @@ const navItems = [
   { to: '/social', icon: Share2, label: 'Social' },
   { to: '/courses', icon: BookOpen, label: 'Formacao' },
   { to: '/community', icon: Trophy, label: 'Comunidade' },
+  { to: '/tracking', icon: Package, label: 'Rastreamento' },
   { to: '/profile', icon: User, label: 'Perfil' },
 ];
 

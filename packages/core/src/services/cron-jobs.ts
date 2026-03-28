@@ -12,8 +12,9 @@ import {
   qualifications,
   sales,
   socialAccounts,
+  shipments,
 } from '../db/schema.js';
-import { eq, and, sql, sum } from 'drizzle-orm';
+import { eq, and, sql, sum, not, inArray } from 'drizzle-orm';
 import { calculateGlobalPool } from '@brandly/bonus-engine';
 import type { NetworkNode } from '@brandly/bonus-engine';
 
@@ -191,4 +192,72 @@ export async function syncAllSocialMetrics(): Promise<{
   }
 
   return { synced, errors };
+}
+
+// ============================================
+// SHIPMENT REFRESH — Atualiza rastreamentos ativos
+// ============================================
+
+/** Estados terminais — envios entregues/devolvidos/com falha nao precisam de atualizacao */
+const TERMINAL_STATUSES = ['delivered', 'returned', 'failed'] as const;
+
+export interface ShipmentTrackingUpdate {
+  status: string;
+  lastEvent: string | null;
+  lastEventDate: Date | null;
+  events: unknown[];
+  error?: string;
+}
+
+export type TrackPackageFn = (trackingCode: string) => Promise<ShipmentTrackingUpdate>;
+
+/**
+ * Atualiza o rastreamento de todos os envios que ainda nao chegaram ao estado terminal.
+ * Recebe a funcao de consulta como parametro para evitar dependencia circular entre pacotes.
+ *
+ * @param trackFn - funcao que consulta a API dos Correios (vem do pacote api)
+ *
+ * Deve ser chamado a cada 2 horas pelo agendador externo.
+ */
+export async function refreshActiveShipments(trackFn: TrackPackageFn): Promise<{
+  total: number;
+  updated: number;
+  errors: number;
+}> {
+  const activeShipments = await db
+    .select({ id: shipments.id, trackingCode: shipments.trackingCode })
+    .from(shipments)
+    .where(
+      not(inArray(shipments.status, [...TERMINAL_STATUSES])),
+    );
+
+  let updated = 0;
+  let errors = 0;
+
+  for (const shipment of activeShipments) {
+    try {
+      const tracking = await trackFn(shipment.trackingCode);
+
+      if (!tracking.error) {
+        await db
+          .update(shipments)
+          .set({
+            status: tracking.status as typeof shipments.status._.data,
+            lastEvent: tracking.lastEvent,
+            lastEventDate: tracking.lastEventDate,
+            events: tracking.events as any,
+            updatedAt: new Date(),
+          })
+          .where(eq(shipments.id, shipment.id));
+
+        updated++;
+      } else {
+        errors++;
+      }
+    } catch {
+      errors++;
+    }
+  }
+
+  return { total: activeShipments.length, updated, errors };
 }

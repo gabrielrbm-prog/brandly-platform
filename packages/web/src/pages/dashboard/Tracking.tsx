@@ -265,24 +265,12 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
         </div>
       </div>
 
-      {/* Linha do tempo (expansivel) */}
+      {/* Area expandida */}
       {expanded && (
-        <div className="mt-4 pt-4 border-t themed-border">
-          <p className="text-xs font-semibold themed-text-muted uppercase tracking-wider mb-3">
-            Historico de movimentacoes
-          </p>
-          <TrackingTimeline events={(shipment.events as TrackingEvent[]) ?? []} />
+        <div className="mt-4 pt-4 border-t themed-border space-y-4">
 
-          <div className="mt-4 pt-3 border-t themed-border flex flex-wrap gap-2">
-            <a
-              href={`https://rastreamento.correios.com.br/app/index.php`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
-            >
-              <Search className="w-3 h-3" />
-              Consultar nos Correios
-            </a>
+          {/* Acoes rapidas */}
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => {
                 navigator.clipboard.writeText(shipment.trackingCode);
@@ -318,6 +306,35 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
               <option value="failed">Falha na Entrega</option>
             </select>
           </div>
+
+          {/* Rastreamento dos Correios dentro da Brandly */}
+          <div>
+            <p className="text-xs font-semibold themed-text-muted uppercase tracking-wider mb-2">
+              Rastreamento Correios
+            </p>
+            <div className="rounded-lg overflow-hidden border themed-border" style={{ height: 500 }}>
+              <iframe
+                src={`https://rastreamento.correios.com.br/app/index.php`}
+                title={`Rastreamento ${shipment.trackingCode}`}
+                className="w-full h-full"
+                style={{ border: 'none', background: '#fff' }}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+              />
+            </div>
+            <p className="text-xs themed-text-muted mt-2">
+              Cole o codigo <span className="font-mono font-bold">{shipment.trackingCode}</span> no campo acima e resolva o captcha para ver as movimentacoes.
+            </p>
+          </div>
+
+          {/* Historico salvo no sistema */}
+          {(shipment.events as TrackingEvent[])?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold themed-text-muted uppercase tracking-wider mb-3">
+                Historico salvo
+              </p>
+              <TrackingTimeline events={(shipment.events as TrackingEvent[]) ?? []} />
+            </div>
+          )}
         </div>
       )}
     </Card>

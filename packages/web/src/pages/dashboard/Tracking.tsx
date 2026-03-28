@@ -172,6 +172,8 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const toast = useToast();
 
   const statusConfig = STATUS_CONFIG[shipment.status] ?? STATUS_CONFIG.pending;
 
@@ -228,6 +230,15 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
 
         {/* Acoes */}
         <div className="flex items-center gap-1 shrink-0">
+          <a
+            href={`https://rastreamento.correios.com.br/app/index.php`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-lg themed-text-muted hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+            title="Ver nos Correios"
+          >
+            <Search className="w-4 h-4" />
+          </a>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
@@ -261,6 +272,52 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
             Historico de movimentacoes
           </p>
           <TrackingTimeline events={(shipment.events as TrackingEvent[]) ?? []} />
+
+          <div className="mt-4 pt-3 border-t themed-border flex flex-wrap gap-2">
+            <a
+              href={`https://rastreamento.correios.com.br/app/index.php`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+            >
+              <Search className="w-3 h-3" />
+              Consultar nos Correios
+            </a>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(shipment.trackingCode);
+                toast.success('Codigo copiado!');
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg themed-surface-light themed-text-secondary hover:themed-text transition-colors"
+            >
+              Copiar codigo
+            </button>
+            <select
+              value={shipment.status}
+              disabled={updatingStatus}
+              onChange={async (e) => {
+                setUpdatingStatus(true);
+                try {
+                  await trackingApi.update(shipment.id, { status: e.target.value });
+                  toast.success('Status atualizado!');
+                  await onRefresh(shipment.id);
+                } catch {
+                  toast.error('Erro ao atualizar status');
+                } finally {
+                  setUpdatingStatus(false);
+                }
+              }}
+              className="px-2 py-1.5 text-xs rounded-lg bg-transparent themed-border themed-text-secondary cursor-pointer"
+            >
+              <option value="pending">Aguardando Envio</option>
+              <option value="posted">Postado</option>
+              <option value="in_transit">Em Transito</option>
+              <option value="out_for_delivery">Saiu para Entrega</option>
+              <option value="delivered">Entregue</option>
+              <option value="returned">Devolvido</option>
+              <option value="failed">Falha na Entrega</option>
+            </select>
+          </div>
         </div>
       )}
     </Card>

@@ -36,6 +36,7 @@
   "packageManager": "npm@10.0.0",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
+    "correios-brasil": "^3.0.6",
     "openai": "^6.27.0"
   }
 }

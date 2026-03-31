@@ -850,6 +850,7 @@ export const trackingApi = {
     destinationCity: string;
     destinationState: string;
     carrier: string;
+    status: string;
   }>) => api.patch<{ shipment: Shipment; message: string }>(`/api/shipments/${id}`, data),
   remove: (id: string) =>
     api.delete(`/api/shipments/${id}`),

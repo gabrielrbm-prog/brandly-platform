@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Package, Truck, PackageCheck, Clock, AlertCircle, MapPin, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Package, Truck, PackageCheck, Clock, AlertCircle, Search, Copy, Check } from 'lucide-react';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { trackingApi } from '@/lib/api';
-import type { Shipment, TrackingEvent } from '@/lib/api';
+import type { Shipment } from '@/lib/api';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: typeof Package }> = {
   pending: { label: 'Cadastrado', color: 'text-slate-400', bg: 'bg-slate-500/20', icon: Clock },
@@ -17,102 +17,70 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 };
 
 function ShipmentCard({ shipment }: { shipment: Shipment }) {
-  const [expanded, setExpanded] = useState(true);
+  const [copied, setCopied] = useState(false);
   const config = statusConfig[shipment.status] ?? statusConfig.pending;
-  const Icon = config.icon;
-  const events = shipment.events ?? [];
-  const lastEvent = events[0];
+
+  function handleCopyAndOpen() {
+    navigator.clipboard.writeText(shipment.trackingCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    window.open(`https://www.linkcorreios.com.br/?id=${shipment.trackingCode}`, '_blank');
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(shipment.trackingCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <Card>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${config.bg} ${config.color}`}>
-            <Icon className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-base font-bold themed-text font-mono">{shipment.trackingCode}</span>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${config.bg} ${config.color}`}>
-                {config.label}
-              </span>
-              {shipment.destinationCity && shipment.destinationState && (
-                <span className="text-xs themed-text-muted flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {shipment.destinationCity}/{shipment.destinationState}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        <a
-          href={`https://www.linkcorreios.com.br/?id=${shipment.trackingCode}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-xs font-medium text-brand-primary-light hover:underline shrink-0"
-        >
-          Ver nos Correios <ExternalLink className="w-3 h-3" />
-        </a>
+      {/* Header com codigo e status */}
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-base font-bold themed-text font-mono">{shipment.trackingCode}</span>
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${config.bg} ${config.color}`}>
+          {config.label}
+        </span>
       </div>
 
-      {/* Ultimo Status */}
-      {lastEvent && (
-        <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-4 mb-4">
-          <p className="text-xs themed-text-muted mb-1">Ultimo Status</p>
-          <p className="text-sm font-semibold themed-text">{lastEvent.status}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs themed-text-secondary">
-            <span>Data: {lastEvent.date} | Hora: {lastEvent.time}</span>
-            {lastEvent.location && <span>Local: {lastEvent.location}</span>}
-            {lastEvent.description && lastEvent.description !== lastEvent.status && (
-              <span>{lastEvent.description}</span>
-            )}
-          </div>
-        </div>
+      {shipment.recipientName && (
+        <p className="text-sm themed-text-secondary mb-1">Destinatario: {shipment.recipientName}</p>
       )}
 
-      {/* Historico */}
-      {events.length > 1 && (
-        <div>
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-2 text-xs font-semibold themed-text-secondary hover:themed-text transition-colors mb-3"
-          >
-            {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            Historico ({events.length} eventos)
-          </button>
+      <p className="text-xs themed-text-muted mb-4">
+        Adicionado: {new Date(shipment.createdAt).toLocaleDateString('pt-BR')}, {new Date(shipment.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+      </p>
 
-          {expanded && (
-            <div className="relative pl-4 border-l-2 border-slate-700/50 space-y-4">
-              {events.map((ev, i) => (
-                <div key={i} className="relative">
-                  <div className={`absolute -left-[21px] w-2.5 h-2.5 rounded-full ${i === 0 ? 'bg-brand-primary-light' : 'bg-slate-600'}`} />
-                  <div>
-                    <p className={`text-sm font-medium ${i === 0 ? 'themed-text' : 'themed-text-secondary'}`}>
-                      {ev.status}
-                    </p>
-                    <p className="text-xs themed-text-muted mt-0.5">
-                      {ev.date} {ev.time && `| ${ev.time}`}
-                    </p>
-                    {ev.location && (
-                      <p className="text-xs themed-text-muted flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3 h-3" /> {ev.location}
-                      </p>
-                    )}
-                    {ev.description && ev.description !== ev.status && (
-                      <p className="text-xs themed-text-muted mt-0.5">{ev.description}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Botoes */}
+      <div className="flex items-center gap-2 mb-5">
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-600 text-sm themed-text-secondary hover:themed-text hover:border-slate-500 transition-colors"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? 'Copiado!' : 'Copiar codigo'}
+        </button>
+      </div>
 
-      {events.length === 0 && (
-        <p className="text-xs themed-text-muted italic">Objeto ainda nao possui movimentacoes registradas nos Correios.</p>
-      )}
+      {/* CTA principal */}
+      <div className="text-center">
+        <p className="text-sm themed-text-secondary mb-1">
+          Para ver as movimentacoes, consulte direto no site dos Correios.
+        </p>
+        <p className="text-xs themed-text-muted mb-4">
+          O codigo sera copiado automaticamente.
+        </p>
+
+        <button
+          onClick={handleCopyAndOpen}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
+        >
+          <Search className="w-4 h-4" />
+          Abrir Correios e copiar codigo
+        </button>
+
+        <p className="text-xs themed-text-muted mt-3 font-mono">{shipment.trackingCode}</p>
+      </div>
     </Card>
   );
 }

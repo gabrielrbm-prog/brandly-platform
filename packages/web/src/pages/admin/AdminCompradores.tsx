@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Package, PackageCheck, Truck, Clock, AlertCircle, Mail, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Package, PackageCheck, Truck, Clock, AlertCircle, Mail, Calendar, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -131,18 +131,41 @@ function CompradorRow({ comprador }: { comprador: Comprador }) {
 export default function AdminCompradores() {
   const [compradores, setCompradores] = useState<Comprador[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
 
-  useEffect(() => {
+  const token = localStorage.getItem('brandly_auth_token');
+
+  function fetchCompradores() {
+    setLoading(true);
     fetch('/api/shipments/compradores', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('brandly_auth_token')}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
       .then(data => setCompradores(data.compradores ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }
+
+  useEffect(() => { fetchCompradores(); }, []);
+
+  async function handleSync() {
+    setSyncing(true);
+    setSyncMsg('');
+    try {
+      const res = await fetch('/api/cron/sync-buyers', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      setSyncMsg(data.message ?? data.error ?? 'Sync concluido');
+      fetchCompradores();
+    } catch {
+      setSyncMsg('Erro ao sincronizar');
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   const totalCompradores = compradores.length;
   const comEnvio = compradores.filter(c => c.shipments.length > 0).length;
@@ -159,6 +182,24 @@ export default function AdminCompradores() {
 
   return (
     <PageContainer title="Compradores">
+      {/* Sync */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm themed-text-secondary">
+          Sincronizado com a planilha de vendas do Google Sheets.
+        </p>
+        <div className="flex items-center gap-3">
+          {syncMsg && <span className="text-xs themed-text-muted">{syncMsg}</span>}
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary/15 text-brand-primary-light text-sm font-medium hover:bg-brand-primary/25 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Sincronizando...' : 'Sincronizar planilha'}
+          </button>
+        </div>
+      </div>
+
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <Card>

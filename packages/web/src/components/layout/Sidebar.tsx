@@ -22,7 +22,6 @@ const navItems = [
   { to: '/social', icon: Share2, label: 'Social' },
   { to: '/courses', icon: BookOpen, label: 'Formacao' },
   { to: '/community', icon: Trophy, label: 'Comunidade' },
-  { to: '/rastreamento', icon: Package, label: 'Rastreamento' },
   { to: '/profile', icon: User, label: 'Perfil' },
 ];
 
@@ -101,6 +100,23 @@ export default function Sidebar() {
             {!collapsed && <span>{item.label}</span>}
           </NavLink>
         ))}
+        {(user as any)?.hasPurchased && (
+          <NavLink
+            to="/rastreamento"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+               ${isActive
+                 ? 'bg-brand-primary/15 text-brand-primary-light'
+                 : 'themed-text-muted hover:themed-surface-light hover:themed-text'
+               }
+               ${collapsed ? 'justify-center' : ''}
+              `
+            }
+          >
+            <Package className="w-5 h-5 shrink-0" />
+            {!collapsed && <span>Rastreamento</span>}
+          </NavLink>
+        )}
 
         {isAdmin && (
           <>

@@ -135,6 +135,7 @@ export async function authRoutes(app: FastifyInstance) {
         role: user.role,
         referralCode: user.referralCode,
         onboardingCompleted: user.onboardingCompleted,
+        hasPurchased: user.hasPurchased,
       },
       token,
     };
@@ -154,6 +155,7 @@ export async function authRoutes(app: FastifyInstance) {
       instagramHandle: users.instagramHandle,
       tiktokHandle: users.tiktokHandle,
       onboardingCompleted: users.onboardingCompleted,
+      hasPurchased: users.hasPurchased,
       createdAt: users.createdAt,
     })
       .from(users)

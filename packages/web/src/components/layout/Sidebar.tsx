@@ -37,6 +37,7 @@ const adminNavItems = [
   { to: '/admin/profiles', icon: Brain, label: 'Perfis' },
   { to: '/admin/courses', icon: GraduationCap, label: 'Formacao' },
   { to: '/admin/community', icon: Radio, label: 'Comunidade' },
+  { to: '/admin/compradores', icon: Shield, label: 'Compradores' },
   { to: '/admin/envios', icon: Package, label: 'Envios' },
   { to: '/admin/export', icon: Download, label: 'Exportar' },
 ];

@@ -120,6 +120,55 @@ export async function shipmentRoutes(app: FastifyInstance) {
     return { buyers };
   });
 
+  // GET /api/shipments/compradores — painel completo de compradores com dados de envio
+  app.get('/compradores', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { role } = request.user;
+    if (role !== 'admin') {
+      return reply.status(403).send({ error: 'Acesso restrito' });
+    }
+
+    const buyerRows = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        status: users.status,
+        createdAt: users.createdAt,
+        onboardingCompleted: users.onboardingCompleted,
+      })
+      .from(users)
+      .where(eq(users.hasPurchased, true))
+      .orderBy(users.name);
+
+    // Buscar envios vinculados
+    const buyerIds = buyerRows.map(b => b.id);
+    let shipmentRows: any[] = [];
+    if (buyerIds.length > 0) {
+      shipmentRows = await db
+        .select()
+        .from(shipments)
+        .where(inArray(shipments.userId, buyerIds))
+        .orderBy(desc(shipments.createdAt));
+    }
+
+    const shipmentMap = new Map<string, typeof shipmentRows>();
+    for (const s of shipmentRows) {
+      const list = shipmentMap.get(s.userId) ?? [];
+      list.push(s);
+      shipmentMap.set(s.userId, list);
+    }
+
+    const compradores = buyerRows.map(b => ({
+      ...b,
+      shipments: shipmentMap.get(b.id) ?? [],
+    }));
+
+    return { compradores, total: compradores.length };
+  });
+
   // GET /api/shipments/summary — contagem por status (para o card de resumo)
   app.get('/summary', {
     preHandler: [app.authenticate],

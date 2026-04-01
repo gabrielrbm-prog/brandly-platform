@@ -37,6 +37,7 @@ import AdminAiUsage from '@/pages/admin/AdminAiUsage';
 import AdminCourses from '@/pages/admin/AdminCourses';
 import AdminCommunity from '@/pages/admin/AdminCommunity';
 import AdminExport from '@/pages/admin/AdminExport';
+import AdminCompradores from '@/pages/admin/AdminCompradores';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -133,6 +134,7 @@ export default function App() {
       <Route path="/admin/ai" element={<AdminRoute><AdminAiUsage /></AdminRoute>} />
       <Route path="/admin/courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
       <Route path="/admin/community" element={<AdminRoute><AdminCommunity /></AdminRoute>} />
+      <Route path="/admin/compradores" element={<AdminRoute><AdminCompradores /></AdminRoute>} />
       <Route path="/admin/envios" element={<AdminRoute><Tracking /></AdminRoute>} />
       <Route path="/admin/export" element={<AdminRoute><AdminExport /></AdminRoute>} />
 

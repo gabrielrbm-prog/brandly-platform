@@ -20,6 +20,7 @@ import Community from '@/pages/community/Community';
 import BehavioralOnboarding from '@/pages/onboarding/BehavioralOnboarding';
 import BehavioralResult from '@/pages/onboarding/BehavioralResult';
 import Tracking from '@/pages/dashboard/Tracking';
+import MeusEnvios from '@/pages/dashboard/MeusEnvios';
 
 // Admin pages
 import AdminDashboard from '@/pages/admin/AdminDashboard';
@@ -116,7 +117,7 @@ export default function App() {
       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
       <Route path="/onboarding" element={<ProtectedRoute><BehavioralOnboarding /></ProtectedRoute>} />
       <Route path="/onboarding/result" element={<ProtectedRoute><BehavioralResult /></ProtectedRoute>} />
-      <Route path="/tracking" element={<ProtectedRoute><Tracking /></ProtectedRoute>} />
+      <Route path="/meus-envios" element={<ProtectedRoute><MeusEnvios /></ProtectedRoute>} />
 
       {/* Admin */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -132,6 +133,7 @@ export default function App() {
       <Route path="/admin/ai" element={<AdminRoute><AdminAiUsage /></AdminRoute>} />
       <Route path="/admin/courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
       <Route path="/admin/community" element={<AdminRoute><AdminCommunity /></AdminRoute>} />
+      <Route path="/admin/tracking" element={<AdminRoute><Tracking /></AdminRoute>} />
       <Route path="/admin/export" element={<AdminRoute><AdminExport /></AdminRoute>} />
 
       {/* Catch-all */}

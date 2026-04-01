@@ -4,7 +4,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { trackingApi } from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface Comprador {
   id: string;
@@ -134,14 +134,9 @@ export default function AdminCompradores() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
 
-  const token = localStorage.getItem('brandly_auth_token');
-
   function fetchCompradores() {
     setLoading(true);
-    fetch('/api/shipments/compradores', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
+    api.get<{ compradores: Comprador[]; total: number }>('/api/shipments/compradores')
       .then(data => setCompradores(data.compradores ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -153,11 +148,7 @@ export default function AdminCompradores() {
     setSyncing(true);
     setSyncMsg('');
     try {
-      const res = await fetch('/api/cron/sync-buyers', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      });
-      const data = await res.json();
+      const data = await api.post<{ message?: string; error?: string }>('/api/cron/sync-buyers');
       setSyncMsg(data.message ?? data.error ?? 'Sync concluido');
       fetchCompradores();
     } catch {

@@ -72,6 +72,7 @@ export const users = pgTable('users', {
   tiktokHandle: varchar('tiktok_handle', { length: 100 }),
   pushToken: text('push_token'),
   onboardingCompleted: boolean('onboarding_completed').default(false),
+  hasPurchased: boolean('has_purchased').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => [

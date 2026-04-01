@@ -1,7 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
-import { courses, lessons, userProgress } from '@brandly/core';
+import { courses, lessons, userProgress, users } from '@brandly/core';
 import { eq, and, sql, desc, count } from 'drizzle-orm';
+
+async function checkPurchase(userId: string): Promise<boolean> {
+  const [user] = await db.select({ hasPurchased: users.hasPurchased, role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return user?.role === 'admin' || user?.hasPurchased === true;
+}
 
 export async function courseRoutes(app: FastifyInstance) {
   // GET /api/courses — lista de modulos da formacao
@@ -9,6 +17,11 @@ export async function courseRoutes(app: FastifyInstance) {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
     const { userId } = request.user;
+
+    const hasPurchased = await checkPurchase(userId);
+    if (!hasPurchased) {
+      return reply.status(403).send({ error: 'Acesso restrito. Adquira a Licenca Brandly Creator para acessar a formacao.', code: 'NOT_PURCHASED' });
+    }
 
     const allCourses = await db.select()
       .from(courses)
@@ -69,6 +82,11 @@ export async function courseRoutes(app: FastifyInstance) {
     const { id } = request.params;
     const { userId } = request.user;
 
+    const hasPurchased = await checkPurchase(userId);
+    if (!hasPurchased) {
+      return reply.status(403).send({ error: 'Acesso restrito. Adquira a Licenca Brandly Creator para acessar as aulas.', code: 'NOT_PURCHASED' });
+    }
+
     const courseLessons = await db.select()
       .from(lessons)
       .where(and(eq(lessons.courseId, id), eq(lessons.isPublished, true)))
@@ -105,6 +123,11 @@ export async function courseRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     const { id } = request.params;
     const { userId } = request.user;
+
+    const hasPurchased = await checkPurchase(userId);
+    if (!hasPurchased) {
+      return reply.status(403).send({ error: 'Acesso restrito.', code: 'NOT_PURCHASED' });
+    }
 
     // Verificar se a aula existe
     const [lesson] = await db.select()

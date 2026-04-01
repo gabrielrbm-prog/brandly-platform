@@ -23,12 +23,17 @@ export default function Courses() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [blocked, setBlocked] = useState(false);
 
   const fetchCourses = useCallback(async () => {
     try {
       const res = (await coursesApi.list()) as { courses: Course[]; totalProgress: string; certificateAvailable: boolean };
       setCourses(res.courses ?? []);
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch (err: any) {
+      if (err?.status === 403 || err?.response?.status === 403) {
+        setBlocked(true);
+      }
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
@@ -53,6 +58,29 @@ export default function Courses() {
     <PageContainer title="Formacao">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard />
+      </div>
+    </PageContainer>
+  );
+
+  if (blocked) return (
+    <PageContainer title="Formacao">
+      <div className="text-center py-16">
+        <div className="w-20 h-20 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-10 h-10 text-amber-500" />
+        </div>
+        <p className="text-xl font-bold themed-text mb-2">Conteudo exclusivo para alunos</p>
+        <p className="text-sm themed-text-secondary max-w-md mx-auto mb-6">
+          A formacao completa esta disponivel apenas para quem adquiriu a Licenca Brandly Creator.
+          Garanta seu acesso e comece a produzir conteudo profissional!
+        </p>
+        <a
+          href="https://brandlycreator.com.br"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
+        >
+          Quero ser Creator Brandly
+        </a>
       </div>
     </PageContainer>
   );

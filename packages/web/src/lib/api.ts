@@ -830,6 +830,8 @@ export const trackingApi = {
   },
   summary: () =>
     api.get<{ summary: ShipmentSummary }>('/api/shipments/summary'),
+  buyers: () =>
+    api.get<{ buyers: Array<{ id: string; name: string; email: string }> }>('/api/shipments/buyers'),
   detail: (id: string) =>
     api.get<{ shipment: Shipment }>(`/api/shipments/${id}`),
   tracking: (id: string) =>
@@ -837,6 +839,7 @@ export const trackingApi = {
   create: (data: {
     trackingCode: string;
     saleId?: string;
+    userId?: string;
     recipientName?: string;
     recipientCpf?: string;
     destinationCity?: string;

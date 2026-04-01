@@ -326,12 +326,13 @@ function ShipmentCard({ shipment, onRefresh, onDelete }: ShipmentCardProps) {
 // ============================================
 
 interface AddTrackingFormProps {
-  onAdd: (data: { trackingCode: string; recipientName?: string }) => Promise<void>;
+  onAdd: (data: { trackingCode: string; recipientName?: string; userId?: string }) => Promise<void>;
 }
 
-function AddTrackingForm({ onAdd }: AddTrackingFormProps) {
+function AddTrackingForm({ onAdd, users }: AddTrackingFormProps & { users: Array<{ id: string; name: string; email: string }> }) {
   const [trackingCode, setTrackingCode] = useState('');
   const [recipientName, setRecipientName] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -356,6 +357,7 @@ function AddTrackingForm({ onAdd }: AddTrackingFormProps) {
       await onAdd({
         trackingCode: code,
         recipientName: recipientName.trim() || undefined,
+        userId: selectedUserId || undefined,
       });
       setTrackingCode('');
       setRecipientName('');
@@ -380,8 +382,27 @@ function AddTrackingForm({ onAdd }: AddTrackingFormProps) {
           error={error}
           maxLength={13}
         />
+        {users.length > 0 && (
+          <div>
+            <label className="block text-xs font-medium themed-text-secondary mb-1">Comprador</label>
+            <select
+              value={selectedUserId}
+              onChange={(e) => {
+                setSelectedUserId(e.target.value);
+                const user = users.find(u => u.id === e.target.value);
+                if (user && !recipientName) setRecipientName(user.name);
+              }}
+              className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm themed-text"
+            >
+              <option value="">Selecione o comprador...</option>
+              {users.map(u => (
+                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+              ))}
+            </select>
+          </div>
+        )}
         <Input
-          label="Destinatario (opcional)"
+          label="Destinatario"
           placeholder="Nome do cliente"
           value={recipientName}
           onChange={(e) => setRecipientName(e.target.value)}
@@ -410,17 +431,20 @@ export default function Tracking() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [purchasedUsers, setPurchasedUsers] = useState<Array<{ id: string; name: string; email: string }>>([]);
   const LIMIT = 20;
 
   const fetchData = useCallback(async () => {
     try {
-      const [listResult, summaryResult] = await Promise.all([
+      const [listResult, summaryResult, buyersResult] = await Promise.all([
         trackingApi.list({ page, limit: LIMIT }),
         trackingApi.summary(),
+        trackingApi.buyers().catch(() => ({ buyers: [] })),
       ]);
       setShipmentsList(listResult.shipments);
       setTotal(listResult.total);
       setSummary(summaryResult.summary);
+      setPurchasedUsers(buyersResult.buyers);
     } catch (err: any) {
       toast.error(err?.message ?? 'Erro ao carregar rastreamentos.');
     } finally {
@@ -528,7 +552,7 @@ export default function Tracking() {
         </div>
 
         {/* Formulario de adicionar */}
-        <AddTrackingForm onAdd={handleAdd} />
+        <AddTrackingForm onAdd={handleAdd} users={purchasedUsers} />
 
         {/* Lista de envios */}
         <div>

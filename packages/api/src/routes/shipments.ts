@@ -7,8 +7,8 @@
 
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
-import { shipments } from '@brandly/core';
-import { eq, and, desc, not, inArray, count, sql } from 'drizzle-orm';
+import { shipments, users } from '@brandly/core';
+import { eq, and, or, desc, not, inArray, count, sql } from 'drizzle-orm';
 import {
   trackPackage,
   isValidCorreiosCode,
@@ -21,6 +21,7 @@ import {
 interface CreateShipmentBody {
   trackingCode: string;
   saleId?: string;
+  userId?: string;
   recipientName?: string;
   recipientCpf?: string;
   destinationCity?: string;
@@ -63,9 +64,9 @@ export async function shipmentRoutes(app: FastifyInstance) {
 
     const conditions: ReturnType<typeof eq>[] = [];
 
-    // Creators so veem os proprios envios; admins veem todos
+    // Creators veem envios destinados a eles ou criados por eles; admins veem todos
     if (role !== 'admin') {
-      conditions.push(eq(shipments.createdBy, userId));
+      conditions.push(or(eq(shipments.createdBy, userId), eq(shipments.userId, userId))!);
     }
 
     if (statusFilter) {
@@ -99,6 +100,24 @@ export async function shipmentRoutes(app: FastifyInstance) {
       page,
       limit,
     };
+  });
+
+  // GET /api/shipments/buyers — lista de compradores (has_purchased = true)
+  app.get('/buyers', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { role } = request.user;
+    if (role !== 'admin') {
+      return reply.status(403).send({ error: 'Acesso restrito' });
+    }
+
+    const buyers = await db
+      .select({ id: users.id, name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.hasPurchased, true))
+      .orderBy(users.name);
+
+    return { buyers };
   });
 
   // GET /api/shipments/summary — contagem por status (para o card de resumo)
@@ -208,6 +227,7 @@ export async function shipmentRoutes(app: FastifyInstance) {
     const {
       trackingCode,
       saleId,
+      userId: targetUserId,
       recipientName,
       recipientCpf,
       destinationCity,
@@ -245,6 +265,7 @@ export async function shipmentRoutes(app: FastifyInstance) {
         lastEventDate: tracking.lastEventDate,
         events: tracking.events,
         createdBy: userId,
+        userId: targetUserId ?? null,
       })
       .returning();
 

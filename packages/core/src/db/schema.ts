@@ -539,8 +539,10 @@ export const shipments = pgTable('shipments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   createdBy: uuid('created_by').references(() => users.id),
+  userId: uuid('user_id').references(() => users.id),
 }, (table) => [
   index('shipments_tracking_code_idx').on(table.trackingCode),
   index('shipments_sale_idx').on(table.saleId),
   index('shipments_status_idx').on(table.status),
+  index('shipments_user_idx').on(table.userId),
 ]);

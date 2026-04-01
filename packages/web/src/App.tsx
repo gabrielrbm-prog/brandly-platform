@@ -117,7 +117,7 @@ export default function App() {
       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
       <Route path="/onboarding" element={<ProtectedRoute><BehavioralOnboarding /></ProtectedRoute>} />
       <Route path="/onboarding/result" element={<ProtectedRoute><BehavioralResult /></ProtectedRoute>} />
-      <Route path="/meus-envios" element={<ProtectedRoute><MeusEnvios /></ProtectedRoute>} />
+      <Route path="/rastreamento" element={<ProtectedRoute><MeusEnvios /></ProtectedRoute>} />
 
       {/* Admin */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -133,7 +133,7 @@ export default function App() {
       <Route path="/admin/ai" element={<AdminRoute><AdminAiUsage /></AdminRoute>} />
       <Route path="/admin/courses" element={<AdminRoute><AdminCourses /></AdminRoute>} />
       <Route path="/admin/community" element={<AdminRoute><AdminCommunity /></AdminRoute>} />
-      <Route path="/admin/tracking" element={<AdminRoute><Tracking /></AdminRoute>} />
+      <Route path="/admin/envios" element={<AdminRoute><Tracking /></AdminRoute>} />
       <Route path="/admin/export" element={<AdminRoute><AdminExport /></AdminRoute>} />
 
       {/* Catch-all */}

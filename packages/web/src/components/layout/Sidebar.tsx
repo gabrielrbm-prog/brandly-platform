@@ -22,7 +22,7 @@ const navItems = [
   { to: '/social', icon: Share2, label: 'Social' },
   { to: '/courses', icon: BookOpen, label: 'Formacao' },
   { to: '/community', icon: Trophy, label: 'Comunidade' },
-  { to: '/meus-envios', icon: Package, label: 'Meus Envios' },
+  { to: '/rastreamento', icon: Package, label: 'Rastreamento' },
   { to: '/profile', icon: User, label: 'Perfil' },
 ];
 
@@ -38,7 +38,7 @@ const adminNavItems = [
   { to: '/admin/profiles', icon: Brain, label: 'Perfis' },
   { to: '/admin/courses', icon: GraduationCap, label: 'Formacao' },
   { to: '/admin/community', icon: Radio, label: 'Comunidade' },
-  { to: '/admin/tracking', icon: Package, label: 'Rastreamento' },
+  { to: '/admin/envios', icon: Package, label: 'Envios' },
   { to: '/admin/export', icon: Download, label: 'Exportar' },
 ];
 

@@ -54,7 +54,7 @@ function CompradorRow({ comprador }: { comprador: Comprador }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold themed-text">{comprador.name}</span>
-            {comprador.role === 'admin' && <Badge variant="purple">Admin</Badge>}
+            {comprador.role === 'admin' && <Badge variant="primary">Admin</Badge>}
           </div>
           <p className="text-xs themed-text-muted">{comprador.email}</p>
         </div>

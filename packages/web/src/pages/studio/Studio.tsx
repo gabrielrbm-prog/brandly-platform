@@ -5,9 +5,13 @@ import {
   Sparkles,
   Copy,
   Check,
-  ChevronRight,
   Tag,
   FileText,
+  Pencil,
+  Save,
+  X,
+  Trash2,
+  CheckCircle,
 } from 'lucide-react';
 import { brandsApi, scriptsApi } from '@/lib/api';
 import PageContainer from '@/components/layout/PageContainer';
@@ -33,6 +37,9 @@ export default function Studio() {
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ hook: '', body: '', cta: '' });
+  const [saving, setSaving] = useState(false);
 
   const fetchBrands = useCallback(async () => {
     try {
@@ -57,7 +64,6 @@ export default function Studio() {
     setGenerating(true);
     setScripts([]);
     try {
-      // Buscar briefing ativo da marca
       const brandDetail = (await brandsApi.detail(selectedBrand.id)) as { briefings: Array<{ id: string }> };
       const briefing = brandDetail.briefings?.[0];
       if (!briefing) {
@@ -66,6 +72,8 @@ export default function Studio() {
       }
       const result = (await scriptsApi.generate({ briefingId: briefing.id })) as { scripts: Script[] };
       setScripts(result.scripts);
+      // Atualizar biblioteca
+      fetchLibrary();
     } catch (err: any) {
       alert(err.message ?? 'Erro ao gerar roteiros.');
     } finally { setGenerating(false); }
@@ -77,8 +85,141 @@ export default function Studio() {
     setTimeout(() => setCopiedId(null), 2000);
   }
 
+  function startEditing(script: Script) {
+    setEditingId(script.id);
+    setEditForm({ hook: script.hook, body: script.body, cta: script.cta });
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setEditForm({ hook: '', body: '', cta: '' });
+  }
+
+  async function saveEdit(id: string) {
+    setSaving(true);
+    try {
+      const updated = (await scriptsApi.update(id, editForm)) as Script;
+      // Atualizar nos scripts gerados
+      setScripts((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
+      // Atualizar na biblioteca
+      setLibrary((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
+      setEditingId(null);
+    } catch (err: any) {
+      alert(err.message ?? 'Erro ao salvar.');
+    } finally { setSaving(false); }
+  }
+
   async function markUsed(id: string) {
-    try { await scriptsApi.markUsed(id); fetchLibrary(); } catch { /* silent */ }
+    try {
+      await scriptsApi.markUsed(id);
+      setScripts((prev) => prev.map((s) => (s.id === id ? { ...s, isUsed: true } : s)));
+      setLibrary((prev) => prev.map((s) => (s.id === id ? { ...s, isUsed: true } : s)));
+    } catch { /* silent */ }
+  }
+
+  function renderScriptCard(s: Script, i: number, showDate = false) {
+    const isEditing = editingId === s.id;
+
+    return (
+      <Card glowing={!showDate} key={s.id}>
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            {showDate ? (
+              <>
+                <FileText className="w-4 h-4 text-brand-primary-light" />
+                <span className="text-xs themed-text-muted">{new Date(s.createdAt).toLocaleDateString('pt-BR')}</span>
+              </>
+            ) : (
+              <Badge variant="primary">#{i + 1}</Badge>
+            )}
+            {s.isUsed && <Badge variant="success">Usado</Badge>}
+          </div>
+          <div className="flex gap-1">
+            {!isEditing && (
+              <>
+                <button
+                  onClick={() => startEditing(s)}
+                  className="p-1.5 rounded-lg themed-text-secondary hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                  title="Editar"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => copyScript(s)}
+                  className="p-1.5 rounded-lg themed-text-secondary hover:themed-text hover:bg-white/5 transition-colors"
+                  title="Copiar"
+                >
+                  {copiedId === s.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                </button>
+                {!s.isUsed && (
+                  <button
+                    onClick={() => markUsed(s.id)}
+                    className="p-1.5 rounded-lg themed-text-secondary hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                    title="Marcar como usado"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {isEditing ? (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-semibold text-amber-400 mb-1 block">Gancho</label>
+              <textarea
+                className="w-full bg-black/30 themed-border border rounded-lg px-3 py-2 text-sm themed-text resize-none focus:border-brand-primary outline-none"
+                rows={2}
+                value={editForm.hook}
+                onChange={(e) => setEditForm((f) => ({ ...f, hook: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-brand-primary-light mb-1 block">Corpo</label>
+              <textarea
+                className="w-full bg-black/30 themed-border border rounded-lg px-3 py-2 text-sm themed-text resize-none focus:border-brand-primary outline-none"
+                rows={3}
+                value={editForm.body}
+                onChange={(e) => setEditForm((f) => ({ ...f, body: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-emerald-400 mb-1 block">CTA</label>
+              <textarea
+                className="w-full bg-black/30 themed-border border rounded-lg px-3 py-2 text-sm themed-text resize-none focus:border-brand-primary outline-none"
+                rows={2}
+                value={editForm.cta}
+                onChange={(e) => setEditForm((f) => ({ ...f, cta: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => saveEdit(s.id)}
+                loading={saving}
+                icon={<Save className="w-4 h-4" />}
+                className="flex-1"
+              >
+                Salvar
+              </Button>
+              <button
+                onClick={cancelEditing}
+                className="px-4 py-2 rounded-xl themed-border border themed-text-secondary text-sm hover:themed-text transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2 text-sm">
+            <p><span className="text-amber-400 font-semibold">Gancho:</span> <span className="text-gray-300">{s.hook}</span></p>
+            <p><span className="text-brand-primary-light font-semibold">Corpo:</span> <span className="text-gray-300">{s.body}</span></p>
+            <p><span className="text-emerald-400 font-semibold">CTA:</span> <span className="text-gray-300">{s.cta}</span></p>
+          </div>
+        )}
+      </Card>
+    );
   }
 
   return (
@@ -88,11 +229,11 @@ export default function Studio() {
         <div className="flex gap-2 themed-surface-card rounded-xl p-1 themed-border">
           {[
             { key: 'generate' as Tab, label: 'Gerar Roteiros', icon: Sparkles },
-            { key: 'library' as Tab, label: 'Biblioteca', icon: BookOpen },
+            { key: 'library' as Tab, label: `Biblioteca${library.length ? ` (${library.length})` : ''}`, icon: BookOpen },
           ].map((t) => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
+              onClick={() => { setTab(t.key); if (t.key === 'library') fetchLibrary(); }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 tab === t.key ? 'bg-brand-primary/15 text-brand-primary-light' : 'themed-text-secondary hover:themed-text'
               }`}
@@ -142,51 +283,23 @@ export default function Studio() {
             {scripts.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold themed-text-secondary">Roteiros Gerados ({scripts.length})</h3>
-                {scripts.map((s, i) => (
-                  <Card glowing key={s.id}>
-                    <div className="flex items-start justify-between mb-2">
-                      <Badge variant="primary">#{i + 1}</Badge>
-                      <button onClick={() => copyScript(s)} className="themed-text-secondary hover:themed-text transition-colors">
-                        {copiedId === s.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="text-amber-400 font-semibold">Gancho:</span> <span className="text-gray-300">{s.hook}</span></p>
-                      <p><span className="text-brand-primary-light font-semibold">Corpo:</span> <span className="text-gray-300">{s.body}</span></p>
-                      <p><span className="text-emerald-400 font-semibold">CTA:</span> <span className="text-gray-300">{s.cta}</span></p>
-                    </div>
-                  </Card>
-                ))}
+                {scripts.map((s, i) => renderScriptCard(s, i))}
               </div>
             )}
           </div>
         ) : (
           <div className="space-y-3">
             {library.length === 0 ? (
-              <p className="text-center themed-text-muted py-8">Nenhum roteiro salvo ainda. Gere roteiros primeiro.</p>
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-8 h-8 themed-text-muted" />
+                </div>
+                <p className="text-lg font-bold themed-text mb-1">Nenhum roteiro salvo</p>
+                <p className="text-sm themed-text-secondary mb-4">Gere roteiros na aba anterior e eles aparecerao aqui.</p>
+                <Button variant="outline" onClick={() => setTab('generate')}>Gerar Roteiros</Button>
+              </div>
             ) : (
-              library.map((s) => (
-                <Card key={s.id}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-brand-primary-light" />
-                      <span className="text-xs themed-text-muted">{new Date(s.createdAt).toLocaleDateString('pt-BR')}</span>
-                      {s.isUsed && <Badge variant="success">Usado</Badge>}
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => copyScript(s)} className="p-1.5 rounded-lg themed-text-secondary hover:themed-text hover:bg-white/5">
-                        {copiedId === s.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                      {!s.isUsed && (
-                        <button onClick={() => markUsed(s.id)} className="p-1.5 rounded-lg themed-text-secondary hover:text-emerald-400 hover:bg-emerald-500/10">
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-300 line-clamp-2">{s.hook}</p>
-                </Card>
-              ))
+              library.map((s, i) => renderScriptCard(s, i, true))
             )}
           </div>
         )}

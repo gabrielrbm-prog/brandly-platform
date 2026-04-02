@@ -184,6 +184,39 @@ export async function scriptRoutes(app: FastifyInstance) {
     return script;
   });
 
+  // PATCH /api/scripts/:id — editar roteiro (hook, body, cta)
+  app.patch<{ Params: { id: string }; Body: { hook?: string; body?: string; cta?: string } }>('/:id', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const { id } = request.params;
+    const { hook, body, cta } = request.body;
+
+    const [script] = await db.select()
+      .from(scripts)
+      .where(and(eq(scripts.id, id), eq(scripts.creatorId, userId)));
+
+    if (!script) {
+      return reply.status(404).send({ error: 'Script nao encontrado' });
+    }
+
+    const newHook = hook ?? script.hook;
+    const newBody = body ?? script.body;
+    const newCta = cta ?? script.cta;
+
+    const [updated] = await db.update(scripts)
+      .set({
+        hook: newHook,
+        body: newBody,
+        cta: newCta,
+        fullScript: `${newHook}\n\n${newBody}\n\n${newCta}`,
+      })
+      .where(eq(scripts.id, id))
+      .returning();
+
+    return updated;
+  });
+
   // PATCH /api/scripts/:id/use — marcar roteiro como usado
   app.patch<{ Params: { id: string } }>('/:id/use', {
     preHandler: [app.authenticate],

@@ -101,6 +101,8 @@ export const scriptsApi = {
   list: (briefingId?: string) =>
     api.get(`/api/scripts${briefingId ? `?briefingId=${briefingId}` : ''}`),
   detail: (id: string) => api.get(`/api/scripts/${id}`),
+  update: (id: string, data: { hook?: string; body?: string; cta?: string }) =>
+    api.patch(`/api/scripts/${id}`, data),
   markUsed: (id: string) => api.patch(`/api/scripts/${id}/use`),
 };
 

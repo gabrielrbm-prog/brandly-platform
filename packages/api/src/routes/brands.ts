@@ -64,6 +64,33 @@ export async function brandRoutes(app: FastifyInstance) {
     };
   });
 
+  // GET /api/brands/my — marcas do creator (ANTES de /:id para nao ser capturada como parametro)
+  app.get('/my', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+
+    const result = await db.select({
+      connectionId: creatorBrands.id,
+      connectedAt: creatorBrands.connectedAt,
+      brand: {
+        id: brands.id,
+        name: brands.name,
+        logoUrl: brands.logoUrl,
+        category: brands.category,
+        description: brands.description,
+        websiteUrl: brands.websiteUrl,
+        minVideosPerMonth: brands.minVideosPerMonth,
+        maxCreators: brands.maxCreators,
+      },
+    })
+      .from(creatorBrands)
+      .innerJoin(brands, eq(creatorBrands.brandId, brands.id))
+      .where(and(eq(creatorBrands.creatorId, userId), eq(creatorBrands.isActive, true)));
+
+    return { brands: result, total: result.length };
+  });
+
   // GET /api/brands/:id — detalhes da marca + briefing
   app.get<{ Params: { id: string } }>('/:id', async (request, reply) => {
     const { id } = request.params;
@@ -181,32 +208,5 @@ export async function brandRoutes(app: FastifyInstance) {
       ));
 
     return { message: 'Desconectado da marca', brandId: id };
-  });
-
-  // GET /api/brands/my — marcas do creator
-  app.get('/my', {
-    preHandler: [app.authenticate],
-  }, async (request, reply) => {
-    const { userId } = request.user;
-
-    const result = await db.select({
-      connectionId: creatorBrands.id,
-      connectedAt: creatorBrands.connectedAt,
-      brand: {
-        id: brands.id,
-        name: brands.name,
-        logoUrl: brands.logoUrl,
-        category: brands.category,
-        description: brands.description,
-        websiteUrl: brands.websiteUrl,
-        minVideosPerMonth: brands.minVideosPerMonth,
-        maxCreators: brands.maxCreators,
-      },
-    })
-      .from(creatorBrands)
-      .innerJoin(brands, eq(creatorBrands.brandId, brands.id))
-      .where(and(eq(creatorBrands.creatorId, userId), eq(creatorBrands.isActive, true)));
-
-    return { brands: result, total: result.length };
   });
 }

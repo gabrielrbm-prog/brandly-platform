@@ -3,9 +3,10 @@
  * Docs: https://docs.getphyllo.com
  */
 
-const PHYLLO_BASE_URL = process.env.PHYLLO_ENVIRONMENT === 'production'
+const ENV = process.env.PHYLLO_ENVIRONMENT ?? 'staging';
+const PHYLLO_BASE_URL = ENV === 'production'
   ? 'https://api.getphyllo.com'
-  : 'https://api.sandbox.getphyllo.com';
+  : `https://api.${ENV}.getphyllo.com`;
 
 function getAuthHeader(): string {
   const clientId = process.env.PHYLLO_CLIENT_ID;

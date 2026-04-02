@@ -120,7 +120,7 @@ export async function shipmentRoutes(app: FastifyInstance) {
     return { buyers };
   });
 
-  // GET /api/shipments/compradores — painel completo de compradores com dados de envio
+  // GET /api/shipments/compradores — painel de compradores da planilha de vendas
   app.get('/compradores', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
@@ -129,42 +129,75 @@ export async function shipmentRoutes(app: FastifyInstance) {
       return reply.status(403).send({ error: 'Acesso restrito' });
     }
 
-    const buyerRows = await db
-      .select({
-        id: users.id,
-        name: users.name,
-        email: users.email,
-        role: users.role,
-        status: users.status,
-        createdAt: users.createdAt,
-        onboardingCompleted: users.onboardingCompleted,
-      })
-      .from(users)
-      .where(eq(users.hasPurchased, true))
-      .orderBy(users.name);
+    // 1. Ler planilha de vendas
+    const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/19SDQsSIz2GNCqeibXQcetHb-TRIPFQSkBYo5zewmgGw/export?format=csv';
+    let sheetRows: Array<{
+      data: string; cliente: string; celular: string; email: string;
+      produto: string; oferta: string; cidade: string; estado: string; cep: string;
+    }> = [];
 
-    // Buscar envios vinculados
-    const buyerIds = buyerRows.map(b => b.id);
-    let shipmentRows: any[] = [];
-    if (buyerIds.length > 0) {
-      shipmentRows = await db
-        .select()
-        .from(shipments)
-        .where(inArray(shipments.userId, buyerIds))
-        .orderBy(desc(shipments.createdAt));
+    try {
+      const res = await fetch(SHEET_CSV, { redirect: 'follow', signal: AbortSignal.timeout(15_000) });
+      if (res.ok) {
+        const csv = await res.text();
+        const lines = csv.split('\n').slice(1);
+        for (const line of lines) {
+          // CSV com possíveis campos entre aspas
+          const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(c => c.replace(/^"|"$/g, '').trim()) ?? line.split(',').map(c => c.trim());
+          const email = (cols[3] ?? '').toLowerCase();
+          if (!email || !email.includes('@')) continue;
+          sheetRows.push({
+            data: cols[0] ?? '',
+            cliente: cols[1] ?? '',
+            celular: cols[2] ?? '',
+            email,
+            produto: cols[4] ?? '',
+            oferta: cols[5] ?? '',
+            cidade: cols[11] ?? '',
+            estado: cols[12] ?? '',
+            cep: cols[13] ?? '',
+          });
+        }
+      }
+    } catch { /* silent */ }
+
+    // 2. Buscar usuários correspondentes no banco
+    const sheetEmails = sheetRows.map(r => r.email);
+    let userRows: any[] = [];
+    if (sheetEmails.length > 0) {
+      userRows = await db
+        .select({ id: users.id, name: users.name, email: users.email, status: users.status, createdAt: users.createdAt, onboardingCompleted: users.onboardingCompleted })
+        .from(users)
+        .where(inArray(users.email, sheetEmails));
     }
+    const userMap = new Map(userRows.map((u: any) => [u.email, u]));
 
-    const shipmentMap = new Map<string, typeof shipmentRows>();
+    // 3. Buscar envios
+    const userIds = userRows.map((u: any) => u.id);
+    let shipmentRows: any[] = [];
+    if (userIds.length > 0) {
+      shipmentRows = await db.select().from(shipments).where(inArray(shipments.userId, userIds)).orderBy(desc(shipments.createdAt));
+    }
+    const shipmentMap = new Map<string, any[]>();
     for (const s of shipmentRows) {
       const list = shipmentMap.get(s.userId) ?? [];
       list.push(s);
       shipmentMap.set(s.userId, list);
     }
 
-    const compradores = buyerRows.map(b => ({
-      ...b,
-      shipments: shipmentMap.get(b.id) ?? [],
-    }));
+    // 4. Montar resultado
+    const compradores = sheetRows.map(row => {
+      const user = userMap.get(row.email);
+      return {
+        ...row,
+        temConta: !!user,
+        userId: user?.id ?? null,
+        statusConta: user?.status ?? null,
+        cadastroPlataforma: user?.createdAt ?? null,
+        onboardingCompleted: user?.onboardingCompleted ?? false,
+        shipments: user ? (shipmentMap.get(user.id) ?? []) : [],
+      };
+    });
 
     return { compradores, total: compradores.length };
   });

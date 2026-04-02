@@ -7,12 +7,19 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 
 interface Comprador {
-  id: string;
-  name: string;
+  data: string;
+  cliente: string;
+  celular: string;
   email: string;
-  role: string;
-  status: string;
-  createdAt: string;
+  produto: string;
+  oferta: string;
+  cidade: string;
+  estado: string;
+  cep: string;
+  temConta: boolean;
+  userId: string | null;
+  statusConta: string | null;
+  cadastroPlataforma: string | null;
   onboardingCompleted: boolean;
   shipments: Array<{
     id: string;
@@ -40,7 +47,7 @@ const shipmentStatusConfig: Record<string, { label: string; color: string }> = {
 function CompradorRow({ comprador }: { comprador: Comprador }) {
   const [expanded, setExpanded] = useState(false);
   const hasShipment = comprador.shipments.length > 0;
-  const initials = comprador.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const initials = comprador.cliente.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
     <div className="themed-surface-card border themed-border rounded-xl overflow-hidden">
@@ -53,12 +60,17 @@ function CompradorRow({ comprador }: { comprador: Comprador }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold themed-text">{comprador.name}</span>
-            {comprador.role === 'admin' && <Badge variant="primary">Admin</Badge>}
+            <span className="text-sm font-semibold themed-text">{comprador.cliente}</span>
+            {comprador.temConta ? (
+              <Badge variant="success">Cadastrado</Badge>
+            ) : (
+              <Badge variant="danger">Sem conta</Badge>
+            )}
           </div>
           <p className="text-xs themed-text-muted">{comprador.email}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
+          <span className="text-xs themed-text-muted">{comprador.data}</span>
           {hasShipment ? (
             <Badge variant="success">Kit enviado</Badge>
           ) : (
@@ -72,20 +84,36 @@ function CompradorRow({ comprador }: { comprador: Comprador }) {
         <div className="border-t themed-border px-4 py-3 space-y-3">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
-              <span className="themed-text-muted">Email</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.email}</p>
+              <span className="themed-text-muted">Celular</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.celular || '-'}</p>
             </div>
             <div>
-              <span className="themed-text-muted">Status conta</span>
-              <p className="themed-text font-medium mt-0.5 capitalize">{comprador.status}</p>
+              <span className="themed-text-muted">Produto</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.produto || '-'}</p>
             </div>
             <div>
-              <span className="themed-text-muted">Cadastro</span>
-              <p className="themed-text font-medium mt-0.5">{new Date(comprador.createdAt).toLocaleDateString('pt-BR')}</p>
+              <span className="themed-text-muted">Oferta</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.oferta || '-'}</p>
+            </div>
+            <div>
+              <span className="themed-text-muted">Data compra</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.data || '-'}</p>
+            </div>
+            <div>
+              <span className="themed-text-muted">Cidade/UF</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.cidade ? `${comprador.cidade}/${comprador.estado}` : '-'}</p>
+            </div>
+            <div>
+              <span className="themed-text-muted">CEP</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.cep || '-'}</p>
+            </div>
+            <div>
+              <span className="themed-text-muted">Conta na plataforma</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.temConta ? `Sim (${comprador.statusConta})` : 'Nao'}</p>
             </div>
             <div>
               <span className="themed-text-muted">Onboarding</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.onboardingCompleted ? 'Completo' : 'Pendente'}</p>
+              <p className="themed-text font-medium mt-0.5">{comprador.temConta ? (comprador.onboardingCompleted ? 'Completo' : 'Pendente') : '-'}</p>
             </div>
           </div>
 
@@ -159,8 +187,8 @@ export default function AdminCompradores() {
   }
 
   const totalCompradores = compradores.length;
+  const comConta = compradores.filter(c => c.temConta).length;
   const comEnvio = compradores.filter(c => c.shipments.length > 0).length;
-  const semEnvio = totalCompradores - comEnvio;
   const entregues = compradores.filter(c => c.shipments.some(s => s.status === 'delivered')).length;
 
   if (loading) {
@@ -210,8 +238,8 @@ export default function AdminCompradores() {
               <Truck className="w-4 h-4 text-green-400" />
             </div>
             <div>
-              <p className="text-xs themed-text-muted">Kit enviado</p>
-              <p className="text-lg font-bold text-green-400">{comEnvio}</p>
+              <p className="text-xs themed-text-muted">Com conta</p>
+              <p className="text-lg font-bold text-green-400">{comConta}</p>
             </div>
           </div>
         </Card>
@@ -221,8 +249,8 @@ export default function AdminCompradores() {
               <Clock className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <p className="text-xs themed-text-muted">Sem envio</p>
-              <p className="text-lg font-bold text-amber-400">{semEnvio}</p>
+              <p className="text-xs themed-text-muted">Kit enviado</p>
+              <p className="text-lg font-bold text-amber-400">{comEnvio}</p>
             </div>
           </div>
         </Card>

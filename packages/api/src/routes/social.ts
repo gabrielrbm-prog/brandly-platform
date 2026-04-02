@@ -50,19 +50,26 @@ export async function socialRoutes(app: FastifyInstance) {
     let phylloUserId = existingAccount?.phylloUserId;
 
     // Criar usuario Phyllo se necessario
-    if (!phylloUserId) {
-      const phylloUser = await createPhylloUser(user.name, userId);
-      phylloUserId = phylloUser.id;
+    try {
+      if (!phylloUserId) {
+        const phylloUser = await createPhylloUser(user.name, userId);
+        phylloUserId = phylloUser.id;
+      }
+
+      // Gerar SDK token
+      const tokenData = await createSdkToken(phylloUserId, ['IDENTITY', 'ENGAGEMENT']);
+
+      return {
+        sdkToken: tokenData.sdk_token,
+        userId: phylloUserId,
+        environment: process.env.PHYLLO_ENVIRONMENT ?? 'sandbox',
+      };
+    } catch (err: any) {
+      request.log.error({ err: err.message }, 'Erro ao conectar com Phyllo');
+      return reply.status(502).send({
+        error: 'Erro ao conectar com o servico de redes sociais. Tente novamente em alguns minutos.',
+      });
     }
-
-    // Gerar SDK token
-    const tokenData = await createSdkToken(phylloUserId, ['IDENTITY', 'ENGAGEMENT']);
-
-    return {
-      sdkToken: tokenData.sdk_token,
-      userId: phylloUserId,
-      environment: process.env.PHYLLO_ENVIRONMENT ?? 'sandbox',
-    };
   });
 
   // POST /api/social/account-connected — callback do frontend apos conectar conta

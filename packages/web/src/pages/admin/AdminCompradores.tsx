@@ -4,7 +4,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { trackingApi } from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface Comprador {
   id: string;
@@ -133,14 +133,9 @@ export default function AdminCompradores() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/shipments/compradores', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('brandly_auth_token')}`,
-      },
-    })
-      .then(r => r.json())
-      .then(data => setCompradores(data.compradores ?? []))
-      .catch(() => {})
+    api.get<{ compradores: Comprador[] }>('/api/shipments/compradores')
+      .then(data => setCompradores(data?.compradores ?? []))
+      .catch(() => setCompradores([]))
       .finally(() => setLoading(false));
   }, []);
 

@@ -302,54 +302,66 @@ export async function socialRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Username invalido.' });
     }
 
-    // Tentar buscar dados publicos do perfil
+    // Buscar dados publicos via scraping de paginas publicas
     let followers = 0;
+    let following = 0;
     let isVerified = false;
+    let avgLikes = 0;
+    let avgViews = 0;
+    let platformUrl = '';
 
     try {
+      const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+
       if (platform === 'instagram') {
-        const igRes = await fetch(
-          `https://i.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(cleanUsername)}`,
-          {
-            headers: {
-              'User-Agent': 'Instagram 76.0.0.15.395 Android',
-              'Accept': 'application/json',
-            },
-            signal: AbortSignal.timeout(5000),
-          },
-        );
-        if (igRes.ok) {
-          const igData = await igRes.json() as any;
-          const user = igData?.data?.user;
-          if (user) {
-            followers = user.edge_followed_by?.count ?? 0;
-            isVerified = user.is_verified ?? false;
+        platformUrl = `https://www.instagram.com/${cleanUsername}/`;
+        const res = await fetch(platformUrl, {
+          headers: { 'User-Agent': UA, 'Accept': 'text/html' },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.ok) {
+          const html = await res.text();
+          // Meta tag: "1,043 Followers, 651 Following, 135 Posts"
+          const metaMatch = html.match(/content="([\d,\.]+)\s+Followers,\s*([\d,\.]+)\s+Following,\s*([\d,\.]+)\s+Posts/i);
+          if (metaMatch) {
+            followers = parseInt(metaMatch[1].replace(/[,\.]/g, ''), 10) || 0;
+            following = parseInt(metaMatch[2].replace(/[,\.]/g, ''), 10) || 0;
           }
+          if (html.includes('"is_verified":true')) isVerified = true;
         }
       } else if (platform === 'tiktok') {
-        const ttRes = await fetch(
-          `https://www.tiktok.com/api/user/detail/?uniqueId=${encodeURIComponent(cleanUsername)}&aid=1988`,
-          {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36',
-              'Accept': 'application/json',
-              'Referer': 'https://www.tiktok.com/',
-            },
-            signal: AbortSignal.timeout(5000),
-          },
-        );
-        if (ttRes.ok) {
-          const ttData = await ttRes.json() as any;
-          const userInfo = ttData?.userInfo?.stats;
-          if (userInfo) {
-            followers = userInfo.followerCount ?? 0;
-            isVerified = ttData?.userInfo?.user?.verified ?? false;
+        platformUrl = `https://www.tiktok.com/@${cleanUsername}`;
+        const res = await fetch(platformUrl, {
+          headers: { 'User-Agent': UA, 'Accept': 'text/html' },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.ok) {
+          const html = await res.text();
+          // JSON no HTML: "followerCount":813,"heartCount":55100,"videoCount":17
+          const followerMatch = html.match(/"followerCount":(\d+)/);
+          const followingMatch = html.match(/"followingCount":(\d+)/);
+          const heartMatch = html.match(/"heartCount":(\d+)/);
+          const videoMatch = html.match(/"videoCount":(\d+)/);
+
+          if (followerMatch) followers = parseInt(followerMatch[1], 10);
+          if (followingMatch) following = parseInt(followingMatch[1], 10);
+
+          // Calcular media de curtidas por video
+          const hearts = heartMatch ? parseInt(heartMatch[1], 10) : 0;
+          const videos = videoMatch ? parseInt(videoMatch[1], 10) : 1;
+          if (hearts > 0 && videos > 0) {
+            avgLikes = Math.round(hearts / videos);
           }
+
+          if (html.includes('"verified":true')) isVerified = true;
         }
       }
-    } catch {
-      // API publica falhou — continua sem dados (usuario pode preencher manualmente)
-      request.log.info({ platform, cleanUsername }, 'Nao foi possivel buscar dados publicos; salvando sem metricas');
+
+      request.log.info({ platform, cleanUsername, followers, following, avgLikes }, 'Dados publicos obtidos');
+    } catch (err: any) {
+      request.log.info({ platform, cleanUsername, err: err.message }, 'Scraping falhou; salvando sem metricas');
     }
 
     // Upsert na tabela socialAccounts
@@ -361,16 +373,20 @@ export async function socialRoutes(app: FastifyInstance) {
       ))
       .limit(1);
 
+    // Calcular engajamento
+    const engRate = followers > 0 ? ((avgLikes / followers) * 100) : 0;
+
     const accountData = {
       userId,
       platform,
       platformUsername: cleanUsername,
+      platformUrl: platformUrl || null,
       followers,
-      following: 0,
-      avgLikes: 0,
-      avgViews: 0,
+      following,
+      avgLikes,
+      avgViews,
       avgComments: 0,
-      engagementRate: '0',
+      engagementRate: String(Math.min(engRate, 100).toFixed(2)),
       isVerified,
       status: 'connected' as const,
       lastSyncAt: new Date(),

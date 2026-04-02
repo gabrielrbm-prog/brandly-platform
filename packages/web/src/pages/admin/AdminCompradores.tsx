@@ -1,25 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Users, Package, PackageCheck, Truck, Clock, AlertCircle, Mail, Calendar, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Users, Package, PackageCheck, Truck, Clock, AlertCircle, Mail, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { api } from '@/lib/api';
+import { trackingApi } from '@/lib/api';
 
 interface Comprador {
-  data: string;
-  cliente: string;
-  celular: string;
+  id: string;
+  name: string;
   email: string;
-  produto: string;
-  oferta: string;
-  cidade: string;
-  estado: string;
-  cep: string;
-  temConta: boolean;
-  userId: string | null;
-  statusConta: string | null;
-  cadastroPlataforma: string | null;
+  role: string;
+  status: string;
+  createdAt: string;
   onboardingCompleted: boolean;
   shipments: Array<{
     id: string;
@@ -47,7 +40,7 @@ const shipmentStatusConfig: Record<string, { label: string; color: string }> = {
 function CompradorRow({ comprador }: { comprador: Comprador }) {
   const [expanded, setExpanded] = useState(false);
   const hasShipment = comprador.shipments.length > 0;
-  const initials = comprador.cliente.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const initials = comprador.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
     <div className="themed-surface-card border themed-border rounded-xl overflow-hidden">
@@ -60,17 +53,12 @@ function CompradorRow({ comprador }: { comprador: Comprador }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold themed-text">{comprador.cliente}</span>
-            {comprador.temConta ? (
-              <Badge variant="success">Cadastrado</Badge>
-            ) : (
-              <Badge variant="danger">Sem conta</Badge>
-            )}
+            <span className="text-sm font-semibold themed-text">{comprador.name}</span>
+            {comprador.role === 'admin' && <Badge variant="primary">Admin</Badge>}
           </div>
           <p className="text-xs themed-text-muted">{comprador.email}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs themed-text-muted">{comprador.data}</span>
           {hasShipment ? (
             <Badge variant="success">Kit enviado</Badge>
           ) : (
@@ -84,36 +72,20 @@ function CompradorRow({ comprador }: { comprador: Comprador }) {
         <div className="border-t themed-border px-4 py-3 space-y-3">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
-              <span className="themed-text-muted">Celular</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.celular || '-'}</p>
+              <span className="themed-text-muted">Email</span>
+              <p className="themed-text font-medium mt-0.5">{comprador.email}</p>
             </div>
             <div>
-              <span className="themed-text-muted">Produto</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.produto || '-'}</p>
+              <span className="themed-text-muted">Status conta</span>
+              <p className="themed-text font-medium mt-0.5 capitalize">{comprador.status}</p>
             </div>
             <div>
-              <span className="themed-text-muted">Oferta</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.oferta || '-'}</p>
-            </div>
-            <div>
-              <span className="themed-text-muted">Data compra</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.data || '-'}</p>
-            </div>
-            <div>
-              <span className="themed-text-muted">Cidade/UF</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.cidade ? `${comprador.cidade}/${comprador.estado}` : '-'}</p>
-            </div>
-            <div>
-              <span className="themed-text-muted">CEP</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.cep || '-'}</p>
-            </div>
-            <div>
-              <span className="themed-text-muted">Conta na plataforma</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.temConta ? `Sim (${comprador.statusConta})` : 'Nao'}</p>
+              <span className="themed-text-muted">Cadastro</span>
+              <p className="themed-text font-medium mt-0.5">{new Date(comprador.createdAt).toLocaleDateString('pt-BR')}</p>
             </div>
             <div>
               <span className="themed-text-muted">Onboarding</span>
-              <p className="themed-text font-medium mt-0.5">{comprador.temConta ? (comprador.onboardingCompleted ? 'Completo' : 'Pendente') : '-'}</p>
+              <p className="themed-text font-medium mt-0.5">{comprador.onboardingCompleted ? 'Completo' : 'Pendente'}</p>
             </div>
           </div>
 
@@ -159,36 +131,22 @@ function CompradorRow({ comprador }: { comprador: Comprador }) {
 export default function AdminCompradores() {
   const [compradores, setCompradores] = useState<Comprador[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState('');
 
-  function fetchCompradores() {
-    setLoading(true);
-    api.get<{ compradores: Comprador[]; total: number }>('/api/shipments/compradores')
+  useEffect(() => {
+    fetch('/api/shipments/compradores', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('brandly_auth_token')}`,
+      },
+    })
+      .then(r => r.json())
       .then(data => setCompradores(data.compradores ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }
-
-  useEffect(() => { fetchCompradores(); }, []);
-
-  async function handleSync() {
-    setSyncing(true);
-    setSyncMsg('');
-    try {
-      const data = await api.post<{ message?: string; error?: string }>('/api/cron/sync-buyers');
-      setSyncMsg(data.message ?? data.error ?? 'Sync concluido');
-      fetchCompradores();
-    } catch {
-      setSyncMsg('Erro ao sincronizar');
-    } finally {
-      setSyncing(false);
-    }
-  }
+  }, []);
 
   const totalCompradores = compradores.length;
-  const comConta = compradores.filter(c => c.temConta).length;
   const comEnvio = compradores.filter(c => c.shipments.length > 0).length;
+  const semEnvio = totalCompradores - comEnvio;
   const entregues = compradores.filter(c => c.shipments.some(s => s.status === 'delivered')).length;
 
   if (loading) {
@@ -201,24 +159,6 @@ export default function AdminCompradores() {
 
   return (
     <PageContainer title="Compradores">
-      {/* Sync */}
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm themed-text-secondary">
-          Sincronizado com a planilha de vendas do Google Sheets.
-        </p>
-        <div className="flex items-center gap-3">
-          {syncMsg && <span className="text-xs themed-text-muted">{syncMsg}</span>}
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary/15 text-brand-primary-light text-sm font-medium hover:bg-brand-primary/25 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'Sincronizando...' : 'Sincronizar planilha'}
-          </button>
-        </div>
-      </div>
-
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <Card>
@@ -238,8 +178,8 @@ export default function AdminCompradores() {
               <Truck className="w-4 h-4 text-green-400" />
             </div>
             <div>
-              <p className="text-xs themed-text-muted">Com conta</p>
-              <p className="text-lg font-bold text-green-400">{comConta}</p>
+              <p className="text-xs themed-text-muted">Kit enviado</p>
+              <p className="text-lg font-bold text-green-400">{comEnvio}</p>
             </div>
           </div>
         </Card>
@@ -249,8 +189,8 @@ export default function AdminCompradores() {
               <Clock className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <p className="text-xs themed-text-muted">Kit enviado</p>
-              <p className="text-lg font-bold text-amber-400">{comEnvio}</p>
+              <p className="text-xs themed-text-muted">Sem envio</p>
+              <p className="text-lg font-bold text-amber-400">{semEnvio}</p>
             </div>
           </div>
         </Card>
@@ -270,7 +210,7 @@ export default function AdminCompradores() {
       {/* Lista */}
       <div className="space-y-2">
         {compradores.map(c => (
-          <CompradorRow key={c.email} comprador={c} />
+          <CompradorRow key={c.id} comprador={c} />
         ))}
       </div>
     </PageContainer>

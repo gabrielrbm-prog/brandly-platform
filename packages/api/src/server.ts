@@ -3,6 +3,9 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
+import { db } from '@brandly/core';
+import { users } from '@brandly/core';
+import { eq } from 'drizzle-orm';
 import path from 'path';
 import fs from 'fs';
 import { authPlugin } from './plugins/auth.js';
@@ -217,9 +220,6 @@ async function start() {
 
   async function syncBuyersFromSheet() {
     try {
-      const { db } = await import('@brandly/core');
-      const { users } = await import('@brandly/core');
-      const { eq } = await import('drizzle-orm');
 
       const res = await fetch(SHEET_CSV, { redirect: 'follow', signal: AbortSignal.timeout(15_000) });
       if (!res.ok) return;

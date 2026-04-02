@@ -270,7 +270,7 @@ export default function AdminCompradores() {
       {/* Lista */}
       <div className="space-y-2">
         {compradores.map(c => (
-          <CompradorRow key={c.id} comprador={c} />
+          <CompradorRow key={c.email} comprador={c} />
         ))}
       </div>
     </PageContainer>

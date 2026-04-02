@@ -16,7 +16,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
-interface Brand { id: string; name: string; category: string; description: string }
+interface Brand { id: string; name: string; category: string; description: string; logoUrl?: string }
 interface Script {
   id: string; briefingId: string; hook: string; body: string; cta: string;
   fullScript: string; isUsed: boolean; createdAt: string;
@@ -118,12 +118,15 @@ export default function Studio() {
                     <button
                       key={b.id}
                       onClick={() => setSelectedBrand(b)}
-                      className={`px-4 py-2 rounded-full text-sm border transition-colors ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm border transition-colors ${
                         selectedBrand?.id === b.id
                           ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light font-semibold'
                           : 'themed-surface-light themed-border themed-text-secondary'
                       }`}
                     >
+                      {b.logoUrl && (
+                        <img src={b.logoUrl} alt={b.name} className="w-5 h-5 rounded-full object-cover" />
+                      )}
                       {b.name}
                     </button>
                   ))}

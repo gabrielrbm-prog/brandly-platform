@@ -1,6 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface BriefingContext {
   brandName: string;
@@ -16,8 +14,6 @@ export interface GeneratedScripts {
   bodies: string[];
   ctas: string[];
 }
-
-type LLMProvider = 'claude' | 'openai' | 'gemini';
 
 const SYSTEM_PROMPT = `Voce e um especialista em criacao de roteiros UGC (User Generated Content) para redes sociais.
 Sua tarefa e gerar componentes de roteiros curtos (30-60 segundos) para videos de criadores de conteudo.
@@ -73,29 +69,30 @@ function parseResponse(text: string): GeneratedScripts {
   };
 }
 
-async function generateWithClaude(briefing: BriefingContext, hookCount: number, bodyCount: number, ctaCount: number): Promise<GeneratedScripts> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+export async function generateScripts(
+  briefing: BriefingContext,
+  options?: { hooks?: number; bodies?: number; ctas?: number },
+): Promise<GeneratedScripts> {
+  const hookCount = options?.hooks ?? 3;
+  const bodyCount = options?.bodies ?? 3;
+  const ctaCount = options?.ctas ?? 3;
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2048,
-    system: SYSTEM_PROMPT,
-    messages: [{
-      role: 'user',
-      content: buildUserPrompt(briefing, hookCount, bodyCount, ctaCount),
-    }],
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENROUTER_API_KEY nao configurada');
+  }
+
+  const client = new OpenAI({
+    apiKey,
+    baseURL: 'https://openrouter.ai/api/v1',
   });
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : '';
-  return parseResponse(text);
-}
-
-async function generateWithOpenAI(briefing: BriefingContext, hookCount: number, bodyCount: number, ctaCount: number): Promise<GeneratedScripts> {
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const model = process.env.OPENROUTER_MODEL ?? 'google/gemini-2.0-flash-001';
 
   const response = await client.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? 'gpt-4o',
+    model,
     max_tokens: 2048,
+    temperature: 0.9,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(briefing, hookCount, bodyCount, ctaCount) },
@@ -104,65 +101,4 @@ async function generateWithOpenAI(briefing: BriefingContext, hookCount: number, 
 
   const text = response.choices[0]?.message?.content ?? '';
   return parseResponse(text);
-}
-
-async function generateWithGemini(briefing: BriefingContext, hookCount: number, bodyCount: number, ctaCount: number): Promise<GeneratedScripts> {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-  const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash' });
-
-  const result = await model.generateContent({
-    contents: [{
-      role: 'user',
-      parts: [{ text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(briefing, hookCount, bodyCount, ctaCount)}` }],
-    }],
-    generationConfig: {
-      maxOutputTokens: 2048,
-      temperature: 0.9,
-    },
-  });
-
-  const text = result.response.text();
-  return parseResponse(text);
-}
-
-export async function generateScripts(
-  briefing: BriefingContext,
-  options?: { provider?: LLMProvider; hooks?: number; bodies?: number; ctas?: number },
-): Promise<GeneratedScripts> {
-  const hookCount = options?.hooks ?? 3;
-  const bodyCount = options?.bodies ?? 3;
-  const ctaCount = options?.ctas ?? 3;
-
-  // Detectar provider disponivel automaticamente
-  const requestedProvider = options?.provider ?? (process.env.LLM_PROVIDER as LLMProvider | undefined);
-
-  const hasGemini = !!process.env.GEMINI_API_KEY;
-  const hasClaude = !!process.env.ANTHROPIC_API_KEY;
-  const hasOpenAI = !!process.env.OPENAI_API_KEY;
-
-  let provider: LLMProvider;
-  if (requestedProvider) {
-    provider = requestedProvider;
-  } else if (hasGemini) {
-    provider = 'gemini';
-  } else if (hasClaude) {
-    provider = 'claude';
-  } else if (hasOpenAI) {
-    provider = 'openai';
-  } else {
-    throw new Error('Nenhuma API key configurada (GEMINI_API_KEY, ANTHROPIC_API_KEY ou OPENAI_API_KEY)');
-  }
-
-  switch (provider) {
-    case 'gemini':
-      if (!hasGemini) throw new Error('GEMINI_API_KEY nao configurada');
-      return generateWithGemini(briefing, hookCount, bodyCount, ctaCount);
-    case 'openai':
-      if (!hasOpenAI) throw new Error('OPENAI_API_KEY nao configurada');
-      return generateWithOpenAI(briefing, hookCount, bodyCount, ctaCount);
-    case 'claude':
-    default:
-      if (!hasClaude) throw new Error('ANTHROPIC_API_KEY nao configurada');
-      return generateWithClaude(briefing, hookCount, bodyCount, ctaCount);
-  }
 }

@@ -25,10 +25,10 @@ export async function scriptRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'briefingId e obrigatorio' });
     }
 
-    // Verificar se alguma API key esta configurada
-    if (!process.env.GEMINI_API_KEY && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
+    // Verificar se a API key esta configurada
+    if (!process.env.OPENROUTER_API_KEY) {
       return reply.status(503).send({
-        error: 'Geracao de roteiros com IA em configuracao. Configure GEMINI_API_KEY, ANTHROPIC_API_KEY ou OPENAI_API_KEY.',
+        error: 'Geracao de roteiros com IA em configuracao. Configure OPENROUTER_API_KEY.',
       });
     }
 
@@ -52,7 +52,7 @@ export async function scriptRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Briefing nao encontrado' });
     }
 
-    // Gerar via IA (auto-detecta provider disponivel)
+    // Gerar via IA (OpenRouter + Gemini Flash)
     const result = await generateScripts({
       brandName: briefing.brandName,
       productDescription: `${briefing.title} — ${briefing.description}`,
@@ -60,7 +60,7 @@ export async function scriptRoutes(app: FastifyInstance) {
       doList: briefing.doList ?? [],
       dontList: briefing.dontList ?? [],
       technicalRequirements: briefing.technicalRequirements ?? '',
-    }, { provider: provider ?? undefined, hooks: 3, bodies: 3, ctas: 3 });
+    }, { hooks: 3, bodies: 3, ctas: 3 });
 
     // Gerar combinacoes hooks x bodies x ctas
     const combinations: {

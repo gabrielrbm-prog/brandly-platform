@@ -56,13 +56,13 @@ export default function Social() {
             setError('Erro ao salvar conexao. Tente novamente.');
           }
         },
-        onAccountDisconnected: () => {
+        onAccountDisconnected: (_accountId: string, _workPlatformId: string, _userId: string) => {
           fetchData();
         },
-        onTokenExpired: () => {
+        onTokenExpired: (_userId: string) => {
           setError('Token expirado. Tente conectar novamente.');
         },
-        onExit: () => {
+        onExit: (_reason: string, _userId: string) => {
           // Widget fechado pelo usuario
         },
       });

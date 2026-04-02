@@ -56,6 +56,13 @@ export async function getPhylloUser(phylloUserId: string): Promise<PhylloUser> {
   return phylloFetch(`/v1/users/${phylloUserId}`);
 }
 
+export async function getPhylloUserByExternalId(externalId: string): Promise<PhylloUser> {
+  const result = await phylloFetch(`/v1/users?external_id=${encodeURIComponent(externalId)}`);
+  const users = result.data ?? [result];
+  if (!users.length) throw new Error('Usuario Phyllo nao encontrado');
+  return users[0];
+}
+
 // ============================================
 // SDK TOKENS
 // ============================================

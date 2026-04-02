@@ -5,6 +5,7 @@ import {
   socialAccounts,
   creatorProfiles,
   createPhylloUser,
+  getPhylloUserByExternalId,
   createSdkToken,
   getProfiles,
   getContents,
@@ -52,8 +53,18 @@ export async function socialRoutes(app: FastifyInstance) {
     // Criar usuario Phyllo se necessario
     try {
       if (!phylloUserId) {
-        const phylloUser = await createPhylloUser(user.name, userId);
-        phylloUserId = phylloUser.id;
+        try {
+          const phylloUser = await createPhylloUser(user.name, userId);
+          phylloUserId = phylloUser.id;
+        } catch (createErr: any) {
+          // Se usuario ja existe no Phyllo, buscar pelo external_id
+          if (createErr.message?.includes('already exist')) {
+            const existing = await getPhylloUserByExternalId(userId);
+            phylloUserId = existing.id;
+          } else {
+            throw createErr;
+          }
+        }
       }
 
       // Gerar SDK token
@@ -67,7 +78,7 @@ export async function socialRoutes(app: FastifyInstance) {
     } catch (err: any) {
       request.log.error({ err: err.message, stack: err.stack }, 'Erro ao conectar com Phyllo');
       return reply.status(502).send({
-        error: `Erro ao conectar: ${err.message}`,
+        error: 'Erro ao conectar com o servico de redes sociais. Tente novamente em alguns minutos.',
       });
     }
   });

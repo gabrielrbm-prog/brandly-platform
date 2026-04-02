@@ -284,6 +284,201 @@ export async function socialRoutes(app: FastifyInstance) {
     };
   });
 
+  // POST /api/social/connect-manual — conecta conta via username manual
+  app.post<{
+    Body: { platform: 'instagram' | 'tiktok'; username: string };
+  }>('/connect-manual', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const { platform, username } = request.body;
+
+    if (!platform || !['instagram', 'tiktok'].includes(platform)) {
+      return reply.status(400).send({ error: 'Plataforma invalida. Use instagram ou tiktok.' });
+    }
+
+    const cleanUsername = username.replace(/^@/, '').trim();
+    if (!cleanUsername) {
+      return reply.status(400).send({ error: 'Username invalido.' });
+    }
+
+    // Tentar buscar dados publicos do perfil
+    let followers = 0;
+    let isVerified = false;
+
+    try {
+      if (platform === 'instagram') {
+        const igRes = await fetch(
+          `https://i.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(cleanUsername)}`,
+          {
+            headers: {
+              'User-Agent': 'Instagram 76.0.0.15.395 Android',
+              'Accept': 'application/json',
+            },
+            signal: AbortSignal.timeout(5000),
+          },
+        );
+        if (igRes.ok) {
+          const igData = await igRes.json() as any;
+          const user = igData?.data?.user;
+          if (user) {
+            followers = user.edge_followed_by?.count ?? 0;
+            isVerified = user.is_verified ?? false;
+          }
+        }
+      } else if (platform === 'tiktok') {
+        const ttRes = await fetch(
+          `https://www.tiktok.com/api/user/detail/?uniqueId=${encodeURIComponent(cleanUsername)}&aid=1988`,
+          {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36',
+              'Accept': 'application/json',
+              'Referer': 'https://www.tiktok.com/',
+            },
+            signal: AbortSignal.timeout(5000),
+          },
+        );
+        if (ttRes.ok) {
+          const ttData = await ttRes.json() as any;
+          const userInfo = ttData?.userInfo?.stats;
+          if (userInfo) {
+            followers = userInfo.followerCount ?? 0;
+            isVerified = ttData?.userInfo?.user?.verified ?? false;
+          }
+        }
+      }
+    } catch {
+      // API publica falhou — continua sem dados (usuario pode preencher manualmente)
+      request.log.info({ platform, cleanUsername }, 'Nao foi possivel buscar dados publicos; salvando sem metricas');
+    }
+
+    // Upsert na tabela socialAccounts
+    const [existing] = await db.select({ id: socialAccounts.id })
+      .from(socialAccounts)
+      .where(and(
+        eq(socialAccounts.userId, userId),
+        eq(socialAccounts.platform, platform),
+      ))
+      .limit(1);
+
+    const accountData = {
+      userId,
+      platform,
+      platformUsername: cleanUsername,
+      followers,
+      following: 0,
+      avgLikes: 0,
+      avgViews: 0,
+      avgComments: 0,
+      engagementRate: '0',
+      isVerified,
+      status: 'connected' as const,
+      lastSyncAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    if (existing) {
+      await db.update(socialAccounts).set(accountData).where(eq(socialAccounts.id, existing.id));
+    } else {
+      await db.insert(socialAccounts).values(accountData);
+    }
+
+    // Atualizar handle no users
+    const handleField = platform === 'instagram'
+      ? { instagramHandle: cleanUsername }
+      : { tiktokHandle: cleanUsername };
+    await db.update(users).set(handleField).where(eq(users.id, userId));
+
+    // Atualizar followers no creatorProfiles
+    if (followers > 0) {
+      const followersField = platform === 'instagram'
+        ? { instagramFollowers: followers }
+        : { tiktokFollowers: followers };
+      await db.update(creatorProfiles).set(followersField).where(eq(creatorProfiles.userId, userId));
+    }
+
+    return {
+      message: `${platform} conectado com sucesso`,
+      account: {
+        platform,
+        username: cleanUsername,
+        followers,
+        isVerified,
+      },
+    };
+  });
+
+  // PATCH /api/social/update-manual — atualiza metricas manualmente
+  app.patch<{
+    Body: {
+      platform: 'instagram' | 'tiktok';
+      followers?: number;
+      avgLikes?: number;
+      avgViews?: number;
+    };
+  }>('/update-manual', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const { platform, followers, avgLikes, avgViews } = request.body;
+
+    if (!platform || !['instagram', 'tiktok'].includes(platform)) {
+      return reply.status(400).send({ error: 'Plataforma invalida.' });
+    }
+
+    const [account] = await db.select({ id: socialAccounts.id, followers: socialAccounts.followers })
+      .from(socialAccounts)
+      .where(and(
+        eq(socialAccounts.userId, userId),
+        eq(socialAccounts.platform, platform),
+        eq(socialAccounts.status, 'connected'),
+      ))
+      .limit(1);
+
+    if (!account) {
+      return reply.status(404).send({ error: `Conta ${platform} nao encontrada. Conecte primeiro.` });
+    }
+
+    const updateData: Record<string, unknown> = { updatedAt: new Date(), lastSyncAt: new Date() };
+    if (followers !== undefined && followers >= 0) updateData.followers = followers;
+    if (avgLikes !== undefined && avgLikes >= 0) updateData.avgLikes = avgLikes;
+    if (avgViews !== undefined && avgViews >= 0) updateData.avgViews = avgViews;
+
+    // Recalcular engajamento se tiver dados suficientes
+    const newFollowers = (followers ?? account.followers) || 1;
+    const newLikes = avgLikes ?? 0;
+    const newViews = avgViews ?? 0;
+    if (followers !== undefined || avgLikes !== undefined || avgViews !== undefined) {
+      const engRate = newFollowers > 0 ? ((newLikes + newViews * 0.3) / newFollowers) * 100 : 0;
+      updateData.engagementRate = String(Math.min(engRate, 100).toFixed(2));
+    }
+
+    await db.update(socialAccounts).set(updateData).where(eq(socialAccounts.id, account.id));
+
+    // Atualizar creatorProfiles se followers foi alterado
+    if (followers !== undefined && followers >= 0) {
+      const followersField = platform === 'instagram'
+        ? { instagramFollowers: followers }
+        : { tiktokFollowers: followers };
+      await db.update(creatorProfiles).set(followersField).where(eq(creatorProfiles.userId, userId));
+    }
+
+    const [updated] = await db.select().from(socialAccounts).where(eq(socialAccounts.id, account.id));
+
+    return {
+      message: 'Metricas atualizadas',
+      account: {
+        platform: updated.platform,
+        username: updated.platformUsername,
+        followers: updated.followers,
+        avgLikes: updated.avgLikes,
+        avgViews: updated.avgViews,
+        engagementRate: Number(updated.engagementRate),
+        lastSyncAt: updated.lastSyncAt,
+      },
+    };
+  });
+
   // DELETE /api/social/disconnect/:platform — desconecta conta
   app.delete<{ Params: { platform: string } }>('/disconnect/:platform', {
     preHandler: [app.authenticate],

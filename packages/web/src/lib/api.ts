@@ -767,6 +767,18 @@ export interface ConnectResponse {
   environment: string;
 }
 
+export interface ConnectManualData {
+  platform: 'instagram' | 'tiktok';
+  username: string;
+}
+
+export interface UpdateManualData {
+  platform: 'instagram' | 'tiktok';
+  followers?: number;
+  avgLikes?: number;
+  avgViews?: number;
+}
+
 export const socialApi = {
   connect: () => api.post<ConnectResponse>('/api/social/connect'),
   accountConnected: (data: { accountId: string; workPlatformId: string; phylloUserId: string }) =>
@@ -775,6 +787,8 @@ export const socialApi = {
   sync: (platform: 'instagram' | 'tiktok') =>
     api.post('/api/social/sync', { platform }),
   disconnect: (platform: string) => api.delete(`/api/social/disconnect/${platform}`),
+  connectManual: (data: ConnectManualData) => api.post('/api/social/connect-manual', data),
+  updateManual: (data: UpdateManualData) => api.patch('/api/social/update-manual', data),
 };
 
 // ─── Tracking (Correios) ──────────────────────────────────────────────────────

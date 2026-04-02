@@ -65,9 +65,9 @@ export async function socialRoutes(app: FastifyInstance) {
         environment: process.env.PHYLLO_ENVIRONMENT ?? 'sandbox',
       };
     } catch (err: any) {
-      request.log.error({ err: err.message }, 'Erro ao conectar com Phyllo');
+      request.log.error({ err: err.message, stack: err.stack }, 'Erro ao conectar com Phyllo');
       return reply.status(502).send({
-        error: 'Erro ao conectar com o servico de redes sociais. Tente novamente em alguns minutos.',
+        error: `Erro ao conectar: ${err.message}`,
       });
     }
   });

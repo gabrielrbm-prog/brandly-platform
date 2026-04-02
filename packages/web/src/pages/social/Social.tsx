@@ -30,13 +30,8 @@ export default function Social() {
     try {
       const result = await socialApi.accounts();
       setAccounts(result.accounts);
-      setError('');
-    } catch (err: any) {
-      if (err?.status >= 500) {
-        setError('Servico de redes sociais temporariamente indisponivel. Tente novamente em alguns minutos.');
-      } else if (err?.message) {
-        setError(err.message);
-      }
+    } catch {
+      // Silencioso — se não conseguir carregar contas, mostra lista vazia
     } finally { setLoading(false); }
   }, []);
 

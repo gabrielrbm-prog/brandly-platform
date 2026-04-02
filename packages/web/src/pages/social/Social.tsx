@@ -1,11 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
-  Share2, RefreshCw, Unlink, Instagram, Eye, Heart, TrendingUp,
-  PlusCircle, Users, Link as LinkIcon, AlertCircle, Loader2,
+  Share2, Unlink, Instagram, Eye, Heart, TrendingUp,
+  PlusCircle, Users, Link as LinkIcon, AlertCircle,
   X, AtSign, Pencil, CheckCircle,
 } from 'lucide-react';
 import { socialApi, type SocialAccount } from '@/lib/api';
-import { openPhylloConnect } from '@/lib/phyllo-connect';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -135,19 +134,6 @@ function ConnectModal({ onClose, onConnected, defaultPlatform = 'instagram' }: C
             Conectar
           </Button>
 
-          {/* Phyllo como opcao secundaria */}
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={async () => {
-                onClose();
-                // re-trigger Phyllo from parent — not handled here
-              }}
-              className="text-xs themed-text-muted hover:text-brand-primary-light underline transition-colors"
-            >
-              Conectar via Phyllo (autenticacao real)
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -271,8 +257,6 @@ function EditMetricsModal({ account, onClose, onSaved }: EditMetricsModalProps) 
 export default function Social() {
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState<string | null>(null);
-  const [phylloConnecting, setPhylloConnecting] = useState(false);
   const [error, setError] = useState('');
 
   // Modais
@@ -294,41 +278,6 @@ export default function Social() {
   function openConnectModal(platform?: 'instagram' | 'tiktok') {
     if (platform) setConnectDefaultPlatform(platform);
     setShowConnectModal(true);
-  }
-
-  async function handlePhylloConnect() {
-    setError('');
-    setPhylloConnecting(true);
-    try {
-      const { sdkToken, userId, environment } = await socialApi.connect();
-      await openPhylloConnect(sdkToken, userId, environment, {
-        onAccountConnected: async (accountId, workPlatformId, phylloUserId) => {
-          try {
-            await socialApi.accountConnected({ accountId, workPlatformId, phylloUserId });
-            fetchData();
-          } catch {
-            setError('Erro ao salvar conexao via Phyllo. Tente novamente.');
-          }
-        },
-        onAccountDisconnected: (_accountId: string, _workPlatformId: string, _userId: string) => {
-          fetchData();
-        },
-        onTokenExpired: (_userId: string) => {
-          setError('Token expirado. Tente conectar novamente.');
-        },
-        onExit: (_reason: string, _userId: string) => {},
-      });
-    } catch (err: any) {
-      setError(err?.message ?? 'Erro ao iniciar conexao via Phyllo.');
-    } finally {
-      setPhylloConnecting(false);
-    }
-  }
-
-  async function handleSync(platform: 'instagram' | 'tiktok') {
-    setSyncing(platform);
-    try { await socialApi.sync(platform); fetchData(); } catch { /* silent */ }
-    finally { setSyncing(null); }
   }
 
   async function handleDisconnect(platform: string) {
@@ -434,15 +383,6 @@ export default function Social() {
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
-                  {/* Sync Phyllo */}
-                  <button
-                    onClick={() => handleSync(acc.platform)}
-                    disabled={syncing === acc.platform}
-                    className="p-2 rounded-lg themed-text-secondary hover:themed-text hover:bg-white/5 transition-colors disabled:opacity-50"
-                    title="Atualizar via Phyllo"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${syncing === acc.platform ? 'animate-spin' : ''}`} />
-                  </button>
                   {/* Desconectar */}
                   <button
                     onClick={() => handleDisconnect(acc.platform)}
@@ -513,17 +453,6 @@ export default function Social() {
               ))}
             </div>
 
-            {/* Link secundario para Phyllo */}
-            <div className="mt-4 pt-4 border-t themed-border text-center">
-              <button
-                type="button"
-                onClick={handlePhylloConnect}
-                disabled={phylloConnecting}
-                className="text-xs themed-text-muted hover:text-brand-primary-light underline transition-colors disabled:opacity-50"
-              >
-                {phylloConnecting ? 'Aguarde...' : 'Conectar via Phyllo (autenticacao real)'}
-              </button>
-            </div>
           </Card>
         )}
 

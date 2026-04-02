@@ -6,31 +6,15 @@ import { eq, and, desc } from 'drizzle-orm';
 interface GenerateBody {
   briefingId: string;
   count?: number;
-  provider?: 'claude' | 'openai';
+  provider?: 'claude' | 'openai' | 'gemini';
 }
 
 interface ListQuery {
   briefingId?: string;
 }
 
-// Fallback mock quando nenhuma API key esta configurada
-const MOCK_HOOKS = [
-  'Voce precisa conhecer esse produto...',
-  'Eu nao acreditava ate testar...',
-  'O que ninguem te conta sobre...',
-];
-const MOCK_BODIES = [
-  'Testei por 7 dias e o resultado foi incrivel. A textura e leve, absorve rapido...',
-  'Comecei a usar sem expectativa, mas ja no terceiro dia percebi a diferenca...',
-  'Minha rotina mudou completamente depois que inclui isso no meu dia a dia...',
-];
-const MOCK_CTAS = [
-  'Link na bio pra voce garantir o seu!',
-  'Usa meu cupom pra desconto exclusivo — ta nos comentarios!',
-];
-
 export async function scriptRoutes(app: FastifyInstance) {
-  // POST /api/scripts/generate — gerar roteiros a partir de briefing
+  // POST /api/scripts/generate — gerar roteiros via IA
   app.post<{ Body: GenerateBody }>('/generate', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
@@ -39,6 +23,13 @@ export async function scriptRoutes(app: FastifyInstance) {
 
     if (!briefingId) {
       return reply.status(400).send({ error: 'briefingId e obrigatorio' });
+    }
+
+    // Verificar se alguma API key esta configurada
+    if (!process.env.GEMINI_API_KEY && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
+      return reply.status(503).send({
+        error: 'Geracao de roteiros com IA em configuracao. Configure GEMINI_API_KEY, ANTHROPIC_API_KEY ou OPENAI_API_KEY.',
+      });
     }
 
     // Buscar briefing + marca
@@ -61,50 +52,15 @@ export async function scriptRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Briefing nao encontrado' });
     }
 
-    // Tentar gerar via IA, fallback para mock
-    let hooks: string[];
-    let bodies: string[];
-    let ctas: string[];
-    let generatedBy: 'claude' | 'openai' | 'mock';
-
-    const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY;
-    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
-    const requestedProvider = provider ?? (process.env.LLM_PROVIDER as 'claude' | 'openai' | undefined);
-
-    if ((requestedProvider === 'claude' && hasAnthropicKey) ||
-        (requestedProvider === 'openai' && hasOpenAIKey) ||
-        (!requestedProvider && (hasAnthropicKey || hasOpenAIKey))) {
-
-      const useProvider = requestedProvider ?? (hasAnthropicKey ? 'claude' : 'openai');
-
-      try {
-        const result = await generateScripts({
-          brandName: briefing.brandName,
-          productDescription: `${briefing.title} — ${briefing.description}`,
-          tone: briefing.tone ?? 'casual',
-          doList: briefing.doList ?? [],
-          dontList: briefing.dontList ?? [],
-          technicalRequirements: briefing.technicalRequirements ?? '',
-        }, { provider: useProvider, hooks: 3, bodies: 3, ctas: 2 });
-
-        hooks = result.hooks;
-        bodies = result.bodies;
-        ctas = result.ctas;
-        generatedBy = useProvider;
-      } catch (err: any) {
-        // Log erro e cai no mock
-        request.log.warn({ err: err.message }, 'Falha na geracao IA, usando mock');
-        hooks = MOCK_HOOKS;
-        bodies = MOCK_BODIES;
-        ctas = MOCK_CTAS;
-        generatedBy = 'mock';
-      }
-    } else {
-      hooks = MOCK_HOOKS;
-      bodies = MOCK_BODIES;
-      ctas = MOCK_CTAS;
-      generatedBy = 'mock';
-    }
+    // Gerar via IA (auto-detecta provider disponivel)
+    const result = await generateScripts({
+      brandName: briefing.brandName,
+      productDescription: `${briefing.title} — ${briefing.description}`,
+      tone: briefing.tone ?? 'casual',
+      doList: briefing.doList ?? [],
+      dontList: briefing.dontList ?? [],
+      technicalRequirements: briefing.technicalRequirements ?? '',
+    }, { provider: provider ?? undefined, hooks: 3, bodies: 3, ctas: 3 });
 
     // Gerar combinacoes hooks x bodies x ctas
     const combinations: {
@@ -117,9 +73,9 @@ export async function scriptRoutes(app: FastifyInstance) {
     }[] = [];
 
     let index = 0;
-    for (const hook of hooks) {
-      for (const body of bodies) {
-        for (const cta of ctas) {
+    for (const hook of result.hooks) {
+      for (const body of result.bodies) {
+        for (const cta of result.ctas) {
           if (index >= count) break;
           combinations.push({
             creatorId: userId,
@@ -141,8 +97,7 @@ export async function scriptRoutes(app: FastifyInstance) {
     return reply.status(201).send({
       briefingId,
       total: created.length,
-      technique: `${hooks.length}x${bodies.length}x${ctas.length}`,
-      generatedBy,
+      technique: `${result.hooks.length}x${result.bodies.length}x${result.ctas.length}`,
       scripts: created,
     });
   });

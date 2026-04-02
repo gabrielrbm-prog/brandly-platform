@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface BriefingContext {
   brandName: string;
@@ -16,7 +17,7 @@ export interface GeneratedScripts {
   ctas: string[];
 }
 
-type LLMProvider = 'claude' | 'openai';
+type LLMProvider = 'claude' | 'openai' | 'gemini';
 
 const SYSTEM_PROMPT = `Voce e um especialista em criacao de roteiros UGC (User Generated Content) para redes sociais.
 Sua tarefa e gerar componentes de roteiros curtos (30-60 segundos) para videos de criadores de conteudo.
@@ -26,7 +27,8 @@ REGRAS:
 - Nada de claims exagerados ou promessas irreais
 - Tom autentico e conversacional
 - Adaptado para TikTok/Reels (formato vertical, ritmo rapido)
-- Sempre em portugues brasileiro coloquial`;
+- Sempre em portugues brasileiro coloquial
+- CADA roteiro deve ser UNICO e DIFERENTE dos outros — varie o estilo, abordagem e angulo`;
 
 function buildUserPrompt(briefing: BriefingContext, hookCount: number, bodyCount: number, ctaCount: number): string {
   return `Gere roteiros UGC para a marca "${briefing.brandName}".
@@ -38,9 +40,11 @@ NAO FAZER: ${briefing.dontList.join(', ')}
 REQUISITOS: ${briefing.technicalRequirements}
 
 Gere exatamente:
-- ${hookCount} HOOKS (frases de abertura que prendem atencao nos primeiros 3 segundos)
-- ${bodyCount} BODIES (desenvolvimento do conteudo, 2-4 frases cada)
-- ${ctaCount} CTAs (chamadas para acao no final)
+- ${hookCount} HOOKS (frases de abertura que prendem atencao nos primeiros 3 segundos — cada um com estilo DIFERENTE)
+- ${bodyCount} BODIES (desenvolvimento do conteudo, 2-4 frases cada — cada um com angulo DIFERENTE)
+- ${ctaCount} CTAs (chamadas para acao no final — cada uma com abordagem DIFERENTE)
+
+IMPORTANTE: Cada hook, body e CTA deve ser COMPLETAMENTE DIFERENTE dos outros. Varie o estilo: storytelling, humor, curiosidade, prova social, urgencia, etc.
 
 Responda APENAS em JSON valido neste formato exato:
 {
@@ -51,7 +55,6 @@ Responda APENAS em JSON valido neste formato exato:
 }
 
 function parseResponse(text: string): GeneratedScripts {
-  // Extract JSON from response (may have markdown code blocks)
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error('Resposta da IA nao contem JSON valido');
@@ -103,24 +106,63 @@ async function generateWithOpenAI(briefing: BriefingContext, hookCount: number, 
   return parseResponse(text);
 }
 
+async function generateWithGemini(briefing: BriefingContext, hookCount: number, bodyCount: number, ctaCount: number): Promise<GeneratedScripts> {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash' });
+
+  const result = await model.generateContent({
+    contents: [{
+      role: 'user',
+      parts: [{ text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(briefing, hookCount, bodyCount, ctaCount)}` }],
+    }],
+    generationConfig: {
+      maxOutputTokens: 2048,
+      temperature: 0.9,
+    },
+  });
+
+  const text = result.response.text();
+  return parseResponse(text);
+}
+
 export async function generateScripts(
   briefing: BriefingContext,
   options?: { provider?: LLMProvider; hooks?: number; bodies?: number; ctas?: number },
 ): Promise<GeneratedScripts> {
-  const provider = options?.provider ?? (process.env.LLM_PROVIDER as LLMProvider) ?? 'claude';
   const hookCount = options?.hooks ?? 3;
   const bodyCount = options?.bodies ?? 3;
   const ctaCount = options?.ctas ?? 3;
 
-  if (provider === 'openai') {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY nao configurada');
-    }
-    return generateWithOpenAI(briefing, hookCount, bodyCount, ctaCount);
+  // Detectar provider disponivel automaticamente
+  const requestedProvider = options?.provider ?? (process.env.LLM_PROVIDER as LLMProvider | undefined);
+
+  const hasGemini = !!process.env.GEMINI_API_KEY;
+  const hasClaude = !!process.env.ANTHROPIC_API_KEY;
+  const hasOpenAI = !!process.env.OPENAI_API_KEY;
+
+  let provider: LLMProvider;
+  if (requestedProvider) {
+    provider = requestedProvider;
+  } else if (hasGemini) {
+    provider = 'gemini';
+  } else if (hasClaude) {
+    provider = 'claude';
+  } else if (hasOpenAI) {
+    provider = 'openai';
+  } else {
+    throw new Error('Nenhuma API key configurada (GEMINI_API_KEY, ANTHROPIC_API_KEY ou OPENAI_API_KEY)');
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY nao configurada');
+  switch (provider) {
+    case 'gemini':
+      if (!hasGemini) throw new Error('GEMINI_API_KEY nao configurada');
+      return generateWithGemini(briefing, hookCount, bodyCount, ctaCount);
+    case 'openai':
+      if (!hasOpenAI) throw new Error('OPENAI_API_KEY nao configurada');
+      return generateWithOpenAI(briefing, hookCount, bodyCount, ctaCount);
+    case 'claude':
+    default:
+      if (!hasClaude) throw new Error('ANTHROPIC_API_KEY nao configurada');
+      return generateWithClaude(briefing, hookCount, bodyCount, ctaCount);
   }
-  return generateWithClaude(briefing, hookCount, bodyCount, ctaCount);
 }

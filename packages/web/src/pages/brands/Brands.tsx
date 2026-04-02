@@ -43,8 +43,9 @@ export default function Brands() {
         brandsApi.my() as Promise<{ brands: Brand[] }>,
       ]);
       const catalog = catalogRes.brands ?? [];
-      const mine = mineRes.brands ?? [];
-      const myIds = new Set(mine.map((b) => b.id));
+      const mineRaw = mineRes.brands ?? [];
+      const mine = mineRaw.map((b: any) => b.brand ?? b);
+      const myIds = new Set(mine.map((b: Brand) => b.id));
       setBrands(catalog.map((b) => ({ ...b, isConnected: myIds.has(b.id) })));
       setMyBrands(mine);
     } catch { /* silent */ } finally { setLoading(false); }

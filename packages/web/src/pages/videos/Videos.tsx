@@ -83,8 +83,8 @@ export default function Videos() {
 
   async function openModal() {
     try {
-      const res = (await brandsApi.my()) as { brands: Brand[] };
-      const brands = res.brands ?? [];
+      const res = (await brandsApi.my()) as { brands: Array<{ brand: Brand } | Brand> };
+      const brands = (res.brands ?? []).map((b: any) => b.brand ?? b);
       if (!brands.length) { alert('Conecte-se a uma marca primeiro.'); return; }
       setMyBrands(brands);
       setSelectedBrand(brands[0]);

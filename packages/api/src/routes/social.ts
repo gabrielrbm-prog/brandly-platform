@@ -22,6 +22,14 @@ export async function socialRoutes(app: FastifyInstance) {
   app.post('/connect', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
+    // Verificar se Phyllo esta configurado
+    if (!process.env.PHYLLO_CLIENT_ID || !process.env.PHYLLO_CLIENT_SECRET) {
+      return reply.status(503).send({
+        error: 'Integracao com redes sociais em manutencao',
+        message: 'A conexao com redes sociais estara disponivel em breve. Estamos configurando a integracao.',
+      });
+    }
+
     const { userId } = request.user;
 
     // Buscar usuario

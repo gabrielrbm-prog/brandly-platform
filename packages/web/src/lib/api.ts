@@ -32,7 +32,7 @@ async function request<T = unknown>(
       errorBody = { message: response.statusText };
     }
     const error: any = new Error(
-      (errorBody as any)?.message ?? `Request failed with status ${response.status}`,
+      (errorBody as any)?.message ?? (errorBody as any)?.error ?? `Request failed with status ${response.status}`,
     );
     error.status = response.status;
     error.body = errorBody;

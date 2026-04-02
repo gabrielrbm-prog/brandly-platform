@@ -36,8 +36,8 @@ export default function Studio() {
 
   const fetchBrands = useCallback(async () => {
     try {
-      const res = (await brandsApi.my()) as { brands: Brand[] };
-      const brands = res.brands ?? [];
+      const res = (await brandsApi.my()) as { brands: Array<{ brand: Brand } | Brand> };
+      const brands = (res.brands ?? []).map((b: any) => b.brand ?? b);
       setMyBrands(brands);
       if (brands.length > 0) setSelectedBrand(brands[0]);
     } catch { /* silent */ } finally { setLoading(false); }
@@ -57,7 +57,14 @@ export default function Studio() {
     setGenerating(true);
     setScripts([]);
     try {
-      const result = (await scriptsApi.generate({ brandId: selectedBrand.id })) as { scripts: Script[] };
+      // Buscar briefing ativo da marca
+      const brandDetail = (await brandsApi.detail(selectedBrand.id)) as { briefings: Array<{ id: string }> };
+      const briefing = brandDetail.briefings?.[0];
+      if (!briefing) {
+        alert('Esta marca nao tem briefing ativo. Peca ao admin para criar um.');
+        return;
+      }
+      const result = (await scriptsApi.generate({ briefingId: briefing.id })) as { scripts: Script[] };
       setScripts(result.scripts);
     } catch (err: any) {
       alert(err.message ?? 'Erro ao gerar roteiros.');

@@ -30,7 +30,12 @@ export default function Social() {
     try {
       const result = await socialApi.accounts();
       setAccounts(result.accounts);
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch (err: any) {
+      // Se for 503 (serviço indisponível), mostra mensagem amigável
+      if (err?.status === 503) {
+        setError(err.body?.message ?? 'Integracao com redes sociais em manutencao.');
+      }
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);

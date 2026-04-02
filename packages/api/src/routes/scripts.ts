@@ -217,6 +217,36 @@ export async function scriptRoutes(app: FastifyInstance) {
     return updated;
   });
 
+  // DELETE /api/scripts/:id — apagar roteiro
+  app.delete<{ Params: { id: string } }>('/:id', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const { id } = request.params;
+
+    const [script] = await db.select({ id: scripts.id })
+      .from(scripts)
+      .where(and(eq(scripts.id, id), eq(scripts.creatorId, userId)));
+
+    if (!script) {
+      return reply.status(404).send({ error: 'Script nao encontrado' });
+    }
+
+    await db.delete(scripts).where(eq(scripts.id, id));
+    return { message: 'Roteiro apagado' };
+  });
+
+  // DELETE /api/scripts — apagar todos os roteiros do creator
+  app.delete('/', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user;
+    const deleted = await db.delete(scripts)
+      .where(eq(scripts.creatorId, userId))
+      .returning({ id: scripts.id });
+    return { message: `${deleted.length} roteiros apagados`, count: deleted.length };
+  });
+
   // PATCH /api/scripts/:id/use — marcar roteiro como usado
   app.patch<{ Params: { id: string } }>('/:id/use', {
     preHandler: [app.authenticate],

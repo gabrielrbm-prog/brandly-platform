@@ -103,6 +103,8 @@ export const scriptsApi = {
   detail: (id: string) => api.get(`/api/scripts/${id}`),
   update: (id: string, data: { hook?: string; body?: string; cta?: string }) =>
     api.patch(`/api/scripts/${id}`, data),
+  remove: (id: string) => api.delete(`/api/scripts/${id}`),
+  removeAll: () => api.delete('/api/scripts'),
   markUsed: (id: string) => api.patch(`/api/scripts/${id}/use`),
 };
 

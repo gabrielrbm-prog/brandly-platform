@@ -117,6 +117,24 @@ export default function Studio() {
     } catch { /* silent */ }
   }
 
+  async function removeScript(id: string) {
+    if (!confirm('Apagar este roteiro?')) return;
+    try {
+      await scriptsApi.remove(id);
+      setScripts((prev) => prev.filter((s) => s.id !== id));
+      setLibrary((prev) => prev.filter((s) => s.id !== id));
+    } catch (err: any) { alert(err.message ?? 'Erro ao apagar.'); }
+  }
+
+  async function removeAllScripts() {
+    if (!confirm('Apagar TODOS os roteiros? Esta acao nao pode ser desfeita.')) return;
+    try {
+      await scriptsApi.removeAll();
+      setScripts([]);
+      setLibrary([]);
+    } catch (err: any) { alert(err.message ?? 'Erro ao apagar.'); }
+  }
+
   function renderScriptCard(s: Script, i: number, showDate = false) {
     const isEditing = editingId === s.id;
 
@@ -160,6 +178,13 @@ export default function Studio() {
                     <CheckCircle className="w-4 h-4" />
                   </button>
                 )}
+                <button
+                  onClick={() => removeScript(s.id)}
+                  className="p-1.5 rounded-lg themed-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  title="Apagar"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </>
             )}
           </div>
@@ -289,6 +314,16 @@ export default function Studio() {
           </div>
         ) : (
           <div className="space-y-3">
+            {library.length > 0 && (
+              <div className="flex justify-end">
+                <button
+                  onClick={removeAllScripts}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" /> Limpar tudo
+                </button>
+              </div>
+            )}
             {library.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">

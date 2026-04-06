@@ -16,7 +16,8 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 interface Brand {
   id: string; name: string; category: string; description: string;
   logoUrl?: string; isConnected?: boolean;
-  briefing?: string; tone?: string; contentGuidelines?: string;
+  briefingTitle?: string; briefingDescription?: string; tone?: string;
+  doList?: string[]; dontList?: string[];
   technicalRequirements?: string; exampleUrls?: string[];
 }
 
@@ -170,10 +171,10 @@ export default function Brands() {
 
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t themed-border space-y-3">
-                    {brand.description && (
+                    {brand.briefingDescription && (
                       <div>
-                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Sobre</p>
-                        <p className="text-sm themed-text-secondary">{brand.description}</p>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Briefing</p>
+                        <p className="text-sm themed-text-secondary">{brand.briefingDescription}</p>
                       </div>
                     )}
                     {brand.tone && (
@@ -182,10 +183,24 @@ export default function Brands() {
                         <p className="text-sm themed-text-secondary">{brand.tone}</p>
                       </div>
                     )}
-                    {brand.contentGuidelines && (
+                    {brand.doList && brand.doList.length > 0 && (
                       <div>
-                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Diretrizes de conteudo</p>
-                        <p className="text-sm themed-text-secondary whitespace-pre-line">{brand.contentGuidelines}</p>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">O que fazer</p>
+                        <ul className="text-sm themed-text-secondary space-y-1">
+                          {brand.doList.map((item, i) => (
+                            <li key={i} className="flex items-start gap-2"><CheckCircle className="w-3 h-3 text-emerald-400 mt-1 shrink-0" />{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {brand.dontList && brand.dontList.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">O que nao fazer</p>
+                        <ul className="text-sm themed-text-secondary space-y-1">
+                          {brand.dontList.map((item, i) => (
+                            <li key={i} className="flex items-start gap-2"><Minus className="w-3 h-3 text-red-400 mt-1 shrink-0" />{item}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                     {brand.technicalRequirements && (
@@ -205,6 +220,9 @@ export default function Brands() {
                           ))}
                         </div>
                       </div>
+                    )}
+                    {!brand.briefingDescription && !brand.tone && !brand.doList?.length && (
+                      <p className="text-sm themed-text-muted italic">Nenhum briefing cadastrado para esta marca.</p>
                     )}
                   </div>
                 )}

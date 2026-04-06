@@ -31,11 +31,7 @@ export async function brandRoutes(app: FastifyInstance) {
       minVideosPerMonth: brands.minVideosPerMonth,
       maxCreators: brands.maxCreators,
       createdAt: brands.createdAt,
-      creatorsConnected: sql<number>`count(DISTINCT ${creatorBrands.id})::int`,
-      tone: sql<string>`(SELECT b.tone FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
-      contentGuidelines: sql<string>`(SELECT b.content_guidelines FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
-      technicalRequirements: sql<string>`(SELECT b.technical_requirements FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
-      exampleUrls: sql<string[]>`(SELECT b.example_urls FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
+      creatorsConnected: sql<number>`count(${creatorBrands.id})::int`,
     })
       .from(brands)
       .leftJoin(creatorBrands, and(
@@ -48,12 +44,38 @@ export async function brandRoutes(app: FastifyInstance) {
       .offset(offset)
       .limit(limit);
 
+    // Buscar briefings ativos para cada marca
+    const brandIds = result.map(b => b.id);
+    const brandBriefings = brandIds.length > 0
+      ? await db.select({
+          brandId: briefings.brandId,
+          briefingTitle: briefings.title,
+          briefingDescription: briefings.description,
+          tone: briefings.tone,
+          doList: briefings.doList,
+          dontList: briefings.dontList,
+          technicalRequirements: briefings.technicalRequirements,
+          exampleUrls: briefings.exampleUrls,
+        })
+          .from(briefings)
+          .where(and(
+            sql`${briefings.brandId} IN (${sql.join(brandIds.map(id => sql`${id}`), sql`, `)})`,
+            eq(briefings.isActive, true),
+          ))
+      : [];
+    const briefingMap = new Map(brandBriefings.map(b => [b.brandId, b]));
+
+    const brandsWithBriefing = result.map(b => ({
+      ...b,
+      ...(briefingMap.get(b.id) ?? {}),
+    }));
+
     const [totalRow] = await db.select({ total: count() })
       .from(brands)
       .where(and(...conditions));
 
     return {
-      brands: result,
+      brands: brandsWithBriefing,
       total: totalRow?.total ?? 0,
       page,
       limit,

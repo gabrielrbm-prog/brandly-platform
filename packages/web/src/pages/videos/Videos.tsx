@@ -37,6 +37,8 @@ interface DailySummary {
 interface VideoItem {
   id: string;
   brandName: string;
+  externalUrl?: string;
+  platform?: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   payment: number;

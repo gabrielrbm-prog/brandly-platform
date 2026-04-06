@@ -19,6 +19,7 @@
     "@brandly/shared": "*",
     "@google/generative-ai": "^0.24.1",
     "drizzle-orm": "^0.36.0",
+    "openai": "^6.33.0",
     "postgres": "^3.4.0"
   },
   "devDependencies": {

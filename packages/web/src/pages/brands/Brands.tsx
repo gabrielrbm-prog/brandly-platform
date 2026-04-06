@@ -16,6 +16,8 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 interface Brand {
   id: string; name: string; category: string; description: string;
   logoUrl?: string; isConnected?: boolean;
+  briefing?: string; tone?: string; contentGuidelines?: string;
+  technicalRequirements?: string; exampleUrls?: string[];
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -35,6 +37,7 @@ export default function Brands() {
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -116,46 +119,95 @@ export default function Brands() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {filtered.map((brand) => {
             const catColor = CATEGORY_COLORS[brand.category] ?? '#7C3AED';
+            const isExpanded = expandedId === brand.id;
             return (
-              <Card glowing key={brand.id}>
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ backgroundColor: `${catColor}15` }}>
-                      {brand.logoUrl ? (
-                        <img
-                          src={brand.logoUrl}
-                          alt={`${brand.name} logo`}
-                          className="w-10 h-10 object-cover"
-                          onError={(e) => {
-                            const img = e.target as HTMLImageElement;
-                            img.style.display = 'none';
-                            const icon = img.nextElementSibling as HTMLElement | null;
-                            if (icon) icon.style.display = 'block';
-                          }}
+              <Card glowing key={brand.id} className={isExpanded ? 'sm:col-span-2' : ''}>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setExpandedId(isExpanded ? null : brand.id)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ backgroundColor: `${catColor}15` }}>
+                        {brand.logoUrl ? (
+                          <img
+                            src={brand.logoUrl}
+                            alt={`${brand.name} logo`}
+                            className="w-10 h-10 object-cover"
+                            onError={(e) => {
+                              const img = e.target as HTMLImageElement;
+                              img.style.display = 'none';
+                              const icon = img.nextElementSibling as HTMLElement | null;
+                              if (icon) icon.style.display = 'block';
+                            }}
+                          />
+                        ) : null}
+                        <Star
+                          className="w-5 h-5"
+                          style={{ color: catColor, display: brand.logoUrl ? 'none' : 'block' }}
                         />
-                      ) : null}
-                      <Star
-                        className="w-5 h-5"
-                        style={{ color: catColor, display: brand.logoUrl ? 'none' : 'block' }}
-                      />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold themed-text">{brand.name}</p>
+                        <Badge>{brand.category}</Badge>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold themed-text">{brand.name}</p>
-                      <Badge>{brand.category}</Badge>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleBrand(brand); }}
+                        className={`p-2 rounded-lg transition-colors ${
+                          brand.isConnected
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : 'themed-surface-light themed-text-secondary hover:themed-text'
+                        }`}
+                      >
+                        {brand.isConnected ? <CheckCircle className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => toggleBrand(brand)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      brand.isConnected
-                        ? 'bg-emerald-500/10 text-emerald-400'
-                        : 'themed-surface-light themed-text-secondary hover:themed-text'
-                    }`}
-                  >
-                    {brand.isConnected ? <CheckCircle className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                  </button>
+                  <p className="text-xs themed-text-muted line-clamp-2">{brand.description}</p>
                 </div>
-                <p className="text-xs themed-text-muted line-clamp-2">{brand.description}</p>
+
+                {isExpanded && (
+                  <div className="mt-4 pt-4 border-t themed-border space-y-3">
+                    {brand.description && (
+                      <div>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Sobre</p>
+                        <p className="text-sm themed-text-secondary">{brand.description}</p>
+                      </div>
+                    )}
+                    {brand.tone && (
+                      <div>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Tom de voz</p>
+                        <p className="text-sm themed-text-secondary">{brand.tone}</p>
+                      </div>
+                    )}
+                    {brand.contentGuidelines && (
+                      <div>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Diretrizes de conteudo</p>
+                        <p className="text-sm themed-text-secondary whitespace-pre-line">{brand.contentGuidelines}</p>
+                      </div>
+                    )}
+                    {brand.technicalRequirements && (
+                      <div>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Requisitos tecnicos</p>
+                        <p className="text-sm themed-text-secondary whitespace-pre-line">{brand.technicalRequirements}</p>
+                      </div>
+                    )}
+                    {brand.exampleUrls && brand.exampleUrls.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-1">Videos de referencia</p>
+                        <div className="space-y-1">
+                          {brand.exampleUrls.map((url, i) => (
+                            <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-primary-light hover:underline block truncate">
+                              {url}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </Card>
             );
           })}

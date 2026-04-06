@@ -31,7 +31,11 @@ export async function brandRoutes(app: FastifyInstance) {
       minVideosPerMonth: brands.minVideosPerMonth,
       maxCreators: brands.maxCreators,
       createdAt: brands.createdAt,
-      creatorsConnected: sql<number>`count(${creatorBrands.id})::int`,
+      creatorsConnected: sql<number>`count(DISTINCT ${creatorBrands.id})::int`,
+      tone: sql<string>`(SELECT b.tone FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
+      contentGuidelines: sql<string>`(SELECT b.content_guidelines FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
+      technicalRequirements: sql<string>`(SELECT b.technical_requirements FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
+      exampleUrls: sql<string[]>`(SELECT b.example_urls FROM briefings b WHERE b.brand_id = ${brands.id} AND b.is_active = true LIMIT 1)`,
     })
       .from(brands)
       .leftJoin(creatorBrands, and(

@@ -98,7 +98,7 @@ export default function Videos() {
     if (!selectedBrand || !videoUrl.trim()) return;
     setSubmitting(true);
     try {
-      await videosApi.submit({ brandId: selectedBrand.id, url: videoUrl.trim(), platform });
+      await videosApi.submit({ brandId: selectedBrand.id, externalUrl: videoUrl.trim(), platform });
       setModalOpen(false);
       fetchData();
     } catch (err: any) {

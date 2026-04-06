@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
-import { videos, payments, users, calculateVideoPayment, getVideoPaymentConstants } from '@brandly/core';
+import { videos, payments, users, briefings, calculateVideoPayment, getVideoPaymentConstants } from '@brandly/core';
 import { sendPushNotification, videoApprovedNotification, videoRejectedNotification } from '@brandly/core';
 import { eq, and, sql, gte, lte, desc, count } from 'drizzle-orm';
 
@@ -8,7 +8,7 @@ const { perVideo: PAYMENT_PER_VIDEO, maxPerDay: MAX_PAID_PER_DAY } = getVideoPay
 
 interface SubmitVideoBody {
   brandId: string;
-  briefingId: string;
+  briefingId?: string;
   externalUrl: string;
   platform?: string;
 }
@@ -32,20 +32,30 @@ export async function videoRoutes(app: FastifyInstance) {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
     const { userId } = request.user;
-    const { brandId, briefingId, externalUrl, platform } = request.body;
+    const { brandId, briefingId: providedBriefingId, externalUrl, platform } = request.body;
 
-    if (!brandId || !briefingId || !externalUrl) {
-      return reply.status(400).send({ error: 'brandId, briefingId e externalUrl sao obrigatorios' });
+    if (!brandId || !externalUrl) {
+      return reply.status(400).send({ error: 'brandId e externalUrl sao obrigatorios' });
     }
 
     if (!/^https?:\/\/.+/.test(externalUrl)) {
       return reply.status(400).send({ error: 'externalUrl deve ser uma URL valida' });
     }
 
+    // Se briefingId não foi enviado, buscar o briefing ativo da marca
+    let finalBriefingId = providedBriefingId ?? null;
+    if (!finalBriefingId) {
+      const [activeBriefing] = await db.select({ id: briefings.id })
+        .from(briefings)
+        .where(and(eq(briefings.brandId, brandId), eq(briefings.isActive, true)))
+        .limit(1);
+      finalBriefingId = activeBriefing?.id ?? null;
+    }
+
     const [video] = await db.insert(videos).values({
       creatorId: userId,
       brandId,
-      briefingId,
+      briefingId: finalBriefingId,
       externalUrl,
       platform: platform ?? null,
       status: 'pending',

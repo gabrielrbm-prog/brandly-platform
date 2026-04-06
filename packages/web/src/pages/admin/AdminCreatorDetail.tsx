@@ -458,7 +458,7 @@ function VideosTab({ creatorId }: { creatorId: string }) {
           <StatCard
             icon={<TrendingUp className="w-4 h-4" />}
             label="Taxa aprov."
-            value={`${data.stats.approvalRate.toFixed(0)}%`}
+            value={`${Number(data.stats.approvalRate ?? 0).toFixed(0)}%`}
             color="#60A5FA"
           />
         </div>
@@ -932,8 +932,8 @@ function BrandsTab({ creatorId }: { creatorId: string }) {
           <p className="text-sm font-semibold themed-text mb-2">{brand.name}</p>
           <div className="flex items-center justify-between text-xs themed-text-muted">
             <span>{brand.videosCount} videos</span>
-            <span className="font-semibold" style={{ color: brand.approvalRate >= 70 ? '#10B981' : '#F59E0B' }}>
-              {brand.approvalRate.toFixed(0)}% aprovacao
+            <span className="font-semibold" style={{ color: Number(brand.approvalRate ?? 0) >= 70 ? '#10B981' : '#F59E0B' }}>
+              {Number(brand.approvalRate ?? 0).toFixed(0)}% aprovacao
             </span>
           </div>
         </div>
@@ -1020,7 +1020,7 @@ function SocialTab({ creatorId }: { creatorId: string }) {
             </div>
             <div className="themed-surface-light rounded-lg p-2">
               <p className="themed-text-muted">Engajamento</p>
-              <p className="font-bold themed-text">{acc.engagementRate.toFixed(2)}%</p>
+              <p className="font-bold themed-text">{Number(acc.engagementRate ?? 0).toFixed(2)}%</p>
             </div>
           </div>
 

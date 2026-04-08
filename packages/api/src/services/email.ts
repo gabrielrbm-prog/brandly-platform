@@ -1,21 +1,28 @@
-import { Resend } from 'resend';
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-
+const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_ZMSrnWVc_NVdTjLzAA68Acd454MZ2kgGM';
 const FROM_EMAIL = process.env.EMAIL_FROM ?? 'Brandly <onboarding@resend.dev>';
 const APP_URL = process.env.APP_URL ?? 'https://app.brandlycreator.com.br';
+
+async function sendViaResend(payload: { from: string; to: string; subject: string; html: string }): Promise<boolean> {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('[email] Resend error:', res.status, err);
+    return false;
+  }
+  return true;
+}
 
 export async function sendPasswordResetEmail(to: string, token: string, userName: string): Promise<boolean> {
   const resetUrl = `${APP_URL}/reset-password?token=${token}`;
 
-  if (!resend) {
-    console.warn('[email] RESEND_API_KEY nao configurada — email nao enviado. Token:', token);
-    return false;
-  }
-
-  const { error } = await resend.emails.send({
+  return sendViaResend({
     from: FROM_EMAIL,
     to,
     subject: 'Brandly — Recuperacao de senha',
@@ -50,25 +57,13 @@ export async function sendPasswordResetEmail(to: string, token: string, userName
       </div>
     `,
   });
-
-  if (error) {
-    console.error('[email] Erro ao enviar email de reset:', error);
-    return false;
-  }
-
-  return true;
 }
 
 export async function sendWelcomeEmail(to: string, userName: string): Promise<boolean> {
-  if (!resend) {
-    console.warn('[email] RESEND_API_KEY nao configurada — welcome email nao enviado');
-    return false;
-  }
-
-  const { error } = await resend.emails.send({
+  return sendViaResend({
     from: FROM_EMAIL,
     to,
-    subject: 'Bem-vindo a Brandly! 🚀',
+    subject: 'Bem-vindo a Brandly!',
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px;">
         <div style="text-align: center; margin-bottom: 32px;">
@@ -105,11 +100,4 @@ export async function sendWelcomeEmail(to: string, userName: string): Promise<bo
       </div>
     `,
   });
-
-  if (error) {
-    console.error('[email] Erro ao enviar welcome email:', error);
-    return false;
-  }
-
-  return true;
 }

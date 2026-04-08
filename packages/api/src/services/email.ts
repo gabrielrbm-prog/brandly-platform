@@ -4,8 +4,8 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const FROM_EMAIL = process.env.EMAIL_FROM ?? 'Brandly <noreply@brandly.com.br>';
-const APP_URL = process.env.APP_URL ?? 'https://brandly-app.pages.dev';
+const FROM_EMAIL = process.env.EMAIL_FROM ?? 'Brandly <onboarding@resend.dev>';
+const APP_URL = process.env.APP_URL ?? 'https://app.brandlycreator.com.br';
 
 export async function sendPasswordResetEmail(to: string, token: string, userName: string): Promise<boolean> {
   const resetUrl = `${APP_URL}/reset-password?token=${token}`;

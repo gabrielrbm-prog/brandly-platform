@@ -67,6 +67,8 @@ export const authApi = {
     api.post('/api/auth/register', data),
   login: (data: { email: string; password: string }) => api.post('/api/auth/login', data),
   me: () => api.get('/api/auth/me'),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.post('/api/auth/change-password', data),
 };
 
 // Brands

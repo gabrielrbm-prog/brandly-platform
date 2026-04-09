@@ -255,4 +255,42 @@ export async function authRoutes(app: FastifyInstance) {
 
     return reply.status(200).send({ message: 'Senha alterada com sucesso!' });
   });
+
+  // POST /api/auth/change-password (authenticated)
+  app.post<{ Body: { currentPassword: string; newPassword: string } }>(
+    '/change-password',
+    { preHandler: [app.authenticate] },
+    async (request, reply) => {
+      const { currentPassword, newPassword } = request.body;
+      const { userId } = request.user;
+
+      if (!currentPassword || !newPassword) {
+        return reply.status(400).send({ error: 'currentPassword e newPassword sao obrigatorios' });
+      }
+      if (newPassword.length < 6) {
+        return reply.status(400).send({ error: 'Nova senha deve ter no minimo 6 caracteres' });
+      }
+
+      const [user] = await db.select({ id: users.id, passwordHash: users.passwordHash })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!user || !user.passwordHash) {
+        return reply.status(404).send({ error: 'Usuario nao encontrado' });
+      }
+
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!valid) {
+        return reply.status(400).send({ error: 'Senha atual incorreta' });
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+      await db.update(users)
+        .set({ passwordHash, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+
+      return reply.status(200).send({ message: 'Senha alterada com sucesso!' });
+    },
+  );
 }

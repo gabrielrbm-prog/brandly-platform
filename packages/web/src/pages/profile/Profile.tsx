@@ -13,12 +13,18 @@ import {
   Trophy,
   Brain,
   ChevronRight,
+  Lock,
+  AlertCircle,
+  CheckCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
 import { GlowMenu, type GlowMenuItem } from '@/components/ui/GlowMenu';
+import { authApi } from '@/lib/api';
 
 const GLOW_ITEMS: GlowMenuItem[] = [
   {
@@ -142,6 +148,9 @@ export default function Profile() {
           </div>
         </div>
 
+        {/* Alterar Senha */}
+        <ChangePasswordSection />
+
         {/* Logout */}
         <button
           onClick={() => { logout(); navigate('/login', { replace: true }); }}
@@ -152,5 +161,114 @@ export default function Profile() {
         </button>
       </div>
     </PageContainer>
+  );
+}
+
+function ChangePasswordSection() {
+  const [open, setOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSuccess(false);
+
+    if (newPassword.length < 6) {
+      setError('Nova senha deve ter no minimo 6 caracteres.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('As senhas nao coincidem.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authApi.changePassword({ currentPassword, newPassword });
+      setSuccess(true);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => { setSuccess(false); setOpen(false); }, 2000);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erro ao alterar senha.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full flex items-center gap-3 themed-surface rounded-xl themed-border p-3 hover:themed-surface-light transition-colors"
+      >
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-brand-primary/10">
+          <Lock className="w-4 h-4 text-brand-primary" />
+        </div>
+        <span className="flex-1 text-sm font-medium themed-text text-left">Alterar Senha</span>
+        <ChevronRight className="w-4 h-4 themed-text-muted" />
+      </button>
+    );
+  }
+
+  return (
+    <Card className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Lock className="w-4 h-4 text-brand-primary" />
+          <h3 className="text-sm font-semibold themed-text">Alterar Senha</h3>
+        </div>
+        <button onClick={() => setOpen(false)} className="text-xs themed-text-muted hover:themed-text">
+          Cancelar
+        </button>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-xs text-red-400">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-400">
+          <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+          Senha alterada com sucesso!
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <Input
+          icon={<Lock className="w-[18px] h-[18px]" />}
+          placeholder="Senha atual"
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+        />
+        <Input
+          icon={<Lock className="w-[18px] h-[18px]" />}
+          placeholder="Nova senha"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+        <Input
+          icon={<Lock className="w-[18px] h-[18px]" />}
+          placeholder="Confirmar nova senha"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+        <Button type="submit" loading={loading} className="w-full">
+          Salvar Nova Senha
+        </Button>
+      </form>
+    </Card>
   );
 }

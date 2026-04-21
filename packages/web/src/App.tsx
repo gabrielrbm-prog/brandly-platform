@@ -38,9 +38,18 @@ import AdminCourses from '@/pages/admin/AdminCourses';
 import AdminCommunity from '@/pages/admin/AdminCommunity';
 import AdminExport from '@/pages/admin/AdminExport';
 import AdminCompradores from '@/pages/admin/AdminCompradores';
+import AdminBrandInvites from '@/pages/admin/AdminBrandInvites';
+
+// Brand Portal pages
+import BrandLayout from '@/pages/brand/BrandLayout';
+import BrandDashboard from '@/pages/brand/BrandDashboard';
+import BrandCreators from '@/pages/brand/BrandCreators';
+import BrandVideos from '@/pages/brand/BrandVideos';
+import BrandPayments from '@/pages/brand/BrandPayments';
+import AcceptBrandInvite from '@/pages/brand/AcceptBrandInvite';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -52,6 +61,33 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Usuarios brand sao redirecionados pro portal deles
+  if (user?.role === 'brand') {
+    return <Navigate to="/marca" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function BrandRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen themed-bg flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'brand') {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -104,6 +140,15 @@ export default function App() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/marca/aceitar-convite" element={<AcceptBrandInvite />} />
+
+      {/* Brand Portal */}
+      <Route path="/marca" element={<BrandRoute><BrandLayout /></BrandRoute>}>
+        <Route index element={<BrandDashboard />} />
+        <Route path="creators" element={<BrandCreators />} />
+        <Route path="videos" element={<BrandVideos />} />
+        <Route path="pagamentos" element={<BrandPayments />} />
+      </Route>
 
       {/* Protected */}
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -137,6 +182,7 @@ export default function App() {
       <Route path="/admin/compradores" element={<AdminRoute><AdminCompradores /></AdminRoute>} />
       <Route path="/admin/envios" element={<AdminRoute><Tracking /></AdminRoute>} />
       <Route path="/admin/export" element={<AdminRoute><AdminExport /></AdminRoute>} />
+      <Route path="/admin/brand-invites" element={<AdminRoute><AdminBrandInvites /></AdminRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

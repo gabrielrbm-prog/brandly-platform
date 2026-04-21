@@ -960,3 +960,135 @@ export interface AdminCase {
   isPublished: boolean;
   createdAt: string;
 }
+
+// ============================================
+// BRAND PORTAL — Portal das marcas
+// ============================================
+
+export interface BrandMe {
+  brand: {
+    id: string;
+    name: string;
+    logoUrl: string | null;
+    category: string;
+    videoPriceBrand: string;
+    videoPriceCreator: string;
+  };
+}
+
+export interface BrandCreator {
+  id: string;
+  name: string;
+  email: string;
+  instagramHandle: string | null;
+  connectedAt: string;
+}
+
+export interface BrandVideo {
+  id: string;
+  externalUrl: string | null;
+  platform: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  creatorId: string;
+  creatorName: string | null;
+  creatorEmail: string | null;
+  briefingId: string | null;
+  briefingTitle: string | null;
+}
+
+export interface BrandPayoutPreviewRow {
+  creatorId: string;
+  creatorName: string;
+  videoCount: number;
+  amountTotal: number;
+  amountCreator: number;
+  amountFee: number;
+}
+
+export interface BrandPayout {
+  id: string;
+  period: string;
+  videoCount: number;
+  amountTotal: string;
+  amountCreator: string;
+  amountFee: string;
+  status: 'pending' | 'received' | 'paid' | 'cancelled';
+  createdAt: string;
+  creatorId: string;
+  creatorName: string | null;
+}
+
+export const brandPortalApi = {
+  acceptInviteInfo: (token: string) =>
+    api.get<{ email: string; brandName: string }>(`/api/brand-auth/invite/${token}`),
+  acceptInvite: (data: { token: string; name: string; password: string }) =>
+    api.post<{ token: string; user: { id: string; email: string; name: string; role: string } }>(
+      '/api/brand-auth/accept-invite',
+      data,
+    ),
+  me: () => api.get<BrandMe>('/api/brand/me'),
+  creators: () => api.get<{ creators: BrandCreator[] }>('/api/brand/creators'),
+  videos: (status?: string) =>
+    api.get<{ videos: BrandVideo[] }>(`/api/brand/videos${status ? `?status=${status}` : ''}`),
+  approveVideo: (id: string) => api.post(`/api/brand/videos/${id}/approve`),
+  rejectVideo: (id: string, reason: string) =>
+    api.post(`/api/brand/videos/${id}/reject`, { reason }),
+  payouts: () => api.get<{ payouts: BrandPayout[] }>('/api/brand/payouts'),
+  payoutsPreview: (period?: string) =>
+    api.get<{
+      period: string;
+      preview: BrandPayoutPreviewRow[];
+      totals: { videoCount: number; amountTotal: number; amountCreator: number; amountFee: number };
+    }>(`/api/brand/payouts/preview${period ? `?period=${period}` : ''}`),
+  generatePayouts: (period?: string) =>
+    api.post<{ message: string; payouts: BrandPayout[] }>('/api/brand/payouts/generate', { period }),
+};
+
+export const adminBrandInvitesApi = {
+  create: (data: { email: string; brandId: string }) =>
+    api.post<{ invite: { id: string; email: string; brandName: string }; inviteUrl: string }>(
+      '/api/admin/brand-invites',
+      data,
+    ),
+  list: () =>
+    api.get<{
+      invites: Array<{
+        id: string;
+        email: string;
+        brandName: string | null;
+        brandId: string;
+        expiresAt: string;
+        acceptedAt: string | null;
+        createdAt: string;
+      }>;
+    }>('/api/admin/brand-invites'),
+};
+
+export const adminBrandPayoutsApi = {
+  list: () =>
+    api.get<{
+      payouts: Array<{
+        id: string;
+        brandId: string;
+        brandName: string | null;
+        creatorId: string;
+        period: string;
+        videoCount: number;
+        amountTotal: string;
+        amountCreator: string;
+        amountFee: string;
+        status: 'pending' | 'received' | 'paid' | 'cancelled';
+        paidToBrandlyAt: string | null;
+        paidToCreatorAt: string | null;
+        notes: string | null;
+        createdAt: string;
+      }>;
+    }>('/api/admin/brand-payouts'),
+  markReceived: (id: string, notes?: string) =>
+    api.post(`/api/admin/brand-payouts/${id}/mark-received`, { notes }),
+  markPaid: (id: string, notes?: string) =>
+    api.post(`/api/admin/brand-payouts/${id}/mark-paid`, { notes }),
+};

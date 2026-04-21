@@ -33,6 +33,17 @@ async function auth(app: FastifyInstance) {
       reply.status(401).send({ error: 'Token invalido ou expirado' });
     }
   });
+
+  app.decorate('requireBrand', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+      if (request.user.role !== 'brand') {
+        reply.status(403).send({ error: 'Acesso restrito a marcas' });
+      }
+    } catch (err) {
+      reply.status(401).send({ error: 'Token invalido ou expirado' });
+    }
+  });
 }
 
 export const authPlugin = fp(auth, { name: 'auth' });
@@ -41,5 +52,6 @@ declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireBrand: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }

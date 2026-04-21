@@ -141,6 +141,8 @@ export const brands = pgTable('brands', {
   contactEmail: varchar('contact_email', { length: 255 }),
   minVideosPerMonth: integer('min_videos_per_month').default(0),
   maxCreators: integer('max_creators'),
+  videoPriceBrand: decimal('video_price_brand', { precision: 10, scale: 2 }).default('15.00').notNull(),
+  videoPriceCreator: decimal('video_price_creator', { precision: 10, scale: 2 }).default('10.00').notNull(),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
@@ -157,6 +159,9 @@ export const briefings = pgTable('briefings', {
   dontList: jsonb('dont_list').$type<string[]>().default([]),    // o que nao fazer
   exampleUrls: jsonb('example_urls').$type<string[]>().default([]),
   technicalRequirements: text('technical_requirements'),  // duracao, formato, resolucao
+  // Override de precificacao (se null, usa valores da brand)
+  videoPriceBrand: decimal('video_price_brand', { precision: 10, scale: 2 }),
+  videoPriceCreator: decimal('video_price_creator', { precision: 10, scale: 2 }),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
@@ -545,4 +550,64 @@ export const shipments = pgTable('shipments', {
   index('shipments_sale_idx').on(table.saleId),
   index('shipments_status_idx').on(table.status),
   index('shipments_user_idx').on(table.userId),
+]);
+
+// ============================================
+// PORTAL DAS MARCAS — acesso restrito pra marca
+// ============================================
+
+// Vincula um usuario com role='brand' a uma brand especifica
+export const brandUsers = pgTable('brand_users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull().unique(),
+  brandId: uuid('brand_id').references(() => brands.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('brand_users_brand_idx').on(table.brandId),
+]);
+
+// Convites para marcas criarem conta
+export const brandInvites = pgTable('brand_invites', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 255 }).notNull(),
+  brandId: uuid('brand_id').references(() => brands.id).notNull(),
+  token: varchar('token', { length: 64 }).notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  acceptedAt: timestamp('accepted_at'),
+  createdBy: uuid('created_by').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('brand_invites_token_idx').on(table.token),
+  index('brand_invites_brand_idx').on(table.brandId),
+]);
+
+// Ordens de pagamento geradas pela marca (agregado mensal por creator)
+export const brandPayoutStatusEnum = pgEnum('brand_payout_status', [
+  'pending',    // marca gerou, aguardando pagamento dela
+  'received',   // brandly confirmou recebimento da marca
+  'paid',       // creator foi pago
+  'cancelled',
+]);
+
+export const brandPayouts = pgTable('brand_payouts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  brandId: uuid('brand_id').references(() => brands.id).notNull(),
+  creatorId: uuid('creator_id').references(() => users.id).notNull(),
+  period: varchar('period', { length: 7 }).notNull(), // YYYY-MM
+  videoCount: integer('video_count').notNull(),
+  amountTotal: decimal('amount_total', { precision: 12, scale: 2 }).notNull(),     // marca paga
+  amountCreator: decimal('amount_creator', { precision: 12, scale: 2 }).notNull(), // creator recebe
+  amountFee: decimal('amount_fee', { precision: 12, scale: 2 }).notNull(),         // brandly fica
+  status: brandPayoutStatusEnum('status').notNull().default('pending'),
+  paymentProofUrl: text('payment_proof_url'),
+  paidToBrandlyAt: timestamp('paid_to_brandly_at'),
+  paidToCreatorAt: timestamp('paid_to_creator_at'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('brand_payouts_brand_idx').on(table.brandId),
+  index('brand_payouts_creator_idx').on(table.creatorId),
+  index('brand_payouts_period_idx').on(table.period),
+  index('brand_payouts_status_idx').on(table.status),
 ]);

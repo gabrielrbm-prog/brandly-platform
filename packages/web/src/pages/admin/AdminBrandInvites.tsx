@@ -25,6 +25,7 @@ export default function AdminBrandInvites() {
   const [brandId, setBrandId] = useState('');
   const [creating, setCreating] = useState(false);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+  const [lastEmailSent, setLastEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
 
   async function load() {
@@ -52,6 +53,7 @@ export default function AdminBrandInvites() {
     try {
       const res = await adminBrandInvitesApi.create({ email, brandId });
       setLastInviteUrl(res.inviteUrl);
+      setLastEmailSent(res.emailSent);
       setEmail('');
       setBrandId('');
       await load();
@@ -122,9 +124,13 @@ export default function AdminBrandInvites() {
 
       {lastInviteUrl && (
         <div className="themed-surface-card border-2 border-green-500/50 rounded-xl p-5 mb-6">
-          <div className="text-sm text-green-400 font-medium mb-2">Convite gerado!</div>
+          <div className="text-sm text-green-400 font-medium mb-2">
+            Convite gerado! {lastEmailSent && '📧 Email enviado automaticamente.'}
+          </div>
           <p className="themed-text-muted text-xs mb-3">
-            Copie o link abaixo e envie para a marca (WhatsApp, email, etc):
+            {lastEmailSent
+              ? 'Se preferir, pode tambem compartilhar o link diretamente:'
+              : '⚠️ Email nao pode ser enviado. Copie o link abaixo e envie manualmente:'}
           </p>
           <div className="flex gap-2">
             <input

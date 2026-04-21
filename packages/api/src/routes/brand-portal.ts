@@ -12,6 +12,7 @@ import {
 } from '@brandly/core';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
+import { sendBrandInviteEmail } from '../services/email.js';
 
 // Resolve brandId do usuario logado (role='brand')
 async function getBrandIdFromUser(userId: string): Promise<string | null> {
@@ -74,6 +75,14 @@ export async function brandPortalRoutes(app: FastifyInstance) {
 
       const inviteUrl = `https://app.brandlycreator.com.br/marca/aceitar-convite?token=${token}`;
 
+      // Envia email automatico — nao bloqueia resposta caso Resend falhe
+      const emailSent = await sendBrandInviteEmail(invite.email, brand.name, inviteUrl).catch(
+        (err) => {
+          app.log.error(`[brand-invite] email send failed: ${err instanceof Error ? err.message : err}`);
+          return false;
+        },
+      );
+
       return {
         invite: {
           id: invite.id,
@@ -82,6 +91,7 @@ export async function brandPortalRoutes(app: FastifyInstance) {
           expiresAt: invite.expiresAt,
         },
         inviteUrl,
+        emailSent,
       };
     },
   );

@@ -1049,7 +1049,7 @@ export const brandPortalApi = {
 
 export const adminBrandInvitesApi = {
   create: (data: { email: string; brandId: string }) =>
-    api.post<{ invite: { id: string; email: string; brandName: string }; inviteUrl: string }>(
+    api.post<{ invite: { id: string; email: string; brandName: string }; inviteUrl: string; emailSent: boolean }>(
       '/api/admin/brand-invites',
       data,
     ),

@@ -3,9 +3,6 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
-import { db } from '@brandly/core';
-import { users } from '@brandly/core';
-import { eq } from 'drizzle-orm';
 import path from 'path';
 import fs from 'fs';
 import { authPlugin } from './plugins/auth.js';
@@ -36,6 +33,7 @@ import { adminCreatorsRoutes } from './routes/admin-creators.js';
 import { adminAnalyticsRoutes } from './routes/admin-analytics.js';
 import { adminOperationsRoutes } from './routes/admin-operations.js';
 import { shipmentRoutes } from './routes/shipments.js';
+import { webhookRoutes } from './routes/webhooks.js';
 
 const app = Fastify({
   bodyLimit: 5_242_880, // 5MB max — suporta base64 de logos de marcas
@@ -138,6 +136,7 @@ async function start() {
 
   // Rastreamento de envios (Correios)
   await app.register(shipmentRoutes, { prefix: '/api/shipments' });
+  await app.register(webhookRoutes, { prefix: '/api/webhooks' });
 
   // Admin Panel (HTML)
   await app.register(adminPanelRoutes, { prefix: '/admin' });
@@ -214,43 +213,6 @@ async function start() {
 
   await app.listen({ port, host });
   app.log.info(`Brandly API rodando em http://${host}:${port}`);
-
-  // ── Sync automático de compradores via Google Sheets (a cada 3 min) ──
-  const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/19SDQsSIz2GNCqeibXQcetHb-TRIPFQSkBYo5zewmgGw/export?format=csv';
-
-  async function syncBuyersFromSheet() {
-    try {
-
-      const res = await fetch(SHEET_CSV, { redirect: 'follow', signal: AbortSignal.timeout(15_000) });
-      if (!res.ok) return;
-
-      const csv = await res.text();
-      const lines = csv.split('\n').slice(1);
-      let synced = 0;
-
-      for (const line of lines) {
-        const cols = line.split(',');
-        const email = (cols[3] ?? '').trim().replace(/"/g, '').toLowerCase();
-        if (!email || !email.includes('@')) continue;
-
-        const [existing] = await db.select({ id: users.id, hasPurchased: users.hasPurchased })
-          .from(users).where(eq(users.email, email)).limit(1);
-
-        if (existing && !existing.hasPurchased) {
-          await db.update(users).set({ hasPurchased: true, updatedAt: new Date() }).where(eq(users.id, existing.id));
-          synced++;
-        }
-      }
-
-      if (synced > 0) app.log.info(`[sync-buyers] ${synced} novo(s) comprador(es) marcado(s)`);
-    } catch (err) {
-      app.log.error(`[sync-buyers] Erro: ${err instanceof Error ? err.message : err}`);
-    }
-  }
-
-  // Primeira execução após 10s, depois a cada 3 min
-  setTimeout(syncBuyersFromSheet, 10_000);
-  setInterval(syncBuyersFromSheet, 3 * 60 * 1000);
 }
 
 start().catch((err) => {

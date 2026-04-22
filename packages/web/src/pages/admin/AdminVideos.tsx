@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Video,
   ExternalLink,
@@ -102,15 +102,29 @@ type StatusFilter = 'pending' | 'approved' | 'rejected' | 'all';
 export default function AdminVideos() {
   const navigate = useNavigate();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [videos, setVideos] = useState<AdminVideo[]>([]);
   const [, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectModal, setRejectModal] = useState<{ id: string; creatorName: string } | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
-  const [brandFilter, setBrandFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    (searchParams.get('status') as StatusFilter) ?? (searchParams.get('brandId') ? 'all' : 'pending'),
+  );
+  const [brandFilter, setBrandFilter] = useState<string>(searchParams.get('brandId') ?? '');
   const [brandsList, setBrandsList] = useState<AdminBrand[]>([]);
+
+  // Sincroniza filtros com a URL pra que deep-links (ex: card de marca) funcionem
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    if (statusFilter === 'pending') next.delete('status'); else next.set('status', statusFilter);
+    if (brandFilter) next.set('brandId', brandFilter); else next.delete('brandId');
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, brandFilter]);
 
   const fetchVideos = useCallback(async () => {
     setLoading(true);

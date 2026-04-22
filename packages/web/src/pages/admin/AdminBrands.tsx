@@ -644,6 +644,7 @@ interface BrandCardProps {
 }
 
 function BrandCard({ brand, onToggleStatus, onEdit, onClick }: BrandCardProps) {
+  const navigate = useNavigate();
   const categoryColor = getCategoryColor(brand.category);
   const categoryLabel = getCategoryLabel(brand.category);
   const initial = brand.name.charAt(0).toUpperCase();
@@ -712,12 +713,20 @@ function BrandCard({ brand, onToggleStatus, onEdit, onClick }: BrandCardProps) {
             <span className="font-bold themed-text">{brand.activeCreators ?? brand.activeCreatorsCount ?? 0}</span> creators
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Video className="w-3.5 h-3.5 themed-text-muted" />
-          <span className="text-xs themed-text-secondary">
-            <span className="font-bold themed-text">{brand.videosThisMonth ?? 0}</span> videos/mes
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/admin/videos?brandId=${brand.id}&status=all`);
+          }}
+          className="flex items-center gap-1.5 hover:text-brand-primary-light transition-colors group/vids"
+          title="Ver videos desta marca"
+        >
+          <Video className="w-3.5 h-3.5 themed-text-muted group-hover/vids:text-brand-primary-light" />
+          <span className="text-xs themed-text-secondary group-hover/vids:text-brand-primary-light">
+            <span className="font-bold themed-text group-hover/vids:text-brand-primary-light">{brand.videosThisMonth ?? 0}</span> videos/mes
           </span>
-        </div>
+        </button>
       </div>
 
       {/* Actions */}

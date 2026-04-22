@@ -57,6 +57,13 @@ export async function computeBrandMatch(
   criteria: BrandCriteria,
   application: ApplicationInput,
 ): Promise<MatchResult> {
+  // normaliza handles — tira @ e espaços (evita "@@renannreina" nos logs/prompt)
+  application = {
+    ...application,
+    instagramHandle: application.instagramHandle?.replace(/^@/, '').trim() || null,
+    tiktokHandle: application.tiktokHandle?.replace(/^@/, '').trim() || null,
+  };
+
   // 1) scraping em paralelo
   const [instagram, tiktok] = await Promise.all([
     application.instagramHandle

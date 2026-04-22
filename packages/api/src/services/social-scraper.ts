@@ -3,7 +3,10 @@
  * Reutilizado pela rota /api/social/connect-manual e pelo serviço de match de marca.
  */
 
-const UA =
+// Instagram bloqueia User-Agents de browser comum, mas serve meta tags completas pra crawlers conhecidos
+// como facebookexternalhit (o próprio bot do Meta). TikTok funciona com UA de browser normal.
+const UA_CRAWLER = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
+const UA_BROWSER =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
 
 export interface SocialProfileData {
@@ -34,7 +37,7 @@ export async function fetchInstagramProfile(username: string): Promise<SocialPro
 
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': UA, Accept: 'text/html' },
+      headers: { 'User-Agent': UA_CRAWLER, Accept: 'text/html' },
       redirect: 'follow',
       signal: AbortSignal.timeout(8000),
     });
@@ -76,7 +79,7 @@ export async function fetchTiktokProfile(username: string): Promise<SocialProfil
 
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': UA, Accept: 'text/html' },
+      headers: { 'User-Agent': UA_BROWSER, Accept: 'text/html' },
       redirect: 'follow',
       signal: AbortSignal.timeout(8000),
     });

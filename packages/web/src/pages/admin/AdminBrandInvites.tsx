@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Copy, Mail, Check, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Copy, Mail, Check, Trash2 } from 'lucide-react';
 import { adminBrandInvitesApi, adminApi } from '@/lib/api';
 
 interface Brand {
@@ -18,6 +19,7 @@ interface Invite {
 }
 
 export default function AdminBrandInvites() {
+  const navigate = useNavigate();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,6 +87,13 @@ export default function AdminBrandInvites() {
 
   return (
     <div className="max-w-5xl mx-auto p-6">
+      <button
+        onClick={() => navigate('/admin')}
+        className="flex items-center gap-2 text-sm themed-text-muted hover:themed-text transition-colors mb-4"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Voltar para o menu
+      </button>
       <h1 className="text-2xl font-bold themed-text mb-2">Convites de Marcas</h1>
       <p className="themed-text-muted mb-6">
         Gere convites para marcas parceiras acessarem o portal

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { db } from '@brandly/core';
-import { videos, payments, users, briefings, calculateVideoPayment, getVideoPaymentConstants } from '@brandly/core';
+import { videos, payments, users, brands, briefings, calculateVideoPayment, getVideoPaymentConstants } from '@brandly/core';
 import { sendPushNotification, videoApprovedNotification, videoRejectedNotification } from '@brandly/core';
 import { eq, and, sql, gte, lte, desc, count } from 'drizzle-orm';
 
@@ -74,11 +74,22 @@ export async function videoRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     const { userId } = request.user;
 
-    const result = await db.select()
+    const rows = await db.select({
+      video: videos,
+      brandName: brands.name,
+      brandLogoUrl: brands.logoUrl,
+    })
       .from(videos)
+      .leftJoin(brands, eq(videos.brandId, brands.id))
       .where(eq(videos.creatorId, userId))
       .orderBy(desc(videos.createdAt))
       .limit(50);
+
+    const result = rows.map((r) => ({
+      ...r.video,
+      brandName: r.brandName,
+      brandLogoUrl: r.brandLogoUrl,
+    }));
 
     const { start, end } = todayRange();
 

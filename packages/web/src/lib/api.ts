@@ -112,6 +112,8 @@ export const adminBrandCriteriaApi = {
       targetGender?: string | null;
       minInstagramFollowers?: number | null;
       minTiktokFollowers?: number | null;
+      instagramHandle?: string | null;
+      tiktokHandle?: string | null;
       aiCriteria?: string | null;
     },
   ) => api.patch(`/api/admin/brands/${id}/match-criteria`, data),
@@ -532,6 +534,8 @@ export interface AdminBrand {
   targetGender?: string | null;
   minInstagramFollowers?: number | null;
   minTiktokFollowers?: number | null;
+  instagramHandle?: string | null;
+  tiktokHandle?: string | null;
   aiCriteria?: string | null;
 }
 

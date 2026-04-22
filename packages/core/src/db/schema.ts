@@ -149,6 +149,8 @@ export const brands = pgTable('brands', {
   targetGender: varchar('target_gender', { length: 20 }), // any | female | male | other
   minInstagramFollowers: integer('min_instagram_followers'),
   minTiktokFollowers: integer('min_tiktok_followers'),
+  instagramHandle: varchar('instagram_handle', { length: 100 }), // @ oficial da marca (referência de estilo)
+  tiktokHandle: varchar('tiktok_handle', { length: 100 }),
   aiCriteria: text('ai_criteria'),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),

@@ -1065,6 +1065,7 @@ export const adminBrandInvitesApi = {
         createdAt: string;
       }>;
     }>('/api/admin/brand-invites'),
+  remove: (id: string) => api.delete(`/api/admin/brand-invites/${id}`),
 };
 
 export const adminBrandPayoutsApi = {

@@ -118,6 +118,27 @@ export async function brandPortalRoutes(app: FastifyInstance) {
     },
   );
 
+  // DELETE /api/admin/brand-invites/:id — remover convite
+  app.delete<{ Params: { id: string } }>(
+    '/admin/brand-invites/:id',
+    { preHandler: [app.requireAdmin] },
+    async (request, reply) => {
+      const [row] = await db
+        .select({ id: brandInvites.id, acceptedAt: brandInvites.acceptedAt })
+        .from(brandInvites)
+        .where(eq(brandInvites.id, request.params.id))
+        .limit(1);
+      if (!row) return reply.code(404).send({ error: 'Convite nao encontrado' });
+      if (row.acceptedAt) {
+        return reply
+          .code(400)
+          .send({ error: 'Convite ja foi aceito. Remova o usuario da marca em vez disso.' });
+      }
+      await db.delete(brandInvites).where(eq(brandInvites.id, row.id));
+      return { deleted: true };
+    },
+  );
+
   // ============================================
   // PUBLICO: Aceitar convite
   // ============================================

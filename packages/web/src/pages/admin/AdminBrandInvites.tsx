@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Copy, Mail, Check } from 'lucide-react';
+import { Copy, Mail, Check, Trash2 } from 'lucide-react';
 import { adminBrandInvitesApi, adminApi } from '@/lib/api';
 
 interface Brand {
@@ -68,6 +68,20 @@ export default function AdminBrandInvites() {
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function handleDelete(invite: Invite) {
+    if (invite.acceptedAt) {
+      alert('Convite ja foi aceito. Remova o usuario da marca em vez disso.');
+      return;
+    }
+    if (!confirm(`Remover o convite enviado para ${invite.email}?`)) return;
+    try {
+      await adminBrandInvitesApi.remove(invite.id);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao remover');
+    }
   }
 
   return (
@@ -174,7 +188,7 @@ export default function AdminBrandInvites() {
                       {new Date(invite.createdAt).toLocaleDateString('pt-BR')}
                     </div>
                   </div>
-                  <div>
+                  <div className="flex items-center gap-2">
                     {isAccepted ? (
                       <span className="text-xs px-2 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/30">
                         Aceito
@@ -187,6 +201,15 @@ export default function AdminBrandInvites() {
                       <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
                         Pendente
                       </span>
+                    )}
+                    {!isAccepted && (
+                      <button
+                        onClick={() => handleDelete(invite)}
+                        className="p-2 rounded-lg themed-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        title="Remover convite"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
                 </div>

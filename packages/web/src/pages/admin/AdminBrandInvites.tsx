@@ -71,11 +71,10 @@ export default function AdminBrandInvites() {
   }
 
   async function handleDelete(invite: Invite) {
-    if (invite.acceptedAt) {
-      alert('Convite ja foi aceito. Remova o usuario da marca em vez disso.');
-      return;
-    }
-    if (!confirm(`Remover o convite enviado para ${invite.email}?`)) return;
+    const message = invite.acceptedAt
+      ? `⚠️ Este convite JA foi aceito.\n\nRemover vai:\n• Deletar a conta de acesso de ${invite.email}\n• Revogar o acesso da marca ${invite.brandName}\n• Remover o convite\n\nConfirmar?`
+      : `Remover o convite enviado para ${invite.email}?`;
+    if (!confirm(message)) return;
     try {
       await adminBrandInvitesApi.remove(invite.id);
       await load();
@@ -202,15 +201,13 @@ export default function AdminBrandInvites() {
                         Pendente
                       </span>
                     )}
-                    {!isAccepted && (
-                      <button
-                        onClick={() => handleDelete(invite)}
-                        className="p-2 rounded-lg themed-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                        title="Remover convite"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleDelete(invite)}
+                      className="p-2 rounded-lg themed-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      title={isAccepted ? 'Revogar acesso e remover convite' : 'Remover convite'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               );

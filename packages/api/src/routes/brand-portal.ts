@@ -118,24 +118,37 @@ export async function brandPortalRoutes(app: FastifyInstance) {
     },
   );
 
-  // DELETE /api/admin/brand-invites/:id — remover convite
+  // DELETE /api/admin/brand-invites/:id — remover convite (e user da marca se aceito)
   app.delete<{ Params: { id: string } }>(
     '/admin/brand-invites/:id',
     { preHandler: [app.requireAdmin] },
     async (request, reply) => {
-      const [row] = await db
-        .select({ id: brandInvites.id, acceptedAt: brandInvites.acceptedAt })
+      const [invite] = await db
+        .select({
+          id: brandInvites.id,
+          email: brandInvites.email,
+          acceptedAt: brandInvites.acceptedAt,
+        })
         .from(brandInvites)
         .where(eq(brandInvites.id, request.params.id))
         .limit(1);
-      if (!row) return reply.code(404).send({ error: 'Convite nao encontrado' });
-      if (row.acceptedAt) {
-        return reply
-          .code(400)
-          .send({ error: 'Convite ja foi aceito. Remova o usuario da marca em vez disso.' });
+      if (!invite) return reply.code(404).send({ error: 'Convite nao encontrado' });
+
+      // Se foi aceito, remover tambem o user brand e o vinculo com a marca
+      if (invite.acceptedAt) {
+        const [user] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(eq(users.email, invite.email), eq(users.role, 'brand')))
+          .limit(1);
+        if (user) {
+          await db.delete(brandUsers).where(eq(brandUsers.userId, user.id));
+          await db.delete(users).where(eq(users.id, user.id));
+        }
       }
-      await db.delete(brandInvites).where(eq(brandInvites.id, row.id));
-      return { deleted: true };
+
+      await db.delete(brandInvites).where(eq(brandInvites.id, invite.id));
+      return { deleted: true, revokedAccess: !!invite.acceptedAt };
     },
   );
 

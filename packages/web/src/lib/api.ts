@@ -194,8 +194,14 @@ export const adminApi = {
     ),
   userDetail: (id: string) =>
     api.get<{ user: AdminUser; profile: AdminUserProfile }>(`/api/users/${id}`),
-  reviewQueue: () =>
-    api.get<{ videos: AdminVideo[]; total: number }>('/api/videos/review-queue'),
+  reviewQueue: (params?: { status?: string; brandId?: string; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.status) qs.set('status', params.status);
+    if (params?.brandId) qs.set('brandId', params.brandId);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const suffix = qs.toString() ? `?${qs}` : '';
+    return api.get<{ videos: AdminVideo[]; total: number }>(`/api/videos/review-queue${suffix}`);
+  },
   reviewVideo: (id: string, data: { status: 'approved' | 'rejected'; rejectionReason?: string }) =>
     api.patch(`/api/videos/${id}/review`, data),
   behavioralProfile: (userId: string) =>
@@ -374,13 +380,17 @@ export interface AdminUserProfile {
 
 export interface AdminVideo {
   id: string;
-  url: string;
+  url?: string;
+  externalUrl?: string;
   platform: string;
   status: string;
   createdAt: string;
+  rejectionReason?: string | null;
   creatorName?: string;
   creatorId?: string;
+  brandId?: string;
   brandName?: string;
+  brandLogoUrl?: string | null;
 }
 
 export interface AdminCreatorDiagnostic {

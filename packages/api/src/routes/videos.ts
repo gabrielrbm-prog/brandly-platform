@@ -396,15 +396,52 @@ export async function videoRoutes(app: FastifyInstance) {
   );
 
   // GET /api/videos/review-queue (admin)
-  app.get('/review-queue', {
-    preHandler: [app.requireAdmin],
-  }, async (request, reply) => {
-    const pending = await db.select()
-      .from(videos)
-      .where(eq(videos.status, 'pending'))
-      .orderBy(videos.createdAt)
-      .limit(50);
+  // query: status=pending|approved|rejected|all (default pending), brandId, limit (default 50)
+  app.get<{ Querystring: { status?: string; brandId?: string; limit?: string } }>(
+    '/review-queue',
+    { preHandler: [app.requireAdmin] },
+    async (request, reply) => {
+      const { status, brandId, limit: rawLimit } = request.query;
+      const limit = Math.min(200, Math.max(1, Number(rawLimit ?? 50)));
 
-    return { videos: pending, total: pending.length };
-  });
+      const conditions = [];
+      if (!status || status === 'pending') {
+        conditions.push(eq(videos.status, 'pending'));
+      } else if (status === 'approved' || status === 'rejected') {
+        conditions.push(eq(videos.status, status));
+      }
+      if (brandId) {
+        conditions.push(eq(videos.brandId, brandId));
+      }
+
+      const whereClause = conditions.length ? and(...conditions) : undefined;
+
+      const rows = await db.select({
+        id: videos.id,
+        creatorId: videos.creatorId,
+        brandId: videos.brandId,
+        briefingId: videos.briefingId,
+        externalUrl: videos.externalUrl,
+        platform: videos.platform,
+        status: videos.status,
+        rejectionReason: videos.rejectionReason,
+        paymentAmount: videos.paymentAmount,
+        isPaid: videos.isPaid,
+        createdAt: videos.createdAt,
+        reviewedAt: videos.reviewedAt,
+        creatorName: users.name,
+        creatorEmail: users.email,
+        brandName: brands.name,
+        brandLogoUrl: brands.logoUrl,
+      })
+        .from(videos)
+        .leftJoin(users, eq(videos.creatorId, users.id))
+        .leftJoin(brands, eq(videos.brandId, brands.id))
+        .where(whereClause)
+        .orderBy(desc(videos.createdAt))
+        .limit(limit);
+
+      return { videos: rows, total: rows.length };
+    },
+  );
 }

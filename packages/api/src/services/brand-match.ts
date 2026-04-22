@@ -16,8 +16,6 @@ export interface BrandCriteria {
   targetGender: string | null; // any | female | male | other
   minInstagramFollowers: number | null;
   minTiktokFollowers: number | null;
-  instagramHandle: string | null; // @ oficial da marca
-  tiktokHandle: string | null;
   aiCriteria: string | null;
 }
 
@@ -217,10 +215,6 @@ Seja objetivo. Considere apenas os critérios textuais da marca. Score alto = ó
 
   const userPrompt = `Marca: ${criteria.name} (categoria: ${criteria.category}).
 Descrição da marca: ${criteria.description ?? '—'}.
-Perfis oficiais da marca (use como referência de estilo/nicho):
-- Instagram: ${criteria.instagramHandle ? `@${criteria.instagramHandle} (https://instagram.com/${criteria.instagramHandle})` : '—'}
-- TikTok: ${criteria.tiktokHandle ? `@${criteria.tiktokHandle} (https://tiktok.com/@${criteria.tiktokHandle})` : '—'}
-
 Critérios de creator ideal (texto livre da marca):
 """
 ${criteria.aiCriteria}

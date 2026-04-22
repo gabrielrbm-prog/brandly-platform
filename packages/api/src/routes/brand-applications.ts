@@ -105,8 +105,6 @@ export async function brandApplicationRoutes(app: FastifyInstance) {
             targetGender: brand.targetGender,
             minInstagramFollowers: brand.minInstagramFollowers,
             minTiktokFollowers: brand.minTiktokFollowers,
-            instagramHandle: brand.instagramHandle,
-            tiktokHandle: brand.tiktokHandle,
             aiCriteria: brand.aiCriteria,
           },
           { fullName, age, email, gender, instagramHandle, tiktokHandle },
@@ -330,8 +328,6 @@ export async function brandApplicationRoutes(app: FastifyInstance) {
       targetGender?: string | null;
       minInstagramFollowers?: number | null;
       minTiktokFollowers?: number | null;
-      instagramHandle?: string | null;
-      tiktokHandle?: string | null;
       aiCriteria?: string | null;
     };
   }>(
@@ -347,8 +343,6 @@ export async function brandApplicationRoutes(app: FastifyInstance) {
       if ('targetGender' in body) patch.targetGender = body.targetGender;
       if ('minInstagramFollowers' in body) patch.minInstagramFollowers = body.minInstagramFollowers;
       if ('minTiktokFollowers' in body) patch.minTiktokFollowers = body.minTiktokFollowers;
-      if ('instagramHandle' in body) patch.instagramHandle = body.instagramHandle;
-      if ('tiktokHandle' in body) patch.tiktokHandle = body.tiktokHandle;
       if ('aiCriteria' in body) patch.aiCriteria = body.aiCriteria;
 
       if (Object.keys(patch).length === 0) {

@@ -1029,8 +1029,6 @@ function MatchCriteriaTab({ brand, onSaved }: MatchCriteriaTabProps) {
     targetGender: brand.targetGender ?? 'any',
     minInstagramFollowers: brand.minInstagramFollowers?.toString() ?? '',
     minTiktokFollowers: brand.minTiktokFollowers?.toString() ?? '',
-    instagramHandle: brand.instagramHandle ?? '',
-    tiktokHandle: brand.tiktokHandle ?? '',
     aiCriteria: brand.aiCriteria ?? '',
   });
   const [saving, setSaving] = useState(false);
@@ -1046,8 +1044,6 @@ function MatchCriteriaTab({ brand, onSaved }: MatchCriteriaTabProps) {
       minTiktokFollowers: form.minTiktokFollowers
         ? parseInt(form.minTiktokFollowers, 10)
         : null,
-      instagramHandle: form.instagramHandle.replace(/^@/, '').trim() || null,
-      tiktokHandle: form.tiktokHandle.replace(/^@/, '').trim() || null,
       aiCriteria: form.aiCriteria.trim() || null,
     };
     setSaving(true);
@@ -1132,29 +1128,6 @@ function MatchCriteriaTab({ brand, onSaved }: MatchCriteriaTabProps) {
             onChange={(e) => setForm({ ...form, minTiktokFollowers: e.target.value })}
             placeholder="ex: 1000"
           />
-        </div>
-
-        <div className="pt-2 border-t themed-border">
-          <p className="text-xs font-semibold themed-text-muted uppercase tracking-wide mb-3">
-            Perfis oficiais da marca (referência)
-          </p>
-          <p className="text-xs themed-text-muted mb-3">
-            A IA usa esses perfis como referência de estilo e nicho ao avaliar candidatos.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="@ Instagram da marca"
-              value={form.instagramHandle}
-              onChange={(e) => setForm({ ...form, instagramHandle: e.target.value })}
-              placeholder="marca.oficial"
-            />
-            <Input
-              label="@ TikTok da marca"
-              value={form.tiktokHandle}
-              onChange={(e) => setForm({ ...form, tiktokHandle: e.target.value })}
-              placeholder="marca.oficial"
-            />
-          </div>
         </div>
 
         <div>

@@ -141,8 +141,15 @@ export const brands = pgTable('brands', {
   contactEmail: varchar('contact_email', { length: 255 }),
   minVideosPerMonth: integer('min_videos_per_month').default(0),
   maxCreators: integer('max_creators'),
-  videoPriceBrand: decimal('video_price_brand', { precision: 10, scale: 2 }).default('15.00').notNull(),
+  videoPriceBrand: decimal('video_price_brand', { precision: 10, scale: 2 }).default('20.00').notNull(),
   videoPriceCreator: decimal('video_price_creator', { precision: 10, scale: 2 }).default('10.00').notNull(),
+  // Critérios de match para candidaturas
+  targetAgeMin: integer('target_age_min'),
+  targetAgeMax: integer('target_age_max'),
+  targetGender: varchar('target_gender', { length: 20 }), // any | female | male | other
+  minInstagramFollowers: integer('min_instagram_followers'),
+  minTiktokFollowers: integer('min_tiktok_followers'),
+  aiCriteria: text('ai_criteria'),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
@@ -610,4 +617,45 @@ export const brandPayouts = pgTable('brand_payouts', {
   index('brand_payouts_creator_idx').on(table.creatorId),
   index('brand_payouts_period_idx').on(table.period),
   index('brand_payouts_status_idx').on(table.status),
+]);
+
+// ============================================
+// CANDIDATURAS DE CREATORS PARA MARCAS
+// ============================================
+export const brandApplicationStatusEnum = pgEnum('brand_application_status', [
+  'pending',
+  'approved',
+  'rejected',
+]);
+
+export const brandApplications = pgTable('brand_applications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  brandId: uuid('brand_id').references(() => brands.id, { onDelete: 'cascade' }).notNull(),
+  creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Dados do formulário
+  fullName: varchar('full_name', { length: 255 }).notNull(),
+  age: integer('age').notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  gender: varchar('gender', { length: 20 }).notNull(), // female | male | other
+  instagramHandle: varchar('instagram_handle', { length: 100 }),
+  tiktokHandle: varchar('tiktok_handle', { length: 100 }),
+
+  // Análise IA
+  matchScore: integer('match_score'), // 0-100
+  aiAnalysis: text('ai_analysis'),
+  aiReasoning: jsonb('ai_reasoning').$type<Record<string, unknown>>(),
+
+  // Workflow
+  status: brandApplicationStatusEnum('status').notNull().default('pending'),
+  rejectionReason: text('rejection_reason'),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('brand_applications_brand_idx').on(table.brandId),
+  index('brand_applications_creator_idx').on(table.creatorId),
+  index('brand_applications_status_idx').on(table.status),
 ]);

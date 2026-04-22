@@ -79,6 +79,42 @@ export const brandsApi = {
   connect: (id: string) => api.post(`/api/brands/${id}/connect`),
   disconnect: (id: string) => api.delete(`/api/brands/${id}/disconnect`),
   my: () => api.get('/api/brands/my'),
+  apply: (
+    id: string,
+    data: {
+      fullName: string;
+      age: number;
+      email: string;
+      gender: 'female' | 'male' | 'other';
+      instagramHandle?: string;
+      tiktokHandle?: string;
+    },
+  ) => api.post(`/api/brands/${id}/apply`, data),
+  myApplications: () => api.get('/api/creator/applications'),
+};
+
+// Brand-side: approval queue for the brand user
+export const brandApplicationsApi = {
+  list: (status?: 'pending' | 'approved' | 'rejected') =>
+    api.get(`/api/brand/applications${status ? `?status=${status}` : ''}`),
+  approve: (id: string) => api.post(`/api/brand/applications/${id}/approve`),
+  reject: (id: string, reason?: string) =>
+    api.post(`/api/brand/applications/${id}/reject`, { reason }),
+};
+
+// Admin-side: match criteria editor
+export const adminBrandCriteriaApi = {
+  update: (
+    id: string,
+    data: {
+      targetAgeMin?: number | null;
+      targetAgeMax?: number | null;
+      targetGender?: string | null;
+      minInstagramFollowers?: number | null;
+      minTiktokFollowers?: number | null;
+      aiCriteria?: string | null;
+    },
+  ) => api.patch(`/api/admin/brands/${id}/match-criteria`, data),
 };
 
 // Videos
@@ -490,6 +526,13 @@ export interface AdminBrand {
   activeCreatorsCount?: number;
   videosThisMonth?: number;
   createdAt: string;
+  // Critérios de match (IA)
+  targetAgeMin?: number | null;
+  targetAgeMax?: number | null;
+  targetGender?: string | null;
+  minInstagramFollowers?: number | null;
+  minTiktokFollowers?: number | null;
+  aiCriteria?: string | null;
 }
 
 export interface AdminBrandCreator {

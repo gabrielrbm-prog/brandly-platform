@@ -46,6 +46,7 @@ import BrandDashboard from '@/pages/brand/BrandDashboard';
 import BrandCreators from '@/pages/brand/BrandCreators';
 import BrandVideos from '@/pages/brand/BrandVideos';
 import BrandPayments from '@/pages/brand/BrandPayments';
+import BrandApplications from '@/pages/brand/BrandApplications';
 import AcceptBrandInvite from '@/pages/brand/AcceptBrandInvite';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -145,6 +146,7 @@ export default function App() {
       {/* Brand Portal */}
       <Route path="/marca" element={<BrandRoute><BrandLayout /></BrandRoute>}>
         <Route index element={<BrandDashboard />} />
+        <Route path="candidaturas" element={<BrandApplications />} />
         <Route path="creators" element={<BrandCreators />} />
         <Route path="videos" element={<BrandVideos />} />
         <Route path="pagamentos" element={<BrandPayments />} />

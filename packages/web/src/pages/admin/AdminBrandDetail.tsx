@@ -18,9 +18,11 @@ import {
   ChevronRight,
   Upload,
   Trash2,
+  Sparkles,
 } from 'lucide-react';
 import {
   adminApi,
+  adminBrandCriteriaApi,
   type AdminBrand,
   type AdminBrandCreator,
   type AdminBriefing,
@@ -68,7 +70,7 @@ const TONE_OPTIONS = [
   { value: 'educational', label: 'Educativo' },
 ];
 
-type TabId = 'creators' | 'briefings' | 'products' | 'stats';
+type TabId = 'creators' | 'briefings' | 'products' | 'stats' | 'match';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1012,6 +1014,148 @@ function ProductsTab({ brandId, products, onRefresh }: ProductsTabProps) {
   );
 }
 
+// ─── Match Criteria Tab ───────────────────────────────────────────────────────
+
+interface MatchCriteriaTabProps {
+  brand: AdminBrand;
+  onSaved: (updated: Partial<AdminBrand>) => void;
+}
+
+function MatchCriteriaTab({ brand, onSaved }: MatchCriteriaTabProps) {
+  const toast = useToast();
+  const [form, setForm] = useState({
+    targetAgeMin: brand.targetAgeMin?.toString() ?? '',
+    targetAgeMax: brand.targetAgeMax?.toString() ?? '',
+    targetGender: brand.targetGender ?? 'any',
+    minInstagramFollowers: brand.minInstagramFollowers?.toString() ?? '',
+    minTiktokFollowers: brand.minTiktokFollowers?.toString() ?? '',
+    aiCriteria: brand.aiCriteria ?? '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    const payload = {
+      targetAgeMin: form.targetAgeMin ? parseInt(form.targetAgeMin, 10) : null,
+      targetAgeMax: form.targetAgeMax ? parseInt(form.targetAgeMax, 10) : null,
+      targetGender: form.targetGender === 'any' ? null : form.targetGender,
+      minInstagramFollowers: form.minInstagramFollowers
+        ? parseInt(form.minInstagramFollowers, 10)
+        : null,
+      minTiktokFollowers: form.minTiktokFollowers
+        ? parseInt(form.minTiktokFollowers, 10)
+        : null,
+      aiCriteria: form.aiCriteria.trim() || null,
+    };
+    setSaving(true);
+    try {
+      await adminBrandCriteriaApi.update(brand.id, payload);
+      toast.success('Critérios de match salvos.');
+      onSaved(payload);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao salvar critérios.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card>
+      <div className="space-y-5">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 text-brand-primary-light" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold themed-text">Critérios de Match (IA)</h3>
+            <p className="text-xs themed-text-muted mt-1">
+              Quando um creator se candidata a essa marca, a IA avalia idade, gênero, redes sociais
+              e os critérios textuais aqui pra gerar um score de 0-100%.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Idade mínima"
+            type="number"
+            min={13}
+            max={99}
+            value={form.targetAgeMin}
+            onChange={(e) => setForm({ ...form, targetAgeMin: e.target.value })}
+            placeholder="ex: 18"
+          />
+          <Input
+            label="Idade máxima"
+            type="number"
+            min={13}
+            max={99}
+            value={form.targetAgeMax}
+            onChange={(e) => setForm({ ...form, targetAgeMax: e.target.value })}
+            placeholder="ex: 35"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium themed-text-secondary mb-1.5">
+            Gênero alvo
+          </label>
+          <select
+            value={form.targetGender}
+            onChange={(e) => setForm({ ...form, targetGender: e.target.value })}
+            className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text focus:outline-none focus:border-brand-primary/50"
+          >
+            <option value="any">Qualquer</option>
+            <option value="female">Feminino</option>
+            <option value="male">Masculino</option>
+            <option value="other">Outro</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Mínimo de seguidores Instagram"
+            type="number"
+            min={0}
+            value={form.minInstagramFollowers}
+            onChange={(e) => setForm({ ...form, minInstagramFollowers: e.target.value })}
+            placeholder="ex: 1000"
+          />
+          <Input
+            label="Mínimo de seguidores TikTok"
+            type="number"
+            min={0}
+            value={form.minTiktokFollowers}
+            onChange={(e) => setForm({ ...form, minTiktokFollowers: e.target.value })}
+            placeholder="ex: 1000"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium themed-text-secondary mb-1.5">
+            Perfil de creator ideal (texto livre)
+          </label>
+          <textarea
+            value={form.aiCriteria}
+            onChange={(e) => setForm({ ...form, aiCriteria: e.target.value })}
+            rows={6}
+            placeholder="Ex: Buscamos creators que falam sobre saúde, bem-estar e rotina fitness. Evitamos perfis que promovem dietas restritivas ou conteúdo com linguagem vulgar. Valorizamos quem já menciona suplementos ou marcas do nicho."
+            className="w-full rounded-xl border themed-border themed-surface px-3 py-2.5 text-sm themed-text placeholder:themed-text-muted focus:outline-none focus:border-brand-primary/50 resize-none"
+          />
+          <p className="text-xs themed-text-muted mt-1">
+            A IA (Gemini) lê esse texto e compara com a bio e perfil público do candidato nas redes.
+          </p>
+        </div>
+
+        <div className="pt-2 border-t themed-border flex justify-end">
+          <Button variant="primary" onClick={handleSave} loading={saving}>
+            Salvar critérios
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // ─── Stats Tab ────────────────────────────────────────────────────────────────
 
 function StatsTab({ stats }: { stats: AdminBrandStats }) {
@@ -1127,6 +1271,7 @@ export default function AdminBrandDetail() {
     { id: 'creators', label: 'Creators', icon: <Users className="w-4 h-4" />, count: creators.length },
     { id: 'briefings', label: 'Briefings', icon: <FileText className="w-4 h-4" />, count: briefings.length },
     { id: 'products', label: 'Produtos', icon: <Package className="w-4 h-4" />, count: products.length },
+    { id: 'match', label: 'Match IA', icon: <Sparkles className="w-4 h-4" /> },
     { id: 'stats', label: 'Stats', icon: <BarChart3 className="w-4 h-4" /> },
   ];
 
@@ -1282,6 +1427,12 @@ export default function AdminBrandDetail() {
               brandId={brand.id}
               products={products}
               onRefresh={fetchData}
+            />
+          )}
+          {activeTab === 'match' && (
+            <MatchCriteriaTab
+              brand={brand}
+              onSaved={(patch) => setBrand({ ...brand, ...patch })}
             />
           )}
           {activeTab === 'stats' && stats && <StatsTab stats={stats} />}

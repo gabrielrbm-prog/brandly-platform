@@ -4,6 +4,7 @@ import {
   Users,
   Film,
   Wallet,
+  UserPlus,
   LogOut,
   Moon,
   Sun,
@@ -16,6 +17,7 @@ import { logos } from '@/lib/logos';
 
 const navItems = [
   { to: '/marca', icon: LayoutDashboard, label: 'Painel', end: true },
+  { to: '/marca/candidaturas', icon: UserPlus, label: 'Candidaturas' },
   { to: '/marca/creators', icon: Users, label: 'Creators' },
   { to: '/marca/videos', icon: Film, label: 'Videos' },
   { to: '/marca/pagamentos', icon: Wallet, label: 'Pagamentos' },

@@ -47,6 +47,10 @@ import BrandCreators from '@/pages/brand/BrandCreators';
 import BrandVideos from '@/pages/brand/BrandVideos';
 import BrandPayments from '@/pages/brand/BrandPayments';
 import BrandApplications from '@/pages/brand/BrandApplications';
+import BrandProfile from '@/pages/brand/BrandProfile';
+import BrandBriefings from '@/pages/brand/BrandBriefings';
+import BrandProducts from '@/pages/brand/BrandProducts';
+import BrandMatch from '@/pages/brand/BrandMatch';
 import AcceptBrandInvite from '@/pages/brand/AcceptBrandInvite';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -150,6 +154,10 @@ export default function App() {
         <Route path="creators" element={<BrandCreators />} />
         <Route path="videos" element={<BrandVideos />} />
         <Route path="pagamentos" element={<BrandPayments />} />
+        <Route path="briefings" element={<BrandBriefings />} />
+        <Route path="produtos" element={<BrandProducts />} />
+        <Route path="match" element={<BrandMatch />} />
+        <Route path="perfil" element={<BrandProfile />} />
       </Route>
 
       {/* Protected */}

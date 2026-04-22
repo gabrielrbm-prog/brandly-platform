@@ -5,6 +5,10 @@ import {
   Film,
   Wallet,
   UserPlus,
+  FileText,
+  Package,
+  Sparkles,
+  Building2,
   LogOut,
   Moon,
   Sun,
@@ -19,8 +23,12 @@ const navItems = [
   { to: '/marca', icon: LayoutDashboard, label: 'Painel', end: true },
   { to: '/marca/candidaturas', icon: UserPlus, label: 'Candidaturas' },
   { to: '/marca/creators', icon: Users, label: 'Creators' },
-  { to: '/marca/videos', icon: Film, label: 'Videos' },
+  { to: '/marca/videos', icon: Film, label: 'Vídeos' },
   { to: '/marca/pagamentos', icon: Wallet, label: 'Pagamentos' },
+  { to: '/marca/briefings', icon: FileText, label: 'Briefings' },
+  { to: '/marca/produtos', icon: Package, label: 'Produtos' },
+  { to: '/marca/match', icon: Sparkles, label: 'Match IA' },
+  { to: '/marca/perfil', icon: Building2, label: 'Meu Perfil' },
 ];
 
 export default function BrandLayout() {

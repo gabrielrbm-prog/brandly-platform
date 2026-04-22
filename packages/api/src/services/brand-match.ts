@@ -109,7 +109,8 @@ export async function computeBrandMatch(
   } else if (igMin > 0 && !igOk) {
     igDetail = `${igFollowers.toLocaleString('pt-BR')} seguidores — abaixo do mínimo ${igMin.toLocaleString('pt-BR')}.`;
   } else {
-    igDetail = `${igFollowers.toLocaleString('pt-BR')} seguidores no Instagram.`;
+    const bioSnippet = instagram.bio ? ` · Bio: "${instagram.bio.slice(0, 120)}"` : '';
+    igDetail = `${igFollowers.toLocaleString('pt-BR')} seguidores no Instagram${bioSnippet}`;
   }
 
   // 5) tiktok
@@ -124,7 +125,14 @@ export async function computeBrandMatch(
   } else if (ttMin > 0 && !ttOk) {
     ttDetail = `${ttFollowers.toLocaleString('pt-BR')} seguidores — abaixo do mínimo ${ttMin.toLocaleString('pt-BR')}.`;
   } else {
-    ttDetail = `${ttFollowers.toLocaleString('pt-BR')} seguidores no TikTok.`;
+    const extras: string[] = [];
+    if (tiktok.avgLikes > 0)
+      extras.push(`${tiktok.avgLikes.toLocaleString('pt-BR')} likes médios/vídeo`);
+    if (tiktok.engagementRate)
+      extras.push(`${tiktok.engagementRate}% engagement ${engagementQuality(tiktok.engagementRate)}`);
+    const extrasStr = extras.length ? ` · ${extras.join(' · ')}` : '';
+    const bioSnippet = tiktok.bio ? ` · Bio: "${tiktok.bio.slice(0, 120)}"` : '';
+    ttDetail = `${ttFollowers.toLocaleString('pt-BR')} seguidores no TikTok${extrasStr}${bioSnippet}`;
   }
 
   // 6) critério IA (texto livre) — só chama IA se houver critério definido
@@ -182,6 +190,41 @@ export async function computeBrandMatch(
   };
 }
 
+function formatPlatformBlock(
+  label: string,
+  handle: string | null | undefined,
+  profile: SocialProfileData | null,
+): string {
+  if (!handle) return `${label}: não informado pelo candidato.`;
+  if (!profile || !profile.found) {
+    return `${label}: @${handle} — perfil não encontrado ou privado. (Sem dados públicos.)`;
+  }
+  const lines: string[] = [`${label}: @${handle}`];
+  if (profile.displayName) lines.push(`  Nome público: ${profile.displayName}`);
+  lines.push(`  Seguidores: ${profile.followers.toLocaleString('pt-BR')}`);
+  if (profile.following > 0)
+    lines.push(`  Seguindo: ${profile.following.toLocaleString('pt-BR')}`);
+  if (profile.totalVideos)
+    lines.push(`  Total de vídeos: ${profile.totalVideos.toLocaleString('pt-BR')}`);
+  if (profile.avgLikes > 0)
+    lines.push(`  Média de likes por post: ${profile.avgLikes.toLocaleString('pt-BR')}`);
+  if (profile.engagementRate)
+    lines.push(
+      `  Engagement rate: ${profile.engagementRate}% ${engagementQuality(profile.engagementRate)}`,
+    );
+  if (profile.isVerified) lines.push('  Verificado: sim');
+  if (profile.bio) lines.push(`  Bio: "${profile.bio.slice(0, 400)}"`);
+  return lines.join('\n');
+}
+
+function engagementQuality(rate: number): string {
+  if (rate > 50) return '(muito alto — likes vêm de fora dos seguidores, sinal de alcance viral)';
+  if (rate >= 6) return '(excelente)';
+  if (rate >= 3) return '(bom)';
+  if (rate >= 1) return '(médio)';
+  return '(baixo)';
+}
+
 function scoreFollowers(profile: SocialProfileData | null, min: number | null): number {
   if (!profile) return 50; // sem handle — neutro
   if (!profile.found) return 30; // handle passou, perfil não achado
@@ -216,26 +259,43 @@ async function evaluateWithAI(
 
   const model = process.env.OPENROUTER_MODEL ?? 'google/gemini-2.0-flash-001';
 
-  const systemPrompt = `Você é um analista de UGC que avalia quão bem um creator se encaixa no perfil desejado por uma marca.
-Responda SEMPRE em JSON no formato: {"score": <0-100>, "detail": "<explicação curta em pt-BR>"}.
-Seja objetivo. Considere apenas os critérios textuais da marca. Score alto = ótimo match.`;
+  const systemPrompt = `Você é um analista sênior de creators de UGC que avalia compatibilidade entre creator e marca para campanhas pagas por produção (não afiliação).
 
-  const userPrompt = `Marca: ${criteria.name} (categoria: ${criteria.category}).
-Descrição da marca: ${criteria.description ?? '—'}.
-Critérios de creator ideal (texto livre da marca):
+Sua análise deve considerar:
+- Coerência entre bio/nicho do creator e o posicionamento da marca
+- Sinais de autenticidade (linguagem, emojis, estilo)
+- Engagement rate (likes/seguidores) como proxy de qualidade de audiência
+- Tamanho da audiência proporcional às expectativas da marca
+- Red flags (conteúdo conflitante, nicho incompatível, perfil suspeito)
+
+Responda SEMPRE em JSON: {"score": <0-100>, "detail": "<análise em pt-BR, 2-4 frases, específica e acionável>"}.
+
+Score: 80-100 match excelente · 60-79 bom · 40-59 mediano · 0-39 baixo.
+Na explicação, SEMPRE mencione evidências concretas da bio quando disponível. Se a bio estiver vazia ou genérica, aponte isso como limitação. Não invente informações que não estão no contexto.`;
+
+  const igBlock = formatPlatformBlock('Instagram', application.instagramHandle, instagram);
+  const ttBlock = formatPlatformBlock('TikTok', application.tiktokHandle, tiktok);
+
+  const userPrompt = `MARCA
+Nome: ${criteria.name}
+Categoria: ${criteria.category}
+Descrição: ${criteria.description ?? '—'}
+Perfil de creator ideal:
 """
 ${criteria.aiCriteria}
 """
 
-Candidato:
-- Nome: ${application.fullName}
-- Idade: ${application.age}
-- Gênero: ${application.gender}
-- Instagram: @${application.instagramHandle ?? '—'} ${instagram?.found ? `(${instagram.followers} seguidores${instagram.bio ? `, bio: "${instagram.bio}"` : ''})` : '(não encontrado)'}
-- TikTok: @${application.tiktokHandle ?? '—'} ${tiktok?.found ? `(${tiktok.followers} seguidores${tiktok.bio ? `, bio: "${tiktok.bio}"` : ''})` : '(não encontrado)'}
+CANDIDATO
+Nome: ${application.fullName}
+Idade: ${application.age} anos
+Gênero: ${application.gender}
 
-Avalie de 0 a 100 o quanto esse candidato combina com os critérios textuais da marca.
-Responda só com o JSON.`;
+REDES SOCIAIS
+${igBlock}
+
+${ttBlock}
+
+Avalie de 0 a 100 a compatibilidade com os critérios da marca. Explique com base nos dados disponíveis. Se os dados sobre conteúdo do creator forem limitados (ex: só bio), cite isso na análise para a marca ter transparência. Responda só o JSON.`;
 
   const response = await client.chat.completions.create({
     model,

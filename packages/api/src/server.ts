@@ -36,6 +36,7 @@ import { shipmentRoutes } from './routes/shipments.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { brandPortalRoutes } from './routes/brand-portal.js';
 import { brandApplicationRoutes } from './routes/brand-applications.js';
+import { brandSelfServiceRoutes } from './routes/brand-self-service.js';
 
 const app = Fastify({
   bodyLimit: 5_242_880, // 5MB max — suporta base64 de logos de marcas
@@ -141,6 +142,7 @@ async function start() {
   await app.register(webhookRoutes, { prefix: '/api/webhooks' });
   await app.register(brandPortalRoutes, { prefix: '/api' });
   await app.register(brandApplicationRoutes, { prefix: '/api' });
+  await app.register(brandSelfServiceRoutes, { prefix: '/api' });
 
   // Admin Panel (HTML)
   await app.register(adminPanelRoutes, { prefix: '/admin' });

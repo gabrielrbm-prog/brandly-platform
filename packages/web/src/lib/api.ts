@@ -93,6 +93,72 @@ export const brandsApi = {
   myApplications: () => api.get('/api/creator/applications'),
 };
 
+// Brand self-service: edita próprio perfil, briefings, produtos, match
+export const brandSelfApi = {
+  getProfile: () => api.get('/api/brand/profile'),
+  updateProfile: (data: {
+    name?: string;
+    logoUrl?: string | null;
+    description?: string | null;
+    website?: string | null;
+    contactEmail?: string | null;
+    minVideosPerMonth?: number | null;
+    maxCreators?: number | null;
+  }) => api.patch('/api/brand/profile', data),
+  updateMatchCriteria: (data: {
+    targetAgeMin?: number | null;
+    targetAgeMax?: number | null;
+    targetGender?: string | null;
+    minInstagramFollowers?: number | null;
+    minTiktokFollowers?: number | null;
+    aiCriteria?: string | null;
+  }) => api.patch('/api/brand/match-criteria', data),
+
+  // Briefings
+  listBriefings: () => api.get('/api/brand/briefings'),
+  createBriefing: (data: {
+    title: string;
+    description: string;
+    doList?: string[];
+    dontList?: string[];
+    technicalRequirements?: string;
+    tone?: string;
+    exampleUrls?: string[];
+    status?: 'active' | 'inactive';
+  }) => api.post('/api/brand/briefings', data),
+  updateBriefing: (id: string, data: {
+    title?: string;
+    description?: string;
+    doList?: string[];
+    dontList?: string[];
+    technicalRequirements?: string;
+    tone?: string;
+    exampleUrls?: string[];
+  }) => api.patch(`/api/brand/briefings/${id}`, data),
+  toggleBriefing: (id: string) => api.patch(`/api/brand/briefings/${id}/toggle-status`),
+  deleteBriefing: (id: string) => api.delete(`/api/brand/briefings/${id}`),
+
+  // Produtos
+  listProducts: () => api.get('/api/brand/products'),
+  createProduct: (data: {
+    name: string;
+    type: 'physical' | 'digital';
+    price: number;
+    commissionPercent: number;
+    trackingType?: 'link' | 'cupom';
+    status?: 'active' | 'inactive' | 'draft';
+  }) => api.post('/api/brand/products', data),
+  updateProduct: (id: string, data: {
+    name?: string;
+    type?: 'physical' | 'digital';
+    price?: number;
+    commissionPercent?: number;
+    trackingType?: 'link' | 'cupom';
+  }) => api.patch(`/api/brand/products/${id}`, data),
+  toggleProduct: (id: string) => api.patch(`/api/brand/products/${id}/toggle-status`),
+  deleteProduct: (id: string) => api.delete(`/api/brand/products/${id}`),
+};
+
 // Brand-side: approval queue for the brand user
 export const brandApplicationsApi = {
   list: (status?: 'pending' | 'approved' | 'rejected') =>

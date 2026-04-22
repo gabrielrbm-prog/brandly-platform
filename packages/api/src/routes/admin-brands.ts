@@ -140,7 +140,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
     // Mes atual para contagem de videos
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
-    const rows = await db.select({
+    const baseRows = await db.select({
       id: brands.id,
       name: brands.name,
       logoUrl: brands.logoUrl,
@@ -150,21 +150,48 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
       minVideosPerMonth: brands.minVideosPerMonth,
       maxCreators: brands.maxCreators,
       createdAt: brands.createdAt,
-      activeCreators: sql<number>`(
-        SELECT COUNT(*) FROM creator_brands cb
-        WHERE cb.brand_id = ${brands.id} AND cb.is_active = true
-      )::int`,
-      videosThisMonth: sql<number>`(
-        SELECT COUNT(*) FROM videos v
-        WHERE v.brand_id = ${brands.id}
-          AND to_char(v.created_at, 'YYYY-MM') = ${currentMonth}
-      )::int`,
     })
       .from(brands)
       .where(whereClause)
       .orderBy(desc(brands.createdAt))
       .offset(offset)
       .limit(limit);
+
+    const brandIds = baseRows.map((r) => r.id);
+    const countMap = new Map<string, { activeCreators: number; videosThisMonth: number }>();
+
+    if (brandIds.length) {
+      const countsRows = await db.execute(sql`
+        SELECT
+          b.id AS brand_id,
+          COALESCE(cc.c, 0)::int AS active_creators,
+          COALESCE(vc.c, 0)::int AS videos_this_month
+        FROM brands b
+        LEFT JOIN (
+          SELECT brand_id, COUNT(*) AS c FROM creator_brands
+          WHERE is_active = true GROUP BY brand_id
+        ) cc ON cc.brand_id = b.id
+        LEFT JOIN (
+          SELECT brand_id, COUNT(*) AS c FROM videos
+          WHERE to_char(created_at, 'YYYY-MM') = ${currentMonth}
+          GROUP BY brand_id
+        ) vc ON vc.brand_id = b.id
+        WHERE b.id IN (${sql.join(brandIds.map((id) => sql`${id}`), sql`, `)})
+      `);
+
+      for (const c of countsRows as unknown as Array<{ brand_id: string; active_creators: number; videos_this_month: number }>) {
+        countMap.set(c.brand_id, {
+          activeCreators: Number(c.active_creators ?? 0),
+          videosThisMonth: Number(c.videos_this_month ?? 0),
+        });
+      }
+    }
+
+    const rows = baseRows.map((r) => ({
+      ...r,
+      activeCreators: countMap.get(r.id)?.activeCreators ?? 0,
+      videosThisMonth: countMap.get(r.id)?.videosThisMonth ?? 0,
+    }));
 
     const [totalRow] = await db.select({ total: count() })
       .from(brands)

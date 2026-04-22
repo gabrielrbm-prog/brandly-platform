@@ -309,6 +309,80 @@ export async function videoRoutes(app: FastifyInstance) {
     },
   );
 
+  // PATCH /api/videos/:id — creator edita URL/platform do proprio video (nao aprovado)
+  app.patch<{ Params: { id: string }; Body: { externalUrl?: string; platform?: string } }>(
+    '/:id',
+    { preHandler: [app.authenticate] },
+    async (request, reply) => {
+      const { id } = request.params;
+      const { externalUrl, platform } = request.body ?? {};
+      const { userId } = request.user;
+
+      if (!externalUrl && !platform) {
+        return reply.status(400).send({ error: 'Informe externalUrl ou platform' });
+      }
+
+      if (externalUrl && !/^https?:\/\/.+/.test(externalUrl)) {
+        return reply.status(400).send({ error: 'externalUrl deve ser uma URL valida' });
+      }
+
+      const [video] = await db.select()
+        .from(videos)
+        .where(and(eq(videos.id, id), eq(videos.creatorId, userId)))
+        .limit(1);
+
+      if (!video) {
+        return reply.status(404).send({ error: 'Video nao encontrado' });
+      }
+
+      if (video.status === 'approved') {
+        return reply.status(400).send({ error: 'Video ja aprovado nao pode ser editado' });
+      }
+
+      const patch: Record<string, unknown> = {};
+      if (externalUrl) patch.externalUrl = externalUrl;
+      if (platform) patch.platform = platform;
+      if (video.status === 'rejected') {
+        patch.status = 'pending';
+        patch.rejectionReason = null;
+        patch.reviewedAt = null;
+      }
+
+      const [updated] = await db.update(videos)
+        .set(patch)
+        .where(eq(videos.id, id))
+        .returning();
+
+      return { video: updated, message: 'Video atualizado.' };
+    },
+  );
+
+  // DELETE /api/videos/:id — creator remove o proprio video (nao aprovado)
+  app.delete<{ Params: { id: string } }>(
+    '/:id',
+    { preHandler: [app.authenticate] },
+    async (request, reply) => {
+      const { id } = request.params;
+      const { userId } = request.user;
+
+      const [video] = await db.select()
+        .from(videos)
+        .where(and(eq(videos.id, id), eq(videos.creatorId, userId)))
+        .limit(1);
+
+      if (!video) {
+        return reply.status(404).send({ error: 'Video nao encontrado' });
+      }
+
+      if (video.status === 'approved') {
+        return reply.status(400).send({ error: 'Video aprovado nao pode ser removido' });
+      }
+
+      await db.delete(videos).where(eq(videos.id, id));
+      return { success: true };
+    },
+  );
+
   // GET /api/videos/review-queue (admin)
   app.get('/review-queue', {
     preHandler: [app.requireAdmin],

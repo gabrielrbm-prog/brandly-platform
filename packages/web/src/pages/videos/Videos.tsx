@@ -13,6 +13,9 @@ import {
   Calendar,
   Tag,
   X,
+  ExternalLink,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { videosApi, brandsApi } from '@/lib/api';
 import PageContainer from '@/components/layout/PageContainer';
@@ -68,6 +71,10 @@ export default function Videos() {
   const [videoUrl, setVideoUrl] = useState('');
   const [platform, setPlatform] = useState<Platform>('tiktok');
   const [submitting, setSubmitting] = useState(false);
+  const [editing, setEditing] = useState<VideoItem | null>(null);
+  const [editUrl, setEditUrl] = useState('');
+  const [editPlatform, setEditPlatform] = useState<Platform>('tiktok');
+  const [editSaving, setEditSaving] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -106,6 +113,34 @@ export default function Videos() {
     } catch (err: any) {
       alert(err.message ?? 'Erro ao enviar video.');
     } finally { setSubmitting(false); }
+  }
+
+  function openEdit(v: VideoItem) {
+    setEditing(v);
+    setEditUrl(v.externalUrl ?? '');
+    setEditPlatform((v.platform as Platform) ?? 'tiktok');
+  }
+
+  async function handleEditSave() {
+    if (!editing || !editUrl.trim()) return;
+    setEditSaving(true);
+    try {
+      await videosApi.update(editing.id, { externalUrl: editUrl.trim(), platform: editPlatform });
+      setEditing(null);
+      fetchData();
+    } catch (err: any) {
+      alert(err.message ?? 'Erro ao atualizar video.');
+    } finally { setEditSaving(false); }
+  }
+
+  async function handleDelete(v: VideoItem) {
+    if (!confirm(`Remover este video enviado para ${v.brandName}?`)) return;
+    try {
+      await videosApi.remove(v.id);
+      fetchData();
+    } catch (err: any) {
+      alert(err.message ?? 'Erro ao remover video.');
+    }
   }
 
   const count = summary?.submitted ?? 0;
@@ -179,6 +214,7 @@ export default function Videos() {
             <div className="space-y-2">
               {videos.map((v) => {
                 const st = STATUS_MAP[v.status];
+                const canEdit = v.status !== 'approved';
                 return (
                   <div
                     key={v.id}
@@ -188,7 +224,7 @@ export default function Videos() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <st.icon className="w-4 h-4 shrink-0" style={{ color: st.variant === 'success' ? '#10B981' : st.variant === 'warning' ? '#F59E0B' : '#EF4444' }} />
-                        <span className="font-semibold themed-text truncate">{v.brandName}</span>
+                        <span className="font-semibold themed-text truncate">{v.brandName || 'Marca removida'}</span>
                       </div>
                       <Badge variant={st.variant}>{st.label}</Badge>
                     </div>
@@ -196,8 +232,42 @@ export default function Videos() {
                       <div className="flex items-center gap-1 themed-text-muted">
                         <Calendar className="w-3 h-3" />
                         <span className="text-xs">{formatDate(v.createdAt)}</span>
+                        {v.platform && (
+                          <span className="text-xs themed-text-muted ml-2 capitalize">· {v.platform}</span>
+                        )}
                       </div>
                       <span className="text-sm font-bold text-emerald-400">R$ {(v.payment ?? 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t themed-border">
+                      {v.externalUrl && (
+                        <a
+                          href={v.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs themed-text-secondary hover:text-brand-primary-light transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Abrir video
+                        </a>
+                      )}
+                      {canEdit && (
+                        <>
+                          <button
+                            onClick={() => openEdit(v)}
+                            className="flex items-center gap-1.5 text-xs themed-text-secondary hover:text-brand-primary-light transition-colors ml-auto"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDelete(v)}
+                            className="flex items-center gap-1.5 text-xs themed-text-secondary hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Remover
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -271,6 +341,63 @@ export default function Videos() {
               Enviar
             </Button>
             <button onClick={() => setModalOpen(false)} className="w-full py-3 text-center themed-text-secondary text-sm mt-2 hover:themed-text transition-colors">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setEditing(null)} />
+          <div className="relative w-full max-w-md themed-surface rounded-t-2xl sm:rounded-2xl themed-border p-6 mx-0 sm:mx-4">
+            <button onClick={() => setEditing(null)} className="absolute top-4 right-4 themed-text-muted hover:themed-text">
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 mb-5">
+              <Pencil className="w-5 h-5 text-brand-primary" />
+              <h3 className="text-xl font-bold themed-text">Editar Video</h3>
+            </div>
+
+            <p className="text-sm themed-text-muted mb-4">
+              Marca: <span className="font-semibold themed-text">{editing.brandName}</span>
+              {editing.status === 'rejected' && (
+                <span className="block mt-1 text-xs text-amber-400">
+                  Video rejeitado — ao salvar, volta para pendente.
+                </span>
+              )}
+            </p>
+
+            <Input
+              label="URL do Video"
+              icon={<LinkIcon className="w-4 h-4" />}
+              placeholder="https://..."
+              value={editUrl}
+              onChange={(e) => setEditUrl(e.target.value)}
+            />
+
+            <label className="text-sm font-semibold themed-text-secondary block mt-4 mb-2">Plataforma</label>
+            <div className="grid grid-cols-3 gap-2 mb-5">
+              {(['tiktok', 'instagram', 'youtube'] as Platform[]).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setEditPlatform(p)}
+                  className={`py-2 rounded-xl text-sm border text-center transition-colors ${
+                    editPlatform === p
+                      ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light font-semibold'
+                      : 'themed-surface-light themed-border themed-text-secondary'
+                  }`}
+                >
+                  {p === 'tiktok' ? 'TikTok' : p === 'instagram' ? 'Instagram' : 'YouTube'}
+                </button>
+              ))}
+            </div>
+
+            <Button onClick={handleEditSave} loading={editSaving} icon={<Send className="w-4 h-4" />} className="w-full">
+              Salvar
+            </Button>
+            <button onClick={() => setEditing(null)} className="w-full py-3 text-center themed-text-secondary text-sm mt-2 hover:themed-text transition-colors">
               Cancelar
             </button>
           </div>

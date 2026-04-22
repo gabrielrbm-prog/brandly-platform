@@ -309,17 +309,17 @@ export async function videoRoutes(app: FastifyInstance) {
     },
   );
 
-  // PATCH /api/videos/:id — creator edita URL/platform do proprio video (nao aprovado)
-  app.patch<{ Params: { id: string }; Body: { externalUrl?: string; platform?: string } }>(
+  // PATCH /api/videos/:id — creator edita URL/platform/brand do proprio video (nao aprovado)
+  app.patch<{ Params: { id: string }; Body: { externalUrl?: string; platform?: string; brandId?: string } }>(
     '/:id',
     { preHandler: [app.authenticate] },
     async (request, reply) => {
       const { id } = request.params;
-      const { externalUrl, platform } = request.body ?? {};
+      const { externalUrl, platform, brandId } = request.body ?? {};
       const { userId } = request.user;
 
-      if (!externalUrl && !platform) {
-        return reply.status(400).send({ error: 'Informe externalUrl ou platform' });
+      if (!externalUrl && !platform && !brandId) {
+        return reply.status(400).send({ error: 'Informe externalUrl, platform ou brandId' });
       }
 
       if (externalUrl && !/^https?:\/\/.+/.test(externalUrl)) {
@@ -342,6 +342,18 @@ export async function videoRoutes(app: FastifyInstance) {
       const patch: Record<string, unknown> = {};
       if (externalUrl) patch.externalUrl = externalUrl;
       if (platform) patch.platform = platform;
+      if (brandId && brandId !== video.brandId) {
+        const [brand] = await db.select({ id: brands.id })
+          .from(brands)
+          .where(eq(brands.id, brandId))
+          .limit(1);
+        if (!brand) {
+          return reply.status(404).send({ error: 'Marca nao encontrada' });
+        }
+        patch.brandId = brandId;
+        // trocar marca limpa briefingId (vai rebuscar no proximo submit ou deixa null)
+        patch.briefingId = null;
+      }
       if (video.status === 'rejected') {
         patch.status = 'pending';
         patch.rejectionReason = null;

@@ -39,6 +39,7 @@ interface DailySummary {
 
 interface VideoItem {
   id: string;
+  brandId: string;
   brandName: string;
   externalUrl?: string;
   platform?: string;
@@ -74,6 +75,8 @@ export default function Videos() {
   const [editing, setEditing] = useState<VideoItem | null>(null);
   const [editUrl, setEditUrl] = useState('');
   const [editPlatform, setEditPlatform] = useState<Platform>('tiktok');
+  const [editBrandId, setEditBrandId] = useState('');
+  const [editBrands, setEditBrands] = useState<Brand[]>([]);
   const [editSaving, setEditSaving] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -115,17 +118,27 @@ export default function Videos() {
     } finally { setSubmitting(false); }
   }
 
-  function openEdit(v: VideoItem) {
+  async function openEdit(v: VideoItem) {
     setEditing(v);
     setEditUrl(v.externalUrl ?? '');
     setEditPlatform((v.platform as Platform) ?? 'tiktok');
+    setEditBrandId(v.brandId);
+    try {
+      const res = (await brandsApi.my()) as { brands: Array<{ brand: Brand } | Brand> };
+      const brands = (res.brands ?? []).map((b: any) => b.brand ?? b);
+      setEditBrands(brands);
+    } catch { setEditBrands([]); }
   }
 
   async function handleEditSave() {
     if (!editing || !editUrl.trim()) return;
     setEditSaving(true);
     try {
-      await videosApi.update(editing.id, { externalUrl: editUrl.trim(), platform: editPlatform });
+      await videosApi.update(editing.id, {
+        externalUrl: editUrl.trim(),
+        platform: editPlatform,
+        brandId: editBrandId,
+      });
       setEditing(null);
       fetchData();
     } catch (err: any) {
@@ -360,14 +373,37 @@ export default function Videos() {
               <h3 className="text-xl font-bold themed-text">Editar Video</h3>
             </div>
 
-            <p className="text-sm themed-text-muted mb-4">
-              Marca: <span className="font-semibold themed-text">{editing.brandName}</span>
-              {editing.status === 'rejected' && (
-                <span className="block mt-1 text-xs text-amber-400">
-                  Video rejeitado — ao salvar, volta para pendente.
-                </span>
+            {editing.status === 'rejected' && (
+              <p className="mb-4 text-xs text-amber-400">
+                Video rejeitado — ao salvar, volta para pendente.
+              </p>
+            )}
+
+            <label className="text-sm font-semibold themed-text-secondary flex items-center gap-1 mb-2">
+              <Tag className="w-3 h-3" /> Marca
+            </label>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {editBrands.length === 0 ? (
+                <span className="text-sm themed-text-muted">{editing.brandName}</span>
+              ) : (
+                editBrands.map((b) => (
+                  <button
+                    key={b.id}
+                    onClick={() => setEditBrandId(b.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm border transition-colors ${
+                      editBrandId === b.id
+                        ? 'bg-brand-primary/15 border-brand-primary text-brand-primary-light font-semibold'
+                        : 'themed-surface-light themed-border themed-text-secondary hover:border-gray-600'
+                    }`}
+                  >
+                    {b.logoUrl && (
+                      <img src={b.logoUrl} alt={b.name} className="w-5 h-5 rounded-full object-cover" />
+                    )}
+                    {b.name}
+                  </button>
+                ))
               )}
-            </p>
+            </div>
 
             <Input
               label="URL do Video"

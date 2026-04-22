@@ -86,7 +86,7 @@ export const videosApi = {
   submit: (data: unknown) => api.post('/api/videos', data),
   list: () => api.get('/api/videos'),
   dailySummary: () => api.get('/api/videos/daily'),
-  update: (id: string, data: { externalUrl?: string; platform?: string }) =>
+  update: (id: string, data: { externalUrl?: string; platform?: string; brandId?: string }) =>
     api.patch(`/api/videos/${id}`, data),
   remove: (id: string) => api.delete(`/api/videos/${id}`),
 };

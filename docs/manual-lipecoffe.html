@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bem-vindos à Brandly · Manual LipeCoffe</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Brandly palette (dominante) */
+    --bg: #0A0A0A;
+    --surface: #111111;
+    --surface-light: #1A1A1A;
+    --surface-card: #141414;
+    --border: #262626;
+    --border-light: #333333;
+    --text: #FFFFFF;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    --brand-primary: #1D45D8;
+    --brand-primary-light: #4B6FE8;
+    --brand-primary-dark: #1538A8;
+    --brand-accent: #00DFFF;
+    --brand-accent-light: #33E8FF;
+    /* LipeCoffe accent (só em destaques da parceria) */
+    --lipe-gold: #D4A84E;
+    --lipe-gold-light: #E5BF6E;
+    --lipe-coffee: #3D2418;
+  }
+  * { font-family: 'Inter', system-ui, sans-serif; }
+  .display { font-family: 'Space Grotesk', system-ui, sans-serif; letter-spacing: -0.02em; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+  .bg-layers {
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 0%, rgba(29, 69, 216, 0.2), transparent 70%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0, 223, 255, 0.08), transparent 70%),
+      var(--bg);
+  }
+  @media print {
+    .fade-up { opacity: 1 !important; transform: none !important; }
+    .glow-orb { display: none !important; }
+    .scroll-indicator { display: none !important; }
+    section { page-break-inside: avoid; }
+    h2 { page-break-after: avoid; }
+    details { break-inside: avoid; }
+  }
+  .brand-gradient {
+    background: linear-gradient(135deg, #4B6FE8 0%, #1D45D8 50%, #00DFFF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .gold-gradient {
+    background: linear-gradient(135deg, #E5BF6E 0%, #D4A84E 50%, #A67A2A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(26, 26, 26, 0.8), rgba(17, 17, 17, 0.95));
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .card:hover {
+    border-color: rgba(29, 69, 216, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(29, 69, 216, 0.1);
+  }
+  .card-lipe {
+    background: linear-gradient(180deg, rgba(61, 36, 24, 0.3), rgba(26, 16, 10, 0.8));
+    border: 1px solid rgba(212, 168, 78, 0.3);
+  }
+  .card-lipe:hover {
+    border-color: rgba(212, 168, 78, 0.6);
+    box-shadow: 0 20px 60px rgba(212, 168, 78, 0.08);
+  }
+  .step-num {
+    background: linear-gradient(135deg, #4B6FE8, #1D45D8);
+    box-shadow: 0 0 40px rgba(29, 69, 216, 0.4);
+  }
+  .flow-line {
+    background: linear-gradient(to bottom, rgba(29, 69, 216, 0.5), transparent);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #1D45D8, #1538A8);
+    color: white;
+    transition: all 0.3s;
+    box-shadow: 0 10px 30px rgba(29, 69, 216, 0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(29, 69, 216, 0.5);
+  }
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    opacity: 0.35;
+  }
+  .pill {
+    background: rgba(29, 69, 216, 0.12);
+    border: 1px solid rgba(29, 69, 216, 0.3);
+    color: var(--brand-primary-light);
+  }
+  .pill-lipe {
+    background: rgba(212, 168, 78, 0.1);
+    border: 1px solid rgba(212, 168, 78, 0.3);
+    color: var(--lipe-gold-light);
+  }
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(29, 69, 216, 0.35), transparent);
+  }
+  .divider-lipe {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(212, 168, 78, 0.4), transparent);
+  }
+  .fade-up { opacity: 0; transform: translateY(40px); }
+  .scroll-indicator { animation: bounce 2s infinite; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+  .score-demo {
+    background: conic-gradient(from 0deg, #10b981 0deg 295deg, rgba(255,255,255,0.08) 295deg 360deg);
+  }
+  details[open] summary .chev { transform: rotate(180deg); }
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  .brandly-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .brandly-mark {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #4B6FE8, #1D45D8);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+</style>
+</head>
+
+<body class="bg-layers">
+
+<!-- TOPO FIXO (logo) -->
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[var(--bg)]/70 border-b border-[var(--border)]">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="brandly-logo">
+      <span class="brandly-mark display">B</span>
+      <span class="display text-lg font-bold">Brandly</span>
+    </div>
+    <div class="hidden md:flex items-center gap-2 text-sm">
+      <span class="text-[var(--text-muted)]">Manual exclusivo para</span>
+      <span class="pill-lipe px-3 py-1 rounded-full text-xs font-bold">☕ LipeCoffe</span>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center justify-center px-6 py-32 overflow-hidden">
+  <div class="glow-orb w-[600px] h-[600px] bg-[var(--brand-primary)] top-[-200px] left-[-200px]"></div>
+  <div class="glow-orb w-[500px] h-[500px] bg-[var(--brand-accent)] bottom-[-100px] right-[-100px]"></div>
+
+  <div class="relative max-w-5xl mx-auto text-center z-10">
+    <div class="inline-flex items-center gap-2 pill px-4 py-1.5 rounded-full text-xs tracking-widest uppercase font-semibold mb-8 fade-up">
+      <span class="w-1.5 h-1.5 rounded-full bg-[var(--brand-accent)] animate-pulse"></span>
+      Welcome Kit · Brandly × LipeCoffe
+    </div>
+
+    <h1 class="display text-5xl md:text-7xl lg:text-8xl font-bold leading-none mb-8 fade-up">
+      Bem-vindos à <br/>
+      <span class="brand-gradient">Brandly</span>
+    </h1>
+
+    <p class="text-lg md:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed font-light fade-up">
+      A plataforma de <strong class="text-white font-semibold">Creator Economy</strong> que conecta a LipeCoffe
+      a creators autênticos, com curadoria por IA, conteúdo UGC de qualidade e pagamento por produção.
+    </p>
+
+    <div class="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-[var(--text-muted)] fade-up">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span>Curadoria humana + IA</span>
+      </div>
+      <div class="w-px h-4 bg-[var(--border-light)]"></div>
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span>Conteúdo pago por vídeo</span>
+      </div>
+      <div class="w-px h-4 bg-[var(--border-light)]"></div>
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span>Portal exclusivo da marca</span>
+      </div>
+    </div>
+
+    <div class="mt-16 scroll-indicator fade-up">
+      <svg class="w-6 h-6 mx-auto text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-auto max-w-4xl"></div>
+
+<!-- O QUE É A BRANDLY -->
+<section class="relative px-6 py-24 md:py-32">
+  <div class="max-w-5xl mx-auto">
+    <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
+      <div class="fade-up">
+        <p class="text-xs tracking-[0.3em] uppercase text-[var(--brand-accent)] font-bold mb-4">Quem somos</p>
+        <h2 class="display text-4xl md:text-5xl font-bold mb-6">A nova forma de fazer <span class="brand-gradient">UGC</span></h2>
+        <p class="text-[var(--text-secondary)] text-lg leading-relaxed mb-6">
+          A Brandly é uma plataforma de <strong class="text-white">Creator Economy</strong>
+          que conecta marcas como a LipeCoffe com creators profissionais que produzem conteúdo
+          autêntico sobre seus produtos — e são remunerados por produção, não só por venda.
+        </p>
+        <p class="text-[var(--text-secondary)] leading-relaxed">
+          Creators passam por uma seleção de perfil, recebem os briefings da marca, produzem vídeos
+          em formato nativo de Instagram e TikTok, e a LipeCoffe aprova ou rejeita cada entrega.
+          Você tem controle total, visibilidade completa e um time de dezenas de criadores trabalhando
+          pela marca ao mesmo tempo.
+        </p>
+      </div>
+
+      <div class="relative fade-up">
+        <div class="card rounded-3xl p-8 md:p-10">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--lipe-gold)] to-[var(--lipe-coffee)] flex items-center justify-center text-2xl">☕</div>
+            <div>
+              <p class="font-bold text-lg">LipeCoffe</p>
+              <p class="text-xs text-[var(--text-muted)]">Parceira Fundadora Brandly</p>
+            </div>
+          </div>
+          <p class="text-sm text-[var(--text-secondary)] leading-relaxed mb-6 italic">
+            "Café funcional com 21 ativos em uma única xícara. Energia, foco e bem-estar,
+            simplificando hábitos saudáveis na rotina."
+          </p>
+          <div class="grid grid-cols-3 gap-4 pt-6 border-t border-[var(--border)]">
+            <div>
+              <p class="display text-2xl font-bold brand-gradient">10+</p>
+              <p class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Creators ativos</p>
+            </div>
+            <div>
+              <p class="display text-2xl font-bold gold-gradient">R$10</p>
+              <p class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Por vídeo</p>
+            </div>
+            <div>
+              <p class="display text-2xl font-bold brand-gradient">24/7</p>
+              <p class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Portal</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSÃO -->
+<section class="relative px-6 py-24">
+  <div class="max-w-4xl mx-auto text-center">
+    <p class="text-xs tracking-[0.3em] uppercase text-[var(--brand-accent)] font-bold mb-4 fade-up">Nossa Missão</p>
+    <h2 class="display text-4xl md:text-5xl font-bold leading-tight mb-8 fade-up">
+      Transformar a forma como marcas e<br/>
+      criadores <span class="brand-gradient">trabalham juntos</span>
+    </h2>
+    <p class="text-[var(--text-secondary)] text-lg leading-relaxed max-w-3xl mx-auto fade-up">
+      Acreditamos que UGC de qualidade nasce de criadores que se identificam com a marca.
+      Por isso aplicamos <strong class="text-white">curadoria por IA</strong> antes
+      da aprovação humana, alinhando perfis, valores e estética. O resultado: menos retrabalho,
+      menos vídeos fora do briefing, mais conteúdo autêntico rodando pela LipeCoffe.
+    </p>
+  </div>
+</section>
+
+<div class="divider mx-auto max-w-4xl"></div>
+
+<!-- COMO FUNCIONA -->
+<section class="relative px-6 py-24 md:py-32">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-20">
+      <p class="text-xs tracking-[0.3em] uppercase text-[var(--brand-accent)] font-bold mb-4 fade-up">Como funciona</p>
+      <h2 class="display text-4xl md:text-5xl font-bold fade-up">
+        O ciclo <span class="brand-gradient">Brandly</span>
+      </h2>
+    </div>
+
+    <div class="relative">
+      <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px flow-line -translate-x-1/2"></div>
+
+      <!-- STEP 1 -->
+      <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-20 fade-up">
+        <div class="md:text-right md:pr-8">
+          <div class="inline-block md:hidden w-12 h-12 rounded-full step-num text-white font-black text-xl flex items-center justify-center mb-4">1</div>
+          <h3 class="display text-2xl md:text-3xl font-bold mb-3">Creator se candidata</h3>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            Um creator interessado na LipeCoffe entra no app da Brandly, encontra a marca no catálogo
+            e preenche uma ficha de candidatura com dados pessoais, redes sociais e links.
+          </p>
+        </div>
+        <div class="relative">
+          <div class="hidden md:flex absolute left-0 top-0 -translate-x-1/2 w-14 h-14 rounded-full step-num text-white font-black text-2xl items-center justify-center z-10">1</div>
+          <div class="card rounded-2xl p-6 md:ml-8">
+            <div class="space-y-3 text-sm">
+              <div class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-light)]/50">
+                <div class="w-8 h-8 rounded-full bg-[var(--brand-primary)]/20 flex items-center justify-center text-xs">👤</div>
+                <div><p class="font-semibold">Nome completo</p><p class="text-[var(--text-muted)] text-xs">Renan Reina</p></div>
+              </div>
+              <div class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-light)]/50">
+                <div class="w-8 h-8 rounded-full bg-[var(--brand-primary)]/20 flex items-center justify-center text-xs">📸</div>
+                <div><p class="font-semibold">@ Instagram</p><p class="text-[var(--text-muted)] text-xs">@renannreina</p></div>
+              </div>
+              <div class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-light)]/50">
+                <div class="w-8 h-8 rounded-full bg-[var(--brand-primary)]/20 flex items-center justify-center text-xs">🎵</div>
+                <div><p class="font-semibold">@ TikTok</p><p class="text-[var(--text-muted)] text-xs">@renannreina</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-20 fade-up">
+        <div class="md:order-2 md:pl-8">
+          <div class="inline-block md:hidden w-12 h-12 rounded-full step-num text-white font-black text-xl flex items-center justify-center mb-4">2</div>
+          <h3 class="display text-2xl md:text-3xl font-bold mb-3">IA avalia o perfil</h3>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            Nossa inteligência analisa bio, redes sociais, engajamento e critérios definidos pela
+            LipeCoffe (idade, gênero, nicho, mínimo de seguidores). Em segundos, gera um
+            <strong class="text-white">match score de 0 a 100%</strong>.
+          </p>
+        </div>
+        <div class="relative md:order-1">
+          <div class="hidden md:flex absolute right-0 top-0 translate-x-1/2 w-14 h-14 rounded-full step-num text-white font-black text-2xl items-center justify-center z-10">2</div>
+          <div class="card rounded-2xl p-6 md:mr-8">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <p class="font-bold">Renan Reina</p>
+                <p class="text-xs text-[var(--text-muted)]">29 anos · Masculino</p>
+              </div>
+              <div class="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 px-3 py-1.5 rounded-lg font-bold text-sm border border-emerald-500/30">
+                ✨ 83%
+              </div>
+            </div>
+            <div class="text-xs text-[var(--brand-accent)] uppercase tracking-wider font-bold mb-2">Análise IA</div>
+            <div class="text-xs text-[var(--text-secondary)] leading-relaxed space-y-1">
+              <p>• Idade: dentro da faixa 18-40</p>
+              <p>• Instagram: 1.035 seguidores</p>
+              <p>• TikTok: 812 seguidores, 3.2k likes/vídeo</p>
+              <p>• Bio menciona "treino" — alinha com lifestyle</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-20 fade-up">
+        <div class="md:text-right md:pr-8">
+          <div class="inline-block md:hidden w-12 h-12 rounded-full step-num text-white font-black text-xl flex items-center justify-center mb-4">3</div>
+          <h3 class="display text-2xl md:text-3xl font-bold mb-3">Você aprova ou rejeita</h3>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            A candidatura cai no seu portal com score visível, análise da IA, links clicáveis pros
+            perfis do creator. Você decide em um clique se ele vai fazer parte da sua equipe de
+            creators ou não.
+          </p>
+        </div>
+        <div class="relative">
+          <div class="hidden md:flex absolute left-0 top-0 -translate-x-1/2 w-14 h-14 rounded-full step-num text-white font-black text-2xl items-center justify-center z-10">3</div>
+          <div class="card rounded-2xl p-6 md:ml-8">
+            <div class="flex gap-3">
+              <button class="flex-1 py-2.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm font-bold border border-emerald-500/20">
+                ✓ Aprovar
+              </button>
+              <button class="flex-1 py-2.5 rounded-lg bg-red-500/10 text-red-400 text-sm font-bold border border-red-500/20">
+                ✕ Rejeitar
+              </button>
+            </div>
+            <p class="text-xs text-[var(--text-muted)] mt-3 text-center">
+              Ao aprovar, o creator vira parceiro oficial da LipeCoffe.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-20 fade-up">
+        <div class="md:order-2 md:pl-8">
+          <div class="inline-block md:hidden w-12 h-12 rounded-full step-num text-white font-black text-xl flex items-center justify-center mb-4">4</div>
+          <h3 class="display text-2xl md:text-3xl font-bold mb-3">Creator produz os vídeos</h3>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            Seguindo o briefing da LipeCoffe, o creator produz vídeos autênticos de Instagram e
+            TikTok. Ele posta nos próprios perfis e envia o link do vídeo pro portal da Brandly
+            pra aprovação.
+          </p>
+        </div>
+        <div class="relative md:order-1">
+          <div class="hidden md:flex absolute right-0 top-0 translate-x-1/2 w-14 h-14 rounded-full step-num text-white font-black text-2xl items-center justify-center z-10">4</div>
+          <div class="card rounded-2xl p-6 md:mr-8">
+            <div class="aspect-[9/16] max-w-[160px] mx-auto rounded-xl bg-gradient-to-br from-[var(--lipe-coffee)] to-[#1c1009] border border-[var(--lipe-gold)]/30 flex flex-col items-center justify-center relative overflow-hidden">
+              <div class="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">AO VIVO</div>
+              <div class="text-4xl mb-2">☕</div>
+              <div class="text-[10px] text-[var(--lipe-gold-light)] font-bold tracking-wider">LIPECOFFE</div>
+              <div class="text-[8px] text-[var(--text-muted)] mt-1">@renannreina</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 mb-20 fade-up">
+        <div class="md:text-right md:pr-8">
+          <div class="inline-block md:hidden w-12 h-12 rounded-full step-num text-white font-black text-xl flex items-center justify-center mb-4">5</div>
+          <h3 class="display text-2xl md:text-3xl font-bold mb-3">Você aprova o vídeo</h3>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            Cada vídeo pendente aparece no portal. Se estiver dentro do briefing, aprove — o creator
+            é pago. Se não estiver, rejeite com um motivo claro e ele refaz.
+          </p>
+        </div>
+        <div class="relative">
+          <div class="hidden md:flex absolute left-0 top-0 -translate-x-1/2 w-14 h-14 rounded-full step-num text-white font-black text-2xl items-center justify-center z-10">5</div>
+          <div class="card rounded-2xl p-6 md:ml-8">
+            <div class="flex items-start gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-[var(--brand-primary)]/20 flex items-center justify-center text-sm font-bold">🎬</div>
+              <div class="flex-1">
+                <p class="font-semibold text-sm">Vídeo rotina manhã — LipeCoffe</p>
+                <p class="text-xs text-[var(--text-muted)]">Instagram · @renannreina</p>
+              </div>
+            </div>
+            <div class="space-y-1.5 text-xs text-[var(--text-secondary)]">
+              <div class="flex items-center gap-2 text-emerald-400">✓ Mostra o produto na rotina real</div>
+              <div class="flex items-center gap-2 text-emerald-400">✓ Fala o nome da marca</div>
+              <div class="flex items-center gap-2 text-emerald-400">✓ Legendas claras</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="relative grid md:grid-cols-2 gap-8 md:gap-16 fade-up">
+        <div class="md:order-2 md:pl-8">
+          <div class="inline-block md:hidden w-12 h-12 rounded-full step-num text-white font-black text-xl flex items-center justify-center mb-4">6</div>
+          <h3 class="display text-2xl md:text-3xl font-bold mb-3">Pagamento consolidado</h3>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            No fim do mês, o portal gera um relatório com todos os vídeos aprovados. A LipeCoffe
+            paga um único valor pra Brandly, e nós repassamos aos creators — sem burocracia,
+            sem gestão de NF individual, sem trabalho fiscal por creator.
+          </p>
+        </div>
+        <div class="relative md:order-1">
+          <div class="hidden md:flex absolute right-0 top-0 translate-x-1/2 w-14 h-14 rounded-full step-num text-white font-black text-2xl items-center justify-center z-10">6</div>
+          <div class="card rounded-2xl p-6 md:mr-8">
+            <p class="text-xs uppercase tracking-wider text-[var(--brand-accent)] font-bold mb-4">Fatura Novembro</p>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between"><span class="text-[var(--text-muted)]">Vídeos aprovados</span><span class="font-bold">47</span></div>
+              <div class="flex justify-between"><span class="text-[var(--text-muted)]">Creators participantes</span><span class="font-bold">8</span></div>
+              <div class="h-px bg-[var(--border)] my-3"></div>
+              <div class="flex justify-between items-baseline">
+                <span class="text-sm">Total a pagar</span>
+                <span class="display text-2xl font-bold gold-gradient">R$ 470</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-lipe mx-auto max-w-4xl"></div>
+
+<!-- PREÇO -->
+<section class="relative px-6 py-24 md:py-32">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16">
+      <p class="text-xs tracking-[0.3em] uppercase text-[var(--lipe-gold-light)] font-bold mb-4 fade-up">Investimento · Condição LipeCoffe</p>
+      <h2 class="display text-4xl md:text-5xl font-bold mb-6 fade-up">Modelo <span class="gold-gradient">transparente</span></h2>
+      <p class="text-[var(--text-secondary)] max-w-2xl mx-auto fade-up">
+        Sem contrato anual. Sem mensalidade escondida. Você paga só pelos vídeos aprovados.
+      </p>
+    </div>
+
+    <!-- Banner parceria fundadora -->
+    <div class="card-lipe rounded-2xl p-5 mb-8 fade-up relative overflow-hidden">
+      <div class="absolute top-0 right-0 bg-gradient-to-r from-[var(--lipe-gold-light)] to-[var(--lipe-gold)] text-[var(--bg)] text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl">
+        ★ Condição exclusiva LipeCoffe
+      </div>
+      <div class="flex items-start gap-4 pt-4">
+        <div class="w-10 h-10 rounded-xl bg-[var(--lipe-gold)]/20 flex items-center justify-center text-xl shrink-0">🤝</div>
+        <div>
+          <p class="font-bold text-lg mb-1">Parceria fundadora</p>
+          <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+            Como parceira fundadora da Brandly, a LipeCoffe tem um modelo especial:
+            <strong class="text-[var(--lipe-gold-light)]">100% do valor pago vai direto para o creator</strong>,
+            sem comissionamento da Brandly. Nossa plataforma, curadoria IA e repasse ficam por conta da casa.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 fade-up">
+      <div class="card rounded-2xl p-8 text-center">
+        <div class="text-xs uppercase tracking-wider text-[var(--text-muted)] font-bold mb-4">LipeCoffe paga à Brandly</div>
+        <div class="display text-5xl font-bold brand-gradient mb-2">R$ 10</div>
+        <div class="text-xs text-[var(--text-muted)]">por vídeo aprovado</div>
+      </div>
+
+      <div class="card-lipe rounded-2xl p-8 text-center relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[var(--lipe-gold-light)] to-[var(--lipe-gold)] text-[var(--bg)] text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
+          100% repassado
+        </div>
+        <div class="text-xs uppercase tracking-wider text-[var(--text-muted)] font-bold mb-4">Brandly repassa ao creator</div>
+        <div class="display text-5xl font-bold gold-gradient mb-2">R$ 10</div>
+        <div class="text-xs text-[var(--text-muted)]">valor integral, sem taxa</div>
+      </div>
+    </div>
+
+    <!-- Fluxo pagamento -->
+    <div class="card rounded-2xl p-6 mt-8 fade-up">
+      <p class="text-xs uppercase tracking-widest text-[var(--brand-accent)] font-bold mb-4 text-center">Como flui o pagamento</p>
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex-1 min-w-[140px] text-center p-3 rounded-xl bg-[var(--surface-light)]/50">
+          <div class="text-2xl mb-1">☕</div>
+          <p class="text-xs font-bold">LipeCoffe</p>
+          <p class="text-[10px] text-[var(--text-muted)]">paga R$10/vídeo aprovado</p>
+        </div>
+        <svg class="w-6 h-6 text-[var(--brand-accent)] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        <div class="flex-1 min-w-[140px] text-center p-3 rounded-xl bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/30">
+          <div class="text-2xl mb-1">✨</div>
+          <p class="text-xs font-bold">Brandly</p>
+          <p class="text-[10px] text-[var(--text-muted)]">recebe e consolida</p>
+        </div>
+        <svg class="w-6 h-6 text-[var(--brand-accent)] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        <div class="flex-1 min-w-[140px] text-center p-3 rounded-xl bg-[var(--surface-light)]/50">
+          <div class="text-2xl mb-1">🎬</div>
+          <p class="text-xs font-bold">Creators</p>
+          <p class="text-[10px] text-[var(--text-muted)]">recebem R$10 integrais</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card rounded-2xl p-6 mt-8 text-center fade-up">
+      <p class="text-sm text-[var(--text-secondary)]">
+        💡 <strong class="text-white">Exemplo prático:</strong>
+        10 creators produzindo 5 vídeos/mês cada = 50 vídeos = <strong class="text-[var(--lipe-gold-light)]">R$ 500/mês</strong>
+        em conteúdo UGC para a LipeCoffe — e todo esse valor chega integralmente aos criadores.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-auto max-w-4xl"></div>
+
+<!-- ACESSANDO O PORTAL -->
+<section class="relative px-6 py-24 md:py-32">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <p class="text-xs tracking-[0.3em] uppercase text-[var(--brand-accent)] font-bold mb-4 fade-up">Seu portal</p>
+      <h2 class="display text-4xl md:text-5xl font-bold mb-6 fade-up">
+        Tudo que você <span class="brand-gradient">precisa</span>, num só lugar
+      </h2>
+      <p class="text-[var(--text-secondary)] max-w-3xl mx-auto fade-up">
+        Acesse pelo endereço abaixo com as credenciais que enviamos por email.
+      </p>
+      <div class="inline-flex items-center gap-2 pill px-5 py-2.5 rounded-full text-sm font-semibold mt-6 fade-up">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        app.brandlycreator.com.br
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">📊</div>
+        <h3 class="display text-xl font-bold mb-2">Painel</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Visão geral da sua marca: creators ativos, vídeos pendentes, aprovados no mês e
+          pagamentos pendentes em uma única tela.
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">✨</div>
+        <h3 class="display text-xl font-bold mb-2">Candidaturas</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Creators que pediram pra trabalhar com a LipeCoffe. Cada um com score IA colorido
+          e análise detalhada — decida aprovar ou rejeitar em segundos.
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">👥</div>
+        <h3 class="display text-xl font-bold mb-2">Creators</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Lista completa dos creators aprovados, desde quando estão vinculados e contatos.
+          Sua equipe de conteúdo, toda em um só lugar.
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">🎬</div>
+        <h3 class="display text-xl font-bold mb-2">Vídeos</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Vídeos pendentes de aprovação. Veja no próprio Instagram/TikTok, aprove se
+          estiver dentro do briefing ou rejeite com motivo claro.
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">📋</div>
+        <h3 class="display text-xl font-bold mb-2">Briefings</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Defina como seus creators devem falar da LipeCoffe: tom, o que fazer, o que evitar,
+          requisitos técnicos, referências. Atualize quando quiser.
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">📦</div>
+        <h3 class="display text-xl font-bold mb-2">Produtos</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Cadastre os produtos da LipeCoffe que creators podem promover, com preço, comissão
+          e tipo de tracking (link ou cupom).
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">🤖</div>
+        <h3 class="display text-xl font-bold mb-2">Match IA</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Configure os critérios que a IA usa pra avaliar candidatos: idade, gênero,
+          seguidores mínimos e — o mais poderoso — texto livre descrevendo o creator ideal.
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">💰</div>
+        <h3 class="display text-xl font-bold mb-2">Pagamentos</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Relatórios mensais agrupados, com status (pendente, recebido, pago). Cada vídeo
+          aprovado entra automaticamente no próximo fechamento.
+        </p>
+      </div>
+
+      <div class="card rounded-2xl p-6 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/15 flex items-center justify-center mb-4 text-2xl">🏢</div>
+        <h3 class="display text-xl font-bold mb-2">Meu Perfil</h3>
+        <p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+          Edite as informações públicas da LipeCoffe: logo, descrição, website, email de
+          contato. Aparece no catálogo que os creators veem.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-auto max-w-4xl"></div>
+
+<!-- MATCH IA EM DESTAQUE -->
+<section class="relative px-6 py-24 md:py-32">
+  <div class="max-w-5xl mx-auto">
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <div class="fade-up">
+        <p class="text-xs tracking-[0.3em] uppercase text-[var(--brand-accent)] font-bold mb-4">Diferencial Brandly</p>
+        <h2 class="display text-4xl md:text-5xl font-bold mb-6">
+          Curadoria<br/>por <span class="brand-gradient">IA</span>
+        </h2>
+        <p class="text-[var(--text-secondary)] text-lg leading-relaxed mb-6">
+          Nenhum outro serviço de UGC no Brasil tem isso. Antes de qualquer candidatura chegar
+          à sua mesa, nossa IA analisa o perfil do creator, compara com os critérios da
+          LipeCoffe e gera um score.
+        </p>
+        <ul class="space-y-3 text-[var(--text-secondary)]">
+          <li class="flex items-start gap-3">
+            <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0 mt-0.5">✓</div>
+            <span>Verifica idade, gênero e nicho em segundos</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0 mt-0.5">✓</div>
+            <span>Lê a bio do Instagram e TikTok em tempo real</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0 mt-0.5">✓</div>
+            <span>Calcula engagement rate e sinaliza red flags</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0 mt-0.5">✓</div>
+            <span>Aplica seus critérios textuais ("evitar palavrão", "valorizar fitness", etc)</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="relative fade-up">
+        <div class="card rounded-3xl p-8">
+          <div class="text-center mb-6">
+            <div class="relative inline-block">
+              <div class="w-40 h-40 rounded-full score-demo flex items-center justify-center">
+                <div class="w-32 h-32 rounded-full bg-[var(--surface)] flex flex-col items-center justify-center">
+                  <span class="display text-4xl font-bold brand-gradient">83%</span>
+                  <span class="text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Match</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mb-4">
+            <p class="font-bold text-lg">Match excelente</p>
+            <p class="text-xs text-[var(--text-muted)]">Recomendação: aprovar</p>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between p-2 rounded bg-[var(--surface-light)]/50">
+              <span class="text-[var(--text-muted)]">Idade (29)</span><span class="text-emerald-400">✓ Ok</span>
+            </div>
+            <div class="flex justify-between p-2 rounded bg-[var(--surface-light)]/50">
+              <span class="text-[var(--text-muted)]">Instagram</span><span class="text-emerald-400">1.035 seguidores</span>
+            </div>
+            <div class="flex justify-between p-2 rounded bg-[var(--surface-light)]/50">
+              <span class="text-[var(--text-muted)]">TikTok</span><span class="text-emerald-400">812 seguidores</span>
+            </div>
+            <div class="flex justify-between p-2 rounded bg-[var(--surface-light)]/50">
+              <span class="text-[var(--text-muted)]">Nicho</span><span class="text-emerald-400">Fitness/lifestyle</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-auto max-w-4xl"></div>
+
+<!-- PRIMEIRO ACESSO -->
+<section class="relative px-6 py-24 md:py-32">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-16">
+      <p class="text-xs tracking-[0.3em] uppercase text-[var(--brand-accent)] font-bold mb-4 fade-up">Comece agora</p>
+      <h2 class="display text-4xl md:text-5xl font-bold mb-6 fade-up">
+        Seu <span class="brand-gradient">primeiro acesso</span>
+      </h2>
+    </div>
+
+    <div class="space-y-4">
+      <div class="card rounded-2xl p-6 md:p-8 fade-up">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl step-num text-white font-black flex items-center justify-center shrink-0">1</div>
+          <div>
+            <h3 class="display font-bold text-xl mb-2">Receba o convite por email</h3>
+            <p class="text-[var(--text-secondary)]">
+              Enviamos um email com um link único de acesso válido por 7 dias.
+              Caso não receba, cheque a caixa de spam ou nos avise.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 md:p-8 fade-up">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl step-num text-white font-black flex items-center justify-center shrink-0">2</div>
+          <div>
+            <h3 class="display font-bold text-xl mb-2">Crie sua senha</h3>
+            <p class="text-[var(--text-secondary)]">
+              Clique no botão do email, defina uma senha forte e pronto — sua conta LipeCoffe
+              já vem vinculada à marca.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 md:p-8 fade-up">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl step-num text-white font-black flex items-center justify-center shrink-0">3</div>
+          <div>
+            <h3 class="display font-bold text-xl mb-2">Configure seu perfil e briefing</h3>
+            <p class="text-[var(--text-secondary)]">
+              No menu "Meu Perfil", confira e atualize as informações públicas. Em "Briefings",
+              cadastre pelo menos um briefing ativo — é o que os creators vão seguir na produção.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 md:p-8 fade-up">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl step-num text-white font-black flex items-center justify-center shrink-0">4</div>
+          <div>
+            <h3 class="display font-bold text-xl mb-2">Defina os critérios de match IA</h3>
+            <p class="text-[var(--text-secondary)]">
+              Em "Match IA", diga à nossa inteligência o tipo de creator que faz sentido pra
+              LipeCoffe. Quanto mais específico, mais preciso o score.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 md:p-8 fade-up">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl step-num text-white font-black flex items-center justify-center shrink-0">5</div>
+          <div>
+            <h3 class="display font-bold text-xl mb-2">Aprove candidaturas e vídeos</h3>
+            <p class="text-[var(--text-secondary)]">
+              A partir daí, é só acompanhar candidaturas em "Candidaturas" e vídeos em "Vídeos".
+              O resto acontece sozinho.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-auto max-w-4xl"></div>
+
+<!-- FAQ -->
+<section class="relative px-6 py-24 md:py-32">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-16">
+      <p class="text-xs tracking-[0.3em] uppercase text-[var(--brand-accent)] font-bold mb-4 fade-up">Dúvidas comuns</p>
+      <h2 class="display text-4xl md:text-5xl font-bold fade-up">Perguntas <span class="brand-gradient">frequentes</span></h2>
+    </div>
+
+    <div class="space-y-3">
+      <details class="card rounded-2xl fade-up group">
+        <summary class="flex items-center justify-between p-6 cursor-pointer">
+          <span class="display font-semibold text-lg">Quem escolhe os creators?</span>
+          <svg class="chev w-5 h-5 transition-transform text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="px-6 pb-6 text-[var(--text-secondary)] text-sm leading-relaxed">
+          Você. A IA pré-seleciona e dá um score, mas a decisão final de aprovar ou rejeitar cada
+          candidato é 100% sua. Nenhum creator entra na sua equipe sem você aprovar.
+        </div>
+      </details>
+
+      <details class="card rounded-2xl fade-up group">
+        <summary class="flex items-center justify-between p-6 cursor-pointer">
+          <span class="display font-semibold text-lg">E se eu não gostar do vídeo que o creator produzir?</span>
+          <svg class="chev w-5 h-5 transition-transform text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="px-6 pb-6 text-[var(--text-secondary)] text-sm leading-relaxed">
+          Você rejeita com um motivo claro (ex: "não mostrou o produto em uso", "tom muito
+          agressivo"). O creator refaz, e só é pago pelo vídeo aprovado. Você nunca paga por
+          algo que não quis.
+        </div>
+      </details>
+
+      <details class="card rounded-2xl fade-up group">
+        <summary class="flex items-center justify-between p-6 cursor-pointer">
+          <span class="display font-semibold text-lg">Preciso assinar algum contrato longo?</span>
+          <svg class="chev w-5 h-5 transition-transform text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="px-6 pb-6 text-[var(--text-secondary)] text-sm leading-relaxed">
+          Não. Você paga mês a mês só pelos vídeos aprovados. Pode aumentar, diminuir ou
+          pausar as entregas a qualquer momento.
+        </div>
+      </details>
+
+      <details class="card rounded-2xl fade-up group">
+        <summary class="flex items-center justify-between p-6 cursor-pointer">
+          <span class="display font-semibold text-lg">Quem paga os creators?</span>
+          <svg class="chev w-5 h-5 transition-transform text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="px-6 pb-6 text-[var(--text-secondary)] text-sm leading-relaxed">
+          A Brandly. Você paga um valor único mensal pra gente e nós repassamos pros creators.
+          Zero burocracia fiscal, zero gestão de NF individual.
+        </div>
+      </details>
+
+      <details class="card rounded-2xl fade-up group">
+        <summary class="flex items-center justify-between p-6 cursor-pointer">
+          <span class="display font-semibold text-lg">Posso ter briefings diferentes pra cada campanha?</span>
+          <svg class="chev w-5 h-5 transition-transform text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="px-6 pb-6 text-[var(--text-secondary)] text-sm leading-relaxed">
+          Sim. Crie quantos briefings quiser — um pra cada linha de produto, campanha sazonal,
+          ou objetivo específico. Ative só os que estão rodando.
+        </div>
+      </details>
+
+      <details class="card rounded-2xl fade-up group">
+        <summary class="flex items-center justify-between p-6 cursor-pointer">
+          <span class="display font-semibold text-lg">E se o creator não postar o vídeo?</span>
+          <svg class="chev w-5 h-5 transition-transform text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="px-6 pb-6 text-[var(--text-secondary)] text-sm leading-relaxed">
+          Ele só é pago por vídeos publicados e aprovados pela LipeCoffe. Vídeo não postado =
+          zero pagamento. A Brandly acompanha quem está entregando e intervém se alguém não
+          estiver cumprindo.
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="divider mx-auto max-w-4xl"></div>
+
+<!-- CTA FINAL -->
+<section class="relative px-6 py-24 md:py-32 overflow-hidden">
+  <div class="glow-orb w-[500px] h-[500px] bg-[var(--brand-primary)] top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2"></div>
+
+  <div class="relative max-w-4xl mx-auto text-center z-10">
+    <h2 class="display text-4xl md:text-6xl font-bold mb-8 fade-up">
+      Pronto pra <span class="brand-gradient">começar?</span>
+    </h2>
+    <p class="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto mb-12 leading-relaxed fade-up">
+      A LipeCoffe já tem um time de 10 creators ativos produzindo conteúdo. O próximo passo
+      é você acessar o portal e tomar o controle.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 fade-up">
+      <a href="https://app.brandlycreator.com.br/marca" class="btn-primary px-8 py-4 rounded-xl font-bold text-base inline-flex items-center gap-2">
+        Acessar o portal
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+      </a>
+      <a href="mailto:contato@brandlycreator.com.br" class="px-8 py-4 rounded-xl font-semibold text-base border border-[var(--border-light)] hover:border-[var(--brand-primary-light)] text-white transition-colors">
+        Falar com a Brandly
+      </a>
+    </div>
+
+    <div class="mt-16 pt-8 border-t border-[var(--border)] fade-up">
+      <p class="text-sm text-[var(--text-muted)] mb-2">Contato direto</p>
+      <p class="text-white font-semibold">contato@brandlycreator.com.br</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="relative px-6 py-12 border-t border-[var(--border)]">
+  <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[var(--text-muted)]">
+    <div class="brandly-logo">
+      <span class="brandly-mark display text-sm w-8 h-8">B</span>
+      <span class="display font-bold text-white">Brandly</span>
+      <span class="ml-1">· Creator Economy</span>
+    </div>
+    <div>Documento elaborado exclusivamente para LipeCoffe</div>
+    <div>app.brandlycreator.com.br</div>
+  </div>
+</footer>
+
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.utils.toArray('.fade-up').forEach((el) => {
+    gsap.to(el, {
+      opacity: 1,
+      y: 0,
+      duration: 0.9,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 85%',
+        toggleActions: 'play none none none',
+      },
+    });
+  });
+</script>
+
+</body>
+</html>

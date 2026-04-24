@@ -95,7 +95,7 @@ export async function authRoutes(app: FastifyInstance) {
       onboardingCompleted: users.onboardingCompleted,
     });
 
-    const token = app.jwt.sign({ userId: user.id, role: user.role });
+    const token = app.jwt.sign({ userId: user.id, role: user.role, adminRole: null });
 
     // Enviar welcome email em background (nao bloqueia resposta)
     sendWelcomeEmail(email, name).catch(() => {});
@@ -125,7 +125,11 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ error: 'Credenciais invalidas' });
     }
 
-    const token = app.jwt.sign({ userId: user.id, role: user.role });
+    const token = app.jwt.sign({
+      userId: user.id,
+      role: user.role,
+      adminRole: user.adminRole ?? null,
+    });
 
     return {
       user: {
@@ -133,6 +137,7 @@ export async function authRoutes(app: FastifyInstance) {
         name: user.name,
         email: user.email,
         role: user.role,
+        adminRole: user.adminRole,
         referralCode: user.referralCode,
         onboardingCompleted: user.onboardingCompleted,
         hasPurchased: user.hasPurchased,
@@ -150,6 +155,7 @@ export async function authRoutes(app: FastifyInstance) {
       name: users.name,
       email: users.email,
       role: users.role,
+      adminRole: users.adminRole,
       referralCode: users.referralCode,
       status: users.status,
       instagramHandle: users.instagramHandle,

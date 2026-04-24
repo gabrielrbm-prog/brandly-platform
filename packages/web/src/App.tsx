@@ -39,6 +39,7 @@ import AdminCommunity from '@/pages/admin/AdminCommunity';
 import AdminExport from '@/pages/admin/AdminExport';
 import AdminCompradores from '@/pages/admin/AdminCompradores';
 import AdminBrandInvites from '@/pages/admin/AdminBrandInvites';
+import AdminTeam from '@/pages/admin/AdminTeam';
 
 // Brand Portal pages
 import BrandLayout from '@/pages/brand/BrandLayout';
@@ -193,6 +194,7 @@ export default function App() {
       <Route path="/admin/envios" element={<AdminRoute><Tracking /></AdminRoute>} />
       <Route path="/admin/export" element={<AdminRoute><AdminExport /></AdminRoute>} />
       <Route path="/admin/brand-invites" element={<AdminRoute><AdminBrandInvites /></AdminRoute>} />
+      <Route path="/admin/team" element={<AdminRoute><AdminTeam /></AdminRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

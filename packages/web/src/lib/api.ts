@@ -458,6 +458,25 @@ export const adminApi = {
     return downloadCsv(`${API_URL}/api/admin/export/payments?${params}`, 'payments');
   },
   exportVideos: async () => downloadCsv(`${API_URL}/api/admin/export/videos?format=csv`, 'videos'),
+
+  // Team / admin roles
+  team: () =>
+    api.get<{
+      team: Array<{
+        id: string;
+        name: string;
+        email: string;
+        adminRole: string | null;
+        status: string;
+        createdAt: string;
+      }>;
+    }>('/api/admin/team'),
+  setAdminRole: (userId: string, adminRole: string) =>
+    api.patch(`/api/admin/team/${userId}/role`, { adminRole }),
+  promoteToAdmin: (email: string, adminRole: string) =>
+    api.post('/api/admin/team/promote', { email, adminRole }),
+  demoteAdmin: (userId: string) =>
+    api.post(`/api/admin/team/${userId}/demote`),
 };
 
 export interface AdminUser {

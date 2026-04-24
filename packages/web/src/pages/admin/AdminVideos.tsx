@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { adminApi, type AdminVideo, type AdminBrand } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import PageContainer from '@/components/layout/PageContainer';
 import Card from '@/components/ui/Card';
@@ -102,6 +103,8 @@ type StatusFilter = 'pending' | 'approved' | 'rejected' | 'all';
 export default function AdminVideos() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { can } = useAuth();
+  const canReview = can('approve_video');
   const [searchParams, setSearchParams] = useSearchParams();
   const [videos, setVideos] = useState<AdminVideo[]>([]);
   const [, setTotal] = useState(0);
@@ -268,7 +271,7 @@ export default function AdminVideos() {
             </div>
 
             {videos.map((video) => {
-              const isPending = video.status === 'pending';
+              const isPending = video.status === 'pending' && canReview;
               const isActing = approvingId === video.id || rejectingId === video.id;
               const platformColor = PLATFORM_COLORS[video.platform] ?? '#7C3AED';
               const statusColor = isPending ? '#F59E0B' : video.status === 'approved' ? '#10B981' : '#EF4444';

@@ -449,7 +449,7 @@ export async function adminCreatorsRoutes(app: FastifyInstance) {
     Params: { id: string };
     Body: { status: 'active' | 'inactive' | 'suspended' };
   }>('/creators/:id/status', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('change_creator_status')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { status } = request.body;
@@ -500,7 +500,7 @@ export async function adminCreatorsRoutes(app: FastifyInstance) {
     Params: { id: string };
     Body: { levelId: string };
   }>('/creators/:id/level', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('change_creator_level')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { levelId } = request.body;

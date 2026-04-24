@@ -66,7 +66,7 @@ export async function adminFinancialRoutes(app: FastifyInstance) {
   // Resumo financeiro geral da plataforma
   // ---------------------------------------------------------
   app.get('/financial/overview', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('view_financial')],
   }, async (_request, reply) => {
     // Receita total (vendas confirmadas)
     const [revenueRow] = await db
@@ -124,7 +124,7 @@ export async function adminFinancialRoutes(app: FastifyInstance) {
   // Lista paginada de saques com info do creator
   // ---------------------------------------------------------
   app.get<{ Querystring: WithdrawalsQuery }>('/withdrawals', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('view_financial')],
   }, async (request, reply) => {
     const { status, page: rawPage, limit: rawLimit } = request.query;
     const { page, limit, offset } = parsePage(rawPage, rawLimit);
@@ -194,7 +194,7 @@ export async function adminFinancialRoutes(app: FastifyInstance) {
     Params: { id: string };
     Body: UpdateWithdrawalBody;
   }>('/withdrawals/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_withdrawals')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { status, reason } = request.body;
@@ -250,7 +250,7 @@ export async function adminFinancialRoutes(app: FastifyInstance) {
   // Atualiza multiplos saques em lote
   // ---------------------------------------------------------
   app.post<{ Body: BatchWithdrawalBody }>('/withdrawals/batch', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_withdrawals')],
   }, async (request, reply) => {
     const { ids, status, reason } = request.body;
     const { userId: adminId } = request.user;
@@ -309,7 +309,7 @@ export async function adminFinancialRoutes(app: FastifyInstance) {
   // Lista paginada de vendas com info do creator e da marca
   // ---------------------------------------------------------
   app.get<{ Querystring: SalesQuery }>('/sales', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('view_financial')],
   }, async (request, reply) => {
     const { status, page: rawPage, limit: rawLimit } = request.query;
     const { page, limit, offset } = parsePage(rawPage, rawLimit);
@@ -380,7 +380,7 @@ export async function adminFinancialRoutes(app: FastifyInstance) {
   // Ledger de pagamentos de todos os creators
   // ---------------------------------------------------------
   app.get<{ Querystring: PaymentsQuery }>('/payments', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('view_financial')],
   }, async (request, reply) => {
     const { type, page: rawPage, limit: rawLimit } = request.query;
     const { page, limit, offset } = parsePage(rawPage, rawLimit);

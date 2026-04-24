@@ -7,10 +7,12 @@ import {
   BarChart3, Sparkles, GraduationCap, Radio, Download, Package, Mail,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Briefcase } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { logos } from '@/lib/logos';
 import { adminApi } from '@/lib/api';
+import type { AdminAction } from '@/lib/permissions';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Inicio' },
@@ -25,11 +27,20 @@ const navItems = [
   { to: '/profile', icon: User, label: 'Perfil' },
 ];
 
-const adminNavItems = [
+type AdminNavItem = {
+  to: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  // If set, item only shown when user has this permission.
+  // Items without requiredPermission are visible to every admin.
+  requiredPermission?: AdminAction;
+};
+
+const adminNavItems: AdminNavItem[] = [
   { to: '/admin', icon: LayoutDashboard, label: 'Painel' },
-  { to: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
+  { to: '/admin/financial', icon: DollarSign, label: 'Financeiro', requiredPermission: 'view_financial' },
   { to: '/admin/brands', icon: Building2, label: 'Marcas' },
-  { to: '/admin/brand-invites', icon: Mail, label: 'Convites Marcas' },
+  { to: '/admin/brand-invites', icon: Mail, label: 'Convites Marcas', requiredPermission: 'manage_brand_invites' },
   { to: '/admin/creators', icon: Users, label: 'Creators' },
   { to: '/admin/network', icon: GitBranch, label: 'Rede' },
   { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
@@ -38,24 +49,30 @@ const adminNavItems = [
   { to: '/admin/profiles', icon: Brain, label: 'Perfis' },
   { to: '/admin/courses', icon: GraduationCap, label: 'Formacao' },
   { to: '/admin/community', icon: Radio, label: 'Comunidade' },
-  { to: '/admin/compradores', icon: Shield, label: 'Compradores' },
-  { to: '/admin/envios', icon: Package, label: 'Envios' },
-  { to: '/admin/export', icon: Download, label: 'Exportar' },
+  { to: '/admin/compradores', icon: Shield, label: 'Compradores', requiredPermission: 'view_compradores' },
+  { to: '/admin/envios', icon: Package, label: 'Envios', requiredPermission: 'view_envios' },
+  { to: '/admin/export', icon: Download, label: 'Exportar', requiredPermission: 'view_financial' },
+  { to: '/admin/team', icon: Briefcase, label: 'Time', requiredPermission: 'manage_team' },
 ];
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { isDark, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, can } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [pendingWithdrawalsCount, setPendingWithdrawalsCount] = useState(0);
 
+  const visibleAdminItems = adminNavItems.filter(
+    (item) => !item.requiredPermission || can(item.requiredPermission),
+  );
+
   useEffect(() => {
     if (!isAdmin) return;
+    if (!can('view_financial')) return;
     adminApi.financialOverview()
       .then((data) => setPendingWithdrawalsCount(data.pendingWithdrawalsCount ?? 0))
       .catch(() => { /* silently ignore — badge is non-critical */ });
-  }, [isAdmin]);
+  }, [isAdmin, can]);
 
   return (
     <aside
@@ -129,7 +146,7 @@ export default function Sidebar() {
               </div>
             )}
             {collapsed && <div className="border-t themed-border my-2" />}
-            {adminNavItems.map((item) => {
+            {visibleAdminItems.map((item) => {
               const showBadge = item.to === '/admin/financial' && pendingWithdrawalsCount > 0;
               return (
                 <NavLink

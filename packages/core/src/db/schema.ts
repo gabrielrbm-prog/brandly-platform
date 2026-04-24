@@ -28,6 +28,13 @@ export interface TrackingEvent {
 // ============================================
 export const userRoleEnum = pgEnum('user_role', ['creator', 'brand', 'admin']);
 export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);
+export const adminRoleEnum = pgEnum('admin_role', [
+  'super_admin',
+  'educator',
+  'financial',
+  'moderator',
+  'viewer',
+]);
 export const productTypeEnum = pgEnum('product_type', ['physical', 'digital']);
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'draft']);
 export const saleStatusEnum = pgEnum('sale_status', ['pending', 'confirmed', 'cancelled', 'refunded']);
@@ -64,6 +71,7 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: userRoleEnum('role').notNull().default('creator'),
+  adminRole: adminRoleEnum('admin_role'),
   levelId: uuid('level_id').references(() => levels.id),
   sponsorId: uuid('sponsor_id').references((): any => users.id),
   referralCode: varchar('referral_code', { length: 20 }).unique(),

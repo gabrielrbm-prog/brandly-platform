@@ -335,7 +335,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Cria nova marca
   // ----------------------------------------------------------
   app.post<{ Body: CreateBrandBody }>('/brands', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('create_brand')],
   }, async (request, reply) => {
     const {
       name,
@@ -396,7 +396,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Atualiza campos da marca
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string }; Body: UpdateBrandBody }>('/brands/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { id } = request.params;
     const {
@@ -468,7 +468,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Alterna status ativo/inativo da marca
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string } }>('/brands/:id/toggle-status', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { id } = request.params;
 
@@ -531,7 +531,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Cria briefing para uma marca
   // ----------------------------------------------------------
   app.post<{ Params: { brandId: string }; Body: CreateBriefingBody }>('/brands/:brandId/briefings', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { brandId } = request.params;
     const {
@@ -585,7 +585,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Atualiza campos de um briefing
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string }; Body: UpdateBriefingBody }>('/briefings/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { id } = request.params;
     const {
@@ -638,7 +638,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Alterna status ativo/inativo do briefing
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string } }>('/briefings/:id/toggle-status', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { id } = request.params;
 
@@ -696,7 +696,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Cria produto para uma marca
   // ----------------------------------------------------------
   app.post<{ Params: { brandId: string }; Body: CreateProductBody }>('/brands/:brandId/products', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { brandId } = request.params;
     const {
@@ -765,7 +765,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Atualiza campos de um produto
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string }; Body: UpdateProductBody }>('/products/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { id } = request.params;
     const {
@@ -825,7 +825,7 @@ export async function adminBrandsRoutes(app: FastifyInstance) {
   // Alterna entre active, inactive e draft para o produto
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string } }>('/products/:id/toggle-status', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('edit_brand')],
   }, async (request, reply) => {
     const { id } = request.params;
 

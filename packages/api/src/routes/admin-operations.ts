@@ -226,7 +226,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // POST /api/admin/courses — cria um novo curso
   // ----------------------------------------------------------
   app.post<{ Body: CreateCourseBody }>('/courses', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { title, description, isPublished = false } = request.body;
 
@@ -262,7 +262,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // PATCH /api/admin/courses/:id — atualiza um curso
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string }; Body: UpdateCourseBody }>('/courses/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { title, description, orderIndex, isPublished } = request.body;
@@ -297,7 +297,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // PATCH /api/admin/courses/:id/toggle-publish — publica ou despublica
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string } }>('/courses/:id/toggle-publish', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { id } = request.params;
 
@@ -375,7 +375,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // POST /api/admin/courses/:id/lessons — cria aula no curso
   // ----------------------------------------------------------
   app.post<{ Params: { id: string }; Body: CreateLessonBody }>('/courses/:id/lessons', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { title, videoUrl, duration, orderIndex, isPublished = false } = request.body;
@@ -422,7 +422,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // PATCH /api/admin/lessons/:id — atualiza uma aula
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string }; Body: UpdateLessonBody }>('/lessons/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { title, videoUrl, duration, orderIndex, isPublished } = request.body;
@@ -458,7 +458,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // PATCH /api/admin/lessons/:id/toggle-publish — publica ou despublica aula
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string } }>('/lessons/:id/toggle-publish', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { id } = request.params;
 
@@ -582,7 +582,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // POST /api/admin/lives — cria evento de live
   // ----------------------------------------------------------
   app.post<{ Body: CreateLiveBody }>('/lives', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { title, instructorName, scheduledAt, meetingUrl } = request.body;
 
@@ -621,7 +621,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // PATCH /api/admin/lives/:id — atualiza evento de live
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string }; Body: UpdateLiveBody }>('/lives/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { title, instructorName, scheduledAt, meetingUrl } = request.body;
@@ -662,7 +662,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // DELETE /api/admin/lives/:id — remove evento de live
   // ----------------------------------------------------------
   app.delete<{ Params: { id: string } }>('/lives/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_courses')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { userId: adminId } = request.user;
@@ -736,7 +736,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // POST /api/admin/cases — cria case de sucesso
   // ----------------------------------------------------------
   app.post<{ Body: CreateCaseBody }>('/cases', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_community')],
   }, async (request, reply) => {
     const { creatorId, title, story, earnings, isPublished = false } = request.body;
 
@@ -778,7 +778,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // PATCH /api/admin/cases/:id — atualiza case de sucesso
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string }; Body: UpdateCaseBody }>('/cases/:id', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_community')],
   }, async (request, reply) => {
     const { id } = request.params;
     const { title, story, earnings, isPublished } = request.body;
@@ -813,7 +813,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // PATCH /api/admin/cases/:id/toggle-publish — publica ou despublica case
   // ----------------------------------------------------------
   app.patch<{ Params: { id: string } }>('/cases/:id/toggle-publish', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_community')],
   }, async (request, reply) => {
     const { id } = request.params;
 
@@ -846,7 +846,7 @@ export async function adminOperationsRoutes(app: FastifyInstance) {
   // POST /api/admin/notifications/send — envia push notification
   // ----------------------------------------------------------
   app.post<{ Body: SendNotificationBody }>('/notifications/send', {
-    preHandler: [app.requireAdmin],
+    preHandler: [app.requireAdminPermission('manage_community')],
   }, async (request, reply) => {
     const { title, body, target, levelFilter, userId: targetUserId } = request.body;
     const { userId: adminId } = request.user;

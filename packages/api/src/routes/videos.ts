@@ -150,7 +150,7 @@ export async function videoRoutes(app: FastifyInstance) {
   // PATCH /api/videos/:id/review — aprovar/rejeitar (admin)
   app.patch<{ Params: { id: string }; Body: ReviewVideoBody }>(
     '/:id/review',
-    { preHandler: [app.requireAdmin] },
+    { preHandler: [app.requireAdminPermission('approve_video')] },
     async (request, reply) => {
       const { id } = request.params;
       const { status, rejectionReason } = request.body;

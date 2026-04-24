@@ -332,7 +332,7 @@ export async function brandApplicationRoutes(app: FastifyInstance) {
     };
   }>(
     '/admin/brands/:id/match-criteria',
-    { preHandler: [app.requireAdmin] },
+    { preHandler: [app.requireAdminPermission('edit_brand')] },
     async (request, reply) => {
       const { id } = request.params;
       const body = request.body;

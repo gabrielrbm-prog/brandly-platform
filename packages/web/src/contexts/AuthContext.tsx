@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { api, authApi } from '@/lib/api';
+import { canDo, type AdminAction, type AdminRole } from '@/lib/permissions';
 
 interface User {
   id: string;
   name: string;
   email: string;
   role?: string;
+  adminRole?: AdminRole | null;
   referralCode?: string;
   onboardingCompleted?: boolean;
   [key: string]: unknown;
@@ -18,6 +20,7 @@ interface AuthContextData {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
   logout: () => void;
+  can: (action: AdminAction) => boolean;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -71,6 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const can = useCallback(
+    (action: AdminAction) => {
+      if (!user || user.role !== 'admin') return false;
+      return canDo(user.adminRole, action);
+    },
+    [user],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -80,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        can,
       }}
     >
       {children}

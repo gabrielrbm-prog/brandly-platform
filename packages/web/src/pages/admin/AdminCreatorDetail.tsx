@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   ArrowLeft,
   User,
@@ -1052,6 +1053,9 @@ export default function AdminCreatorDetail() {
   const [changingLevel, setChangingLevel] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [showLevelMenu, setShowLevelMenu] = useState(false);
+  const { can } = useAuth();
+  const canChangeStatus = can('change_creator_status');
+  const canChangeLevel = can('change_creator_level');
 
   const fetchData = useCallback(async () => {
     if (!id) return;
@@ -1180,8 +1184,10 @@ export default function AdminCreatorDetail() {
           </div>
 
           {/* Action buttons */}
+          {(canChangeStatus || canChangeLevel) && (
           <div className="mt-4 pt-4 border-t themed-border flex flex-wrap gap-2">
-            {/* Change Status */}
+            {canChangeStatus && (
+            /* Change Status */
             <div className="relative">
               <Button
                 variant="secondary"
@@ -1211,8 +1217,10 @@ export default function AdminCreatorDetail() {
                 </div>
               )}
             </div>
+            )}
 
-            {/* Change Level */}
+            {canChangeLevel && (
+            /* Change Level */
             <div className="relative">
               <Button
                 variant="secondary"
@@ -1243,7 +1251,9 @@ export default function AdminCreatorDetail() {
                 </div>
               )}
             </div>
+            )}
           </div>
+          )}
         </Card>
 
         {/* Tabs navigation */}
